@@ -1,83 +1,10 @@
 {
-  "generated_at": "2026-08-13T21:49:58.226209+00:00",
+  "generated_at": "2026-08-13T21:52:25.396692+00:00",
   "problems": {
     "anagram-groups": {
       "submissions": [
         {
           "analyzed_at": "2026-08-13T20:35:35.179072+00:00",
-          "benchmarks": {
-            "adversarial": {
-              "best_fit": "n",
-              "best_fit_r2": 0.9998172298613641,
-              "k3_model": null,
-              "k3_model_r2": null,
-              "note": "every word is a rotation of the same 10-letter multiset, so all n words share one anagram signature (one exact dict key, not merely one hash bucket) and land in a single group; empirically this does NOT degrade to O(n^2) the way distinct-but-colliding keys do, since CPython dicts resolve a repeated exact key by direct slot lookup rather than probing a chain \u2014 see README",
-              "r2": 0.9998596822033992,
-              "sizes": [
-                64,
-                128,
-                256,
-                512,
-                1024,
-                2048,
-                4096,
-                8192,
-                16384,
-                32768,
-                65536
-              ],
-              "slope": 1.006558740125175,
-              "times_ms": [
-                0.06516696885228157,
-                0.14124996960163116,
-                0.28791697695851326,
-                0.5750840064138174,
-                1.163083128631115,
-                2.3478749208152294,
-                4.589291987940669,
-                9.047708008438349,
-                18.340416951105,
-                36.87941608950496,
-                73.49404180422425
-              ]
-            },
-            "best_fit": "n",
-            "best_fit_r2": 0.996929879090427,
-            "k3_model": null,
-            "k3_model_r2": null,
-            "r2": 0.9995035420814609,
-            "sizes": [
-              256,
-              512,
-              1024,
-              2048,
-              4096,
-              8192,
-              16384,
-              32768,
-              65536,
-              131072,
-              262144,
-              524288,
-              1048576
-            ],
-            "slope": 1.053456468449996,
-            "times_ms": [
-              0.23416616022586823,
-              0.45258295722305775,
-              0.9445841424167156,
-              1.953708939254284,
-              3.989666001871228,
-              7.771375123411417,
-              16.12849999219179,
-              33.77350000664592,
-              69.91358404047787,
-              146.39566699042916,
-              310.95558404922485,
-              686.7462091613561,
-              1590.1896669529378
-            ]
-          },
           "complexity": {
             "hash_dependent": true,
             "notes": "Redundant: word_tuple is called twice per word; a single pass with d.setdefault(sig, []).append(word) (or defaultdict(list)) would be cleaner. The annotation tuple(int) is not valid typing (use tuple[int, ...]), and ord(letter)-97 silently assumes lowercase a-z input. `return list(d.values())` is more idiomatic than the final list comprehension.",
@@ -103,75 +30,6 @@
       "submissions": [
         {
           "analyzed_at": "2026-08-13T20:35:39.631967+00:00",
-          "benchmarks": {
-            "adversarial": {
-              "best_fit": "n^2",
-              "best_fit_r2": 0.9999362805247533,
-              "k3_model": null,
-              "k3_model_r2": null,
-              "note": "n distinct multiples of 2**61-1, all hashing to 0, so every dict insert/lookup collides",
-              "r2": 0.9999415613650741,
-              "sizes": [
-                64,
-                128,
-                256,
-                512,
-                1024,
-                2048,
-                4096,
-                8192,
-                16384
-              ],
-              "slope": 2.004606736730469,
-              "times_ms": [
-                0.04416704177856445,
-                0.16654119826853275,
-                0.639250036329031,
-                2.7700418140739202,
-                11.134416796267033,
-                44.20775012113154,
-                178.1363331247121,
-                706.3649999909103,
-                2837.103375000879
-              ]
-            },
-            "best_fit": "n log n",
-            "best_fit_r2": 0.9910165017921126,
-            "k3_model": null,
-            "k3_model_r2": null,
-            "r2": 0.9955007133453062,
-            "sizes": [
-              256,
-              512,
-              1024,
-              2048,
-              4096,
-              8192,
-              16384,
-              32768,
-              65536,
-              131072,
-              262144,
-              524288,
-              1048576
-            ],
-            "slope": 1.17303794343694,
-            "times_ms": [
-              0.009167008101940155,
-              0.01816614530980587,
-              0.04224991425871849,
-              0.0962910708039999,
-              0.16224989667534828,
-              0.36424980498850346,
-              0.785167096182704,
-              1.6501250211149454,
-              3.7878339644521475,
-              9.131083963438869,
-              27.371959062293172,
-              74.56595893017948,
-              171.49345902726054
-            ]
-          },
           "complexity": {
             "hash_dependent": true,
             "notes": "Shadowing the builtin name 'dict' is poor style; a set with early return (return True when a value is already seen) is simpler and avoids the second pass. Worst case assumes adversarial hash collisions making each dict operation O(n).",
@@ -197,45 +55,6 @@
       "submissions": [
         {
           "analyzed_at": "2026-08-13T20:35:47.635025+00:00",
-          "benchmarks": {
-            "adversarial": null,
-            "best_fit": "n",
-            "best_fit_r2": 0.9996034205097847,
-            "k3_model": null,
-            "k3_model_r2": null,
-            "r2": 0.999803980638428,
-            "sizes": [
-              256,
-              512,
-              1024,
-              2048,
-              4096,
-              8192,
-              16384,
-              32768,
-              65536,
-              131072,
-              262144,
-              524288,
-              1048576
-            ],
-            "slope": 1.0143667949466109,
-            "times_ms": [
-              0.014625024050474167,
-              0.026833033189177513,
-              0.05783303640782833,
-              0.10633398778736591,
-              0.21008402109146118,
-              0.44541689567267895,
-              0.9333749767392874,
-              1.899082912132144,
-              3.7609580904245377,
-              7.639958057552576,
-              15.739416936412454,
-              31.295958207920194,
-              62.781042186543345
-            ]
-          },
           "complexity": {
             "hash_dependent": true,
             "notes": "The bare `except` clause is unidiomatic and masks unexpected errors; using `dict.get(i, 0)` or `collections.Counter` (with a simple `Counter(s) == Counter(t)` comparison) would be cleaner and more Pythonic. Space is effectively O(1) if the alphabet is bounded (e.g., lowercase letters).",
@@ -261,45 +80,6 @@
       "submissions": [
         {
           "analyzed_at": "2026-08-13T20:35:54.185189+00:00",
-          "benchmarks": {
-            "adversarial": null,
-            "best_fit": "n",
-            "best_fit_r2": 0.9997936990227687,
-            "k3_model": null,
-            "k3_model_r2": null,
-            "r2": 0.9998399951542013,
-            "sizes": [
-              256,
-              512,
-              1024,
-              2048,
-              4096,
-              8192,
-              16384,
-              32768,
-              65536,
-              131072,
-              262144,
-              524288,
-              1048576
-            ],
-            "slope": 1.0068512912505891,
-            "times_ms": [
-              0.004207948222756386,
-              0.009041978046298027,
-              0.018584076315164566,
-              0.03691716119647026,
-              0.07225014269351959,
-              0.14691706746816635,
-              0.26637502014636993,
-              0.5747498944401741,
-              1.150042051449418,
-              2.386291977018118,
-              4.741583950817585,
-              9.55137494020164,
-              19.4495830219239
-            ]
-          },
           "complexity": {
             "hash_dependent": false,
             "notes": "The s.lower() call creates a full copy of the string, costing O(n) extra space; comparing characters with .lower() on the fly (or using casefold) would keep space at O(1). The early return when a reaches len(s) is slightly awkward\u2014bounding the inner loops with a < b would read more cleanly.",
@@ -321,45 +101,6 @@
         },
         {
           "analyzed_at": "2026-08-13T20:35:57.190236+00:00",
-          "benchmarks": {
-            "adversarial": null,
-            "best_fit": "n",
-            "best_fit_r2": 0.9994795660848447,
-            "k3_model": null,
-            "k3_model_r2": null,
-            "r2": 0.9997264097729008,
-            "sizes": [
-              256,
-              512,
-              1024,
-              2048,
-              4096,
-              8192,
-              16384,
-              32768,
-              65536,
-              131072,
-              262144,
-              524288,
-              1048576
-            ],
-            "slope": 0.9845296818673536,
-            "times_ms": [
-              0.005790963768959045,
-              0.011875061318278313,
-              0.023208092898130417,
-              0.04274980165064335,
-              0.09645801037549973,
-              0.17212494276463985,
-              0.3378340043127537,
-              0.662999926134944,
-              1.2852910440415144,
-              2.581042004749179,
-              5.357790971174836,
-              11.007457971572876,
-              21.963125094771385
-            ]
-          },
           "complexity": {
             "hash_dependent": false,
             "notes": "Concise and idiomatic; a two-pointer approach would reduce extra space to O(1) but this is perfectly readable for typical inputs.",
@@ -385,77 +126,6 @@
       "submissions": [
         {
           "analyzed_at": "2026-08-13T20:36:06.654208+00:00",
-          "benchmarks": {
-            "adversarial": {
-              "best_fit": "n^2",
-              "best_fit_r2": 0.999105562586101,
-              "k3_model": null,
-              "k3_model_r2": null,
-              "note": "n distinct multiples of 2**61-1, all hashing to 0, so every set insert/lookup collides",
-              "r2": 0.9995288376496708,
-              "sizes": [
-                64,
-                128,
-                256,
-                512,
-                1024,
-                2048,
-                4096,
-                8192,
-                16384,
-                32768
-              ],
-              "slope": 1.9596728752318333,
-              "times_ms": [
-                0.02845795825123787,
-                0.09558303281664848,
-                0.34929183311760426,
-                1.3339589349925518,
-                5.098958965390921,
-                18.878583097830415,
-                83.79658288322389,
-                317.96979205682874,
-                1386.739332927391,
-                5321.982791880146
-              ]
-            },
-            "best_fit": "n log n",
-            "best_fit_r2": 0.9976914274453079,
-            "k3_model": null,
-            "k3_model_r2": null,
-            "r2": 0.9980579491084037,
-            "sizes": [
-              256,
-              512,
-              1024,
-              2048,
-              4096,
-              8192,
-              16384,
-              32768,
-              65536,
-              131072,
-              262144,
-              524288,
-              1048576
-            ],
-            "slope": 1.0833203653558032,
-            "times_ms": [
-              0.0062498729676008224,
-              0.0177919864654541,
-              0.04712492227554321,
-              0.09341700933873653,
-              0.17820787616074085,
-              0.35829097032546997,
-              0.6955829448997974,
-              1.5519170556217432,
-              3.0971660744398832,
-              6.544833071529865,
-              14.369916869327426,
-              32.78074995614588,
-              73.86649982072413
-            ]
-          },
           "complexity": {
             "hash_dependent": true,
             "notes": "Removing visited elements from the set is a nice touch that guarantees each number is processed once. Note the algorithm does not skip non-sequence-starts like the classic approach, but the removal strategy makes that unnecessary. Worst case degrades to O(n^2) under adversarial hash collisions since each set membership check could cost O(n).",
@@ -481,45 +151,6 @@
       "submissions": [
         {
           "analyzed_at": "2026-08-13T20:36:30.638443+00:00",
-          "benchmarks": {
-            "adversarial": null,
-            "best_fit": "n",
-            "best_fit_r2": 0.9995624767692987,
-            "k3_model": null,
-            "k3_model_r2": null,
-            "r2": 0.9995770672273901,
-            "sizes": [
-              256,
-              512,
-              1024,
-              2048,
-              4096,
-              8192,
-              16384,
-              32768,
-              65536,
-              131072,
-              262144,
-              524288,
-              1048576
-            ],
-            "slope": 0.9961939872573307,
-            "times_ms": [
-              0.006250105798244476,
-              0.011832918971776962,
-              0.023083994165062904,
-              0.04666694439947605,
-              0.10033301077783108,
-              0.18979213200509548,
-              0.3302500117570162,
-              0.6785828154534101,
-              1.4712500851601362,
-              2.9160419944673777,
-              5.9247498866170645,
-              12.095707934349775,
-              25.080000050365925
-            ]
-          },
           "complexity": {
             "hash_dependent": false,
             "notes": "Uses integer division (prod // num), which is exact here but violates the common 'no division' variant of this problem and relies on exact divisibility. The one-zero branch slices nums[:zero] and nums[zero+1:], creating O(n) copies; iterating by index and skipping zero would avoid that. The match/case with a guarded wildcard is less readable than simple if/elif, and requires Python 3.10+.",
@@ -545,45 +176,6 @@
       "submissions": [
         {
           "analyzed_at": "2026-08-13T20:36:57.278061+00:00",
-          "benchmarks": {
-            "adversarial": null,
-            "best_fit": "n",
-            "best_fit_r2": 0.9985191438857096,
-            "k3_model": null,
-            "k3_model_r2": null,
-            "r2": 0.9996830187691377,
-            "sizes": [
-              256,
-              512,
-              1024,
-              2048,
-              4096,
-              8192,
-              16384,
-              32768,
-              65536,
-              131072,
-              262144,
-              524288,
-              1048576
-            ],
-            "slope": 1.035326391306683,
-            "times_ms": [
-              0.002708984538912773,
-              0.005124835297465324,
-              0.01095794141292572,
-              0.023166881874203682,
-              0.05183299072086811,
-              0.10349997319281101,
-              0.19754096865653992,
-              0.4384580533951521,
-              0.7980000227689743,
-              1.6328750643879175,
-              3.5151659976691008,
-              6.958584068343043,
-              15.16254199668765
-            ]
-          },
           "complexity": {
             "hash_dependent": false,
             "notes": "Correctness is fragile: any input string containing the delimiter emoji breaks decoding, and encode([]) and encode(['']) both rely on subtle edge-case behavior of split/pop; a length-prefixed encoding (e.g., 'len#string') is the standard robust approach. Also missing 'from typing import List' import.",
@@ -605,45 +197,6 @@
         },
         {
           "analyzed_at": "2026-08-13T20:36:36.002592+00:00",
-          "benchmarks": {
-            "adversarial": null,
-            "best_fit": "n",
-            "best_fit_r2": 0.9984694351911336,
-            "k3_model": null,
-            "k3_model_r2": null,
-            "r2": 0.999424514135727,
-            "sizes": [
-              256,
-              512,
-              1024,
-              2048,
-              4096,
-              8192,
-              16384,
-              32768,
-              65536,
-              131072,
-              262144,
-              524288,
-              1048576
-            ],
-            "slope": 1.0318993607429485,
-            "times_ms": [
-              0.002749962732195854,
-              0.005833106115460396,
-              0.012500211596488953,
-              0.027959002181887627,
-              0.06174994632601738,
-              0.11133402585983276,
-              0.2284159418195486,
-              0.4715831018984318,
-              0.937832985073328,
-              1.8536250572651625,
-              3.7342500872910023,
-              7.348292041569948,
-              16.558458097279072
-            ]
-          },
           "complexity": {
             "hash_dependent": false,
             "notes": "The approach is not robust: if any input string contains the delimiter substring, decoding is incorrect. A length-prefix scheme (e.g., 'len#string') is the standard safe encoding. Also, 'output.pop(-1)' could be written as 'output.pop()', and the encode/decode edge cases (empty list, empty strings) should be handled symmetrically.",
@@ -665,45 +218,6 @@
         },
         {
           "analyzed_at": "2026-08-13T20:36:46.415565+00:00",
-          "benchmarks": {
-            "adversarial": null,
-            "best_fit": "n",
-            "best_fit_r2": 0.9999047802739879,
-            "k3_model": null,
-            "k3_model_r2": null,
-            "r2": 0.9999394054213455,
-            "sizes": [
-              256,
-              512,
-              1024,
-              2048,
-              4096,
-              8192,
-              16384,
-              32768,
-              65536,
-              131072,
-              262144,
-              524288,
-              1048576
-            ],
-            "slope": 1.0059193241715327,
-            "times_ms": [
-              0.018875114619731903,
-              0.03783288411796093,
-              0.0785409938544035,
-              0.15070801600813866,
-              0.31400006264448166,
-              0.5968338809907436,
-              1.238125143572688,
-              2.3870000150054693,
-              4.931458039209247,
-              10.01137518323958,
-              19.97891697101295,
-              40.62070813961327,
-              83.48487503826618
-            ]
-          },
           "complexity": {
             "hash_dependent": false,
             "notes": "Decode is quadratic due to repeated s = s[...] slicing; using an index pointer (or StringIO/pointer walk) instead of re-slicing would make it O(n). Also int(s[0:a]) and s.index('|') re-scan the header each time; encode is fine. Consider a delimiter unlikely to confuse (current scheme is actually correct since length prefix disambiguates '|' inside content).",
@@ -729,73 +243,6 @@
       "submissions": [
         {
           "analyzed_at": "2026-08-13T20:37:18.394357+00:00",
-          "benchmarks": {
-            "adversarial": {
-              "best_fit": "n^2",
-              "best_fit_r2": 0.9990437967364875,
-              "k3_model": null,
-              "k3_model_r2": null,
-              "note": "n distinct multiples of 2**61-1, all hashing to 0, so every dict insert/lookup collides",
-              "r2": 0.9993978351811493,
-              "sizes": [
-                64,
-                128,
-                256,
-                512,
-                1024,
-                2048,
-                4096,
-                8192
-              ],
-              "slope": 1.9630522606254783,
-              "times_ms": [
-                0.14512497000396252,
-                0.4363751504570246,
-                1.8147500231862068,
-                6.966541055589914,
-                28.88833312317729,
-                107.0764590986073,
-                466.61491715349257,
-                1746.4681251440197
-              ]
-            },
-            "best_fit": "n log n",
-            "best_fit_r2": 0.9984749673731871,
-            "k3_model": null,
-            "k3_model_r2": null,
-            "r2": 0.9991328796563833,
-            "sizes": [
-              256,
-              512,
-              1024,
-              2048,
-              4096,
-              8192,
-              16384,
-              32768,
-              65536,
-              131072,
-              262144,
-              524288,
-              1048576
-            ],
-            "slope": 1.0883599596149052,
-            "times_ms": [
-              0.011792173609137535,
-              0.02195802517235279,
-              0.041582854464650154,
-              0.11520786210894585,
-              0.23716711439192295,
-              0.479790847748518,
-              1.04608410038054,
-              1.9533750601112843,
-              4.176749847829342,
-              8.908291812986135,
-              19.101624842733145,
-              45.5570830963552,
-              102.26508299820125
-            ]
-          },
           "complexity": {
             "hash_dependent": true,
             "notes": "m = number of distinct values. The nested scan over all (key, value) pairs for each of the k top counts is O(k*m) and can degenerate to O(n^2); using collections.Counter with most_common(k) or a heap would be cleaner and O(n log k). Also, the sort-plus-match approach can return more than k elements when frequencies tie at the cutoff, and worst-case time includes adversarial dict hash collisions.",
@@ -821,79 +268,6 @@
       "submissions": [
         {
           "analyzed_at": "2026-08-13T20:37:30.485474+00:00",
-          "benchmarks": {
-            "adversarial": {
-              "best_fit": "n",
-              "best_fit_r2": 0.999686950373091,
-              "k3_model": null,
-              "k3_model_r2": null,
-              "note": "n distinct multiples of 2**61-1, all hashing to 0, so every dict insert/lookup collides",
-              "r2": 0.9997072603673495,
-              "sizes": [
-                64,
-                128,
-                256,
-                512,
-                1024,
-                2048,
-                4096,
-                8192,
-                16384,
-                32768,
-                65536
-              ],
-              "slope": 1.0045277288093224,
-              "times_ms": [
-                0.003832858055830002,
-                0.007666880264878273,
-                0.014125136658549309,
-                0.027957838028669357,
-                0.05625002086162567,
-                0.11933315545320511,
-                0.24025002494454384,
-                0.45425002463161945,
-                0.969915883615613,
-                1.9954999443143606,
-                3.90258408151567
-              ]
-            },
-            "best_fit": "n log n",
-            "best_fit_r2": 0.9972135833810918,
-            "k3_model": null,
-            "k3_model_r2": null,
-            "r2": 0.9988187516418117,
-            "sizes": [
-              256,
-              512,
-              1024,
-              2048,
-              4096,
-              8192,
-              16384,
-              32768,
-              65536,
-              131072,
-              262144,
-              524288,
-              1048576
-            ],
-            "slope": 1.1461614461335947,
-            "times_ms": [
-              0.013875076547265053,
-              0.027082860469818115,
-              0.07320893928408623,
-              0.12745894491672516,
-              0.28241705149412155,
-              0.5952089559286833,
-              1.5101670287549496,
-              3.8014589808881283,
-              6.695667048916221,
-              15.079791191965342,
-              31.639707973226905,
-              88.0502499639988,
-              197.36875011585653
-            ]
-          },
           "complexity": {
             "hash_dependent": false,
             "notes": "Works but convoluted: the duplicate-value handling with pop() and index()+1 is fragile and hard to follow. Using negative index high=-1 is valid but less readable than high=len(nums2)-1. A single-pass hash map or sorting (index, value) pairs would be clearer and avoid the O(n) index() recovery entirely.",
@@ -919,79 +293,6 @@
       "submissions": [
         {
           "analyzed_at": "2026-08-13T20:37:41.843398+00:00",
-          "benchmarks": {
-            "adversarial": {
-              "best_fit": "n",
-              "best_fit_r2": 0.9977437373344852,
-              "k3_model": null,
-              "k3_model_r2": null,
-              "note": "n distinct multiples of 2**61-1 (already ascending), all hashing to 0, so every dict insert/lookup collides",
-              "r2": 0.9978836057904279,
-              "sizes": [
-                64,
-                128,
-                256,
-                512,
-                1024,
-                2048,
-                4096,
-                8192,
-                16384,
-                32768,
-                65536
-              ],
-              "slope": 0.9882993908013729,
-              "times_ms": [
-                0.005375128239393234,
-                0.007416820153594017,
-                0.014458084478974342,
-                0.02950010821223259,
-                0.061542028561234474,
-                0.13475003652274609,
-                0.25895796716213226,
-                0.5046660080552101,
-                0.9906250052154064,
-                1.979416934773326,
-                4.120416939258575
-              ]
-            },
-            "best_fit": "n log n",
-            "best_fit_r2": 0.9861773509351651,
-            "k3_model": null,
-            "k3_model_r2": null,
-            "r2": 0.9873748202135311,
-            "sizes": [
-              256,
-              512,
-              1024,
-              2048,
-              4096,
-              8192,
-              16384,
-              32768,
-              65536,
-              131072,
-              262144,
-              524288,
-              1048576
-            ],
-            "slope": 1.109388318917877,
-            "times_ms": [
-              0.007041962817311287,
-              0.010832911357283592,
-              0.01650000922381878,
-              0.041458988562226295,
-              0.08841697126626968,
-              0.3777090460062027,
-              0.6080828607082367,
-              0.9096660651266575,
-              1.238957978785038,
-              4.181666998192668,
-              7.733749924227595,
-              31.14033304154873,
-              73.68450006470084
-            ]
-          },
           "complexity": {
             "hash_dependent": false,
             "notes": "Sorting discards original positions, forcing O(n) index() lookups afterward; sorting (value, index) pairs would avoid the awkward pop-and-re-search duplicate handling. Also note Two Sum II typically assumes the input is already sorted, in which case sorting here adds an unnecessary O(n log n) factor instead of the intended O(n) two-pointer pass. The high = -1 negative-index trick is valid Python but less readable than len(nums2) - 1.",
