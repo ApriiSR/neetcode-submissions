@@ -208,6 +208,11 @@ def get_complexity(slug: str, source: str, mock: bool) -> tuple[dict | None, str
             RuntimeError,
         ) as exc:
             last_error = f"{type(exc).__name__}: {exc}"
+            if isinstance(exc, urllib.error.HTTPError):
+                try:
+                    last_error += f" — {exc.read().decode('utf-8', 'replace')[:500]}"
+                except OSError:
+                    pass
     return None, last_error
 
 
