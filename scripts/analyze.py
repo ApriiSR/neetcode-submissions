@@ -22,6 +22,9 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import generators
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SUBMISSIONS_ROOT = REPO_ROOT / "Data Structures & Algorithms"
 ANALYSIS_ROOT = REPO_ROOT / "analysis"
@@ -40,16 +43,26 @@ MOONSHOT_API_KEY = os.environ.get("MOONSHOT_API_KEY")
 SUBMISSION_RE = re.compile(r"^submission-(\d+)\.py$")
 
 SYSTEM_PROMPT = (
-    "You are a precise algorithms reviewer. Given a problem slug and a Python "
-    "solution, respond with STRICT JSON only (no markdown fences, no prose "
-    "outside the JSON object) with exactly these fields: "
+    "You are a precise algorithms reviewer. Given a problem slug, a note on "
+    "how that problem's input scales with n, and a Python solution, respond "
+    "with STRICT JSON only (no markdown fences, no prose outside the JSON "
+    "object) with exactly these fields: "
     '"time_average" (string, Big-O), "time_worst" (string, Big-O; if the '
     "solution uses a dict or set, the worst case must account for adversarial "
     "hash collisions degrading lookups to O(n)), \"space\" (string, Big-O), "
     '"hash_dependent" (boolean, true if correctness or the stated time '
-    'complexity relies on dict/set average-case hashing), "summary" (string, '
-    '1-2 sentences describing the approach), "notes" (string, optional '
-    "remarks on idiomatic style or readability; empty string if none)."
+    'complexity relies on dict/set average-case hashing), "benchmark_model" '
+    "(string, the expected asymptotic running time reduced to a SINGLE "
+    "variable n using the scaling note — e.g. a multi-variable complexity "
+    'like O(n+m) or O(n*L) must be rewritten in terms of n alone by '
+    "substituting how the other variable actually scales with n. Restricted "
+    "to exactly this grammar: a product of n^a and (log n)^b, with a in "
+    "{0, 0.5, 1, 1.5, 2, 3} and b in {0, 1}, written as one of: \"1\", "
+    '"log n", "n", "n log n", "n^0.5", "n^0.5 log n", "n^1.5", '
+    '"n^1.5 log n", "n^2", "n^2 log n", "n^3", "n^3 log n" — no other '
+    'symbols, variables, or constants), "summary" (string, 1-2 sentences '
+    'describing the approach), "notes" (string, optional remarks on '
+    "idiomatic style or readability; empty string if none)."
 )
 
 
@@ -141,6 +154,7 @@ REQUIRED_FIELDS = (
     "time_worst",
     "space",
     "hash_dependent",
+    "benchmark_model",
     "summary",
 )
 
@@ -157,11 +171,16 @@ def parse_complexity_response(raw_text: str) -> dict:
     return data
 
 
-def call_moonshot(slug: str, source: str) -> dict:
+def build_user_prompt(slug: str, source: str, scaling_note: str | None) -> str:
+    scaling_line = f"Scaling: {scaling_note}\n\n" if scaling_note else ""
+    return f"Problem slug: {slug}\n\n{scaling_line}Solution:\n```python\n{source}\n```"
+
+
+def call_moonshot(slug: str, source: str, scaling_note: str | None = None) -> dict:
     if not MOONSHOT_API_KEY:
         raise RuntimeError("MOONSHOT_API_KEY is not set")
 
-    user_prompt = f"Problem slug: {slug}\n\nSolution:\n```python\n{source}\n```"
+    user_prompt = build_user_prompt(slug, source, scaling_note)
     payload = {
         "model": MOONSHOT_MODEL,
         "messages": [
@@ -183,7 +202,9 @@ def call_moonshot(slug: str, source: str) -> dict:
     return body["choices"][0]["message"]["content"]
 
 
-def get_complexity(slug: str, source: str, mock: bool) -> tuple[dict | None, str | None]:
+def get_complexity(
+    slug: str, source: str, mock: bool, scaling_note: str | None = None
+) -> tuple[dict | None, str | None]:
     if mock:
         return (
             {
@@ -191,6 +212,7 @@ def get_complexity(slug: str, source: str, mock: bool) -> tuple[dict | None, str
                 "time_worst": "O(n)",
                 "space": "O(n)",
                 "hash_dependent": False,
+                "benchmark_model": "n",
                 "summary": "Mock analysis placeholder (no LLM call was made).",
                 "notes": "",
             },
@@ -200,7 +222,7 @@ def get_complexity(slug: str, source: str, mock: bool) -> tuple[dict | None, str
     last_error = None
     for attempt in range(2):
         try:
-            raw_text = call_moonshot(slug, source)
+            raw_text = call_moonshot(slug, source, scaling_note)
             return parse_complexity_response(raw_text), None
         except (
             urllib.error.URLError,
@@ -222,7 +244,11 @@ def get_complexity(slug: str, source: str, mock: bool) -> tuple[dict | None, str
 
 def analyze_submission(slug: str, number: int, path: Path, mock: bool) -> tuple[dict, bool]:
     source = path.read_text(encoding="utf-8")
-    complexity, error = get_complexity(slug, source, mock)
+    # generators.PROBLEMS may not have every slug (e.g. a problem added
+    # without a benchmark generator yet); tolerate that and fall back to
+    # no scaling note rather than raising.
+    scaling_note = generators.PROBLEMS.get(slug, {}).get("scaling_note")
+    complexity, error = get_complexity(slug, source, mock, scaling_note)
 
     record = {
         "file": str(path.relative_to(REPO_ROOT)),
@@ -245,8 +271,15 @@ def has_good_analysis(out_path: Path) -> bool:
         data = json.loads(out_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
         return False
-    # errored (null) and mock records are retried on later runs
-    return isinstance(data, dict) and data.get("complexity") is not None and data.get("model") != "mock"
+    if not isinstance(data, dict) or data.get("model") == "mock":
+        # errored (null) and mock records are retried on later runs
+        return False
+    complexity = data.get("complexity")
+    if not isinstance(complexity, dict):
+        return False
+    # records predating the benchmark_model field are retried too, so the
+    # field backfills onto existing analyses on the next run.
+    return complexity.get("benchmark_model") is not None
 
 
 def load_benchmarks(slug: str) -> dict:

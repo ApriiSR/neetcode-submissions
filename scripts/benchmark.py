@@ -23,6 +23,7 @@ import json
 import math
 import os
 import random
+import re
 import sys
 import time
 from datetime import datetime, timezone
@@ -36,12 +37,69 @@ import generators
 REPO_ROOT = Path(__file__).resolve().parent.parent
 BENCHMARKS_ROOT = REPO_ROOT / "analysis" / "benchmarks"
 
-DEFAULT_SIZES = (256, 1024, 4096, 16384)
-ADVERSARIAL_SIZES = (64, 256, 1024)
+DEFAULT_SIZES = tuple(2**k for k in range(8, 21))  # 256 .. 2**20, x2 each step
+ADVERSARIAL_SIZES = tuple(2**k for k in range(6, 17))  # 64 .. 65536, x2 each step
 SIZE_CAP_SECONDS = 2.0
 ADVERSARIAL_CAP_SECONDS = 1.5
 CORRECTNESS_N = 8
 SEED = 20260813
+
+# Above this size, drop from best-of-3 to best-of-2 to keep the denser,
+# wider ladder's total wall time sane.
+BEST_OF_2_THRESHOLD = 2**17
+
+# Hard ceiling on total wall time (normal ladder + adversarial ladder
+# combined) for a single submission, regardless of where the per-size
+# caps above would otherwise let it run.
+TOTAL_BUDGET_SECONDS = 30.0
+
+# Candidate complexity models for best-fit classification. Each maps a
+# short label to f(n); we fit log(t) = log(c) + log(f(n)) in log space
+# (slope fixed at 1, only the constant c is free) and pick the model
+# with the lowest residual, i.e. the highest R^2.
+CANDIDATE_MODELS = (
+    ("n", lambda n: n),
+    ("n log n", lambda n: n * math.log(n)),
+    ("n^1.5", lambda n: n**1.5),
+    ("n^2", lambda n: n**2),
+    ("n^3", lambda n: n**3),
+)
+
+# Grammar analyze.py's SYSTEM_PROMPT restricts K3's "benchmark_model" field
+# to: a product of n^a and (log n)^b, a in {0, 0.5, 1, 1.5, 2, 3}, b in
+# {0, 1}. parse_benchmark_model below accepts exactly the canonical
+# spellings listed in that prompt and nothing else — anything outside the
+# grammar (a hallucinated shape, a stale record predating this field) is
+# rejected by returning None, and callers treat that as "no K3 model".
+_BENCHMARK_MODEL_EXPONENTS = {0.5, 1, 1.5, 2, 3}
+_BENCHMARK_MODEL_POWER_RE = re.compile(r"^n\^(\d+(?:\.\d+)?)$")
+_BENCHMARK_MODEL_POWER_LOG_RE = re.compile(r"^n\^(\d+(?:\.\d+)?)\s+log\s+n$")
+
+
+def parse_benchmark_model(text):
+    if not isinstance(text, str):
+        return None
+    normalized = text.strip().lower()
+    if normalized == "1":
+        return lambda n: 1.0
+    if normalized == "log n":
+        return lambda n: math.log(n)
+    if normalized == "n":
+        return lambda n: n
+    if normalized == "n log n":
+        return lambda n: n * math.log(n)
+
+    m = _BENCHMARK_MODEL_POWER_LOG_RE.match(normalized)
+    if m:
+        exp = float(m.group(1))
+        return (lambda n, exp=exp: n**exp * math.log(n)) if exp in _BENCHMARK_MODEL_EXPONENTS else None
+
+    m = _BENCHMARK_MODEL_POWER_RE.match(normalized)
+    if m:
+        exp = float(m.group(1))
+        return (lambda n, exp=exp: n**exp) if exp in _BENCHMARK_MODEL_EXPONENTS else None
+
+    return None
 
 
 def load_solution(path):
@@ -93,17 +151,95 @@ def fit_loglog(sizes, times_ms):
     return slope, r2
 
 
-def run_ladder(fn, args_fn, sizes, cap_seconds):
+def _fit_model_r2(sizes, times_ms, f):
+    """R^2 of the log-space fit log(t) = log(c) + log(f(n)) (slope fixed at
+    1, only the constant c free) against the observed (sizes, times_ms).
+    """
+    log_t = [math.log(t) for t in times_ms]
+    count = len(log_t)
+    mean_log_t = sum(log_t) / count
+    ss_tot = sum((y - mean_log_t) ** 2 for y in log_t)
+    residuals = [lt - math.log(f(n)) for lt, n in zip(log_t, sizes)]
+    mean_resid = sum(residuals) / count
+    ss_res = sum((r - mean_resid) ** 2 for r in residuals)
+    return 1.0 if ss_tot == 0 else 1.0 - ss_res / ss_tot
+
+
+def fit_best_model(sizes, times_ms, candidates=CANDIDATE_MODELS):
+    """Pick the candidate complexity model (see CANDIDATE_MODELS, plus any
+    extra candidates passed in — e.g. a K3-supplied benchmark_model) whose
+    log-space fit best explains the observed times, by R^2. Returns
+    (label, r2) for the winner, or (None, None) with fewer than 2 points.
+    """
+    if len(sizes) < 2:
+        return None, None
+    best_name, best_r2 = None, None
+    for name, f in candidates:
+        r2 = _fit_model_r2(sizes, times_ms, f)
+        if best_r2 is None or r2 > best_r2:
+            best_name, best_r2 = name, r2
+    return best_name, best_r2
+
+
+def run_ladder(fn, args_fn, sizes, cap_seconds, deadline, k3_model_name=None, k3_model_fn=None):
     sizes_out, times_out = [], []
     for n in sizes:
+        if time.perf_counter() >= deadline:
+            break
+        repeats = 2 if n > BEST_OF_2_THRESHOLD else 3
         args = args_fn(n)
-        elapsed = time_call(fn, args)
+        elapsed = time_call(fn, args, repeats=repeats)
         sizes_out.append(n)
         times_out.append(elapsed * 1000.0)
         if elapsed > cap_seconds:
             break
     slope, r2 = fit_loglog(sizes_out, times_out)
-    return {"sizes": sizes_out, "times_ms": times_out, "slope": slope, "r2": r2}
+
+    candidates = list(CANDIDATE_MODELS)
+    k3_model_r2 = None
+    if k3_model_fn is not None and len(sizes_out) >= 2:
+        k3_model_r2 = _fit_model_r2(sizes_out, times_out, k3_model_fn)
+        candidates.append((k3_model_name, k3_model_fn))
+    best_fit, best_fit_r2 = fit_best_model(sizes_out, times_out, candidates)
+
+    return {
+        "sizes": sizes_out,
+        "times_ms": times_out,
+        "slope": slope,
+        "r2": r2,
+        "best_fit": best_fit,
+        "best_fit_r2": best_fit_r2,
+        "k3_model": k3_model_name if k3_model_fn is not None else None,
+        "k3_model_r2": k3_model_r2,
+    }
+
+
+def load_k3_model(slug, path):
+    """Look up the K3-supplied `benchmark_model` for this submission's
+    latest analysis record (if any) and parse it against the grammar.
+    Returns (raw_string, callable) on a valid parse, or (None, None) if
+    there's no analysis record yet, no benchmark_model field on it (an
+    analysis predating that field), or the value doesn't match the
+    grammar — all of which we treat the same way: no K3 candidate.
+    """
+    m = analyze.SUBMISSION_RE.match(path.name)
+    if not m:
+        return None, None
+    analysis_path = analyze.ANALYSIS_ROOT / slug / f"submission-{m.group(1)}.json"
+    if not analysis_path.is_file():
+        return None, None
+    try:
+        data = json.loads(analysis_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None, None
+    complexity = data.get("complexity") if isinstance(data, dict) else None
+    if not isinstance(complexity, dict):
+        return None, None
+    raw = complexity.get("benchmark_model")
+    fn = parse_benchmark_model(raw)
+    if fn is None:
+        return None, None
+    return raw, fn
 
 
 def benchmark_submission(slug, spec, path):
@@ -119,11 +255,21 @@ def benchmark_submission(slug, spec, path):
     except Exception as exc:
         return {"error": f"{type(exc).__name__}: {exc}"}
 
+    k3_model_name, k3_model_fn = load_k3_model(slug, path)
+
+    # Shared across the normal and adversarial ladders below: caps the
+    # total wall time spent on this one submission regardless of how
+    # generous the per-size caps are individually.
+    deadline = time.perf_counter() + TOTAL_BUDGET_SECONDS
+
     result = run_ladder(
         entry,
         lambda n: spec["generate"](n, rng),
         DEFAULT_SIZES,
         SIZE_CAP_SECONDS,
+        deadline,
+        k3_model_name,
+        k3_model_fn,
     )
 
     if spec["adversarial"] is not None:
@@ -132,6 +278,9 @@ def benchmark_submission(slug, spec, path):
             spec["adversarial"],
             ADVERSARIAL_SIZES,
             ADVERSARIAL_CAP_SECONDS,
+            deadline,
+            k3_model_name,
+            k3_model_fn,
         )
         adversarial["note"] = spec["adversarial_note"]
         result["adversarial"] = adversarial

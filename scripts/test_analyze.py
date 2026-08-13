@@ -42,13 +42,13 @@ class GolfStatsTests(unittest.TestCase):
 
 class JsonParsingTests(unittest.TestCase):
     def test_plain_json(self):
-        raw = '{"time_average": "O(n)", "time_worst": "O(n)", "space": "O(1)", "hash_dependent": false, "summary": "s"}'
+        raw = '{"time_average": "O(n)", "time_worst": "O(n)", "space": "O(1)", "hash_dependent": false, "benchmark_model": "n", "summary": "s"}'
         data = analyze.parse_complexity_response(raw)
         self.assertEqual(data["time_average"], "O(n)")
         self.assertEqual(data["notes"], "")
 
     def test_fenced_json(self):
-        raw = '```json\n{"time_average": "O(n)", "time_worst": "O(n^2)", "space": "O(1)", "hash_dependent": true, "summary": "s", "notes": "n"}\n```'
+        raw = '```json\n{"time_average": "O(n)", "time_worst": "O(n^2)", "space": "O(1)", "hash_dependent": true, "benchmark_model": "n^2", "summary": "s", "notes": "n"}\n```'
         data = analyze.parse_complexity_response(raw)
         self.assertEqual(data["time_worst"], "O(n^2)")
         self.assertTrue(data["hash_dependent"])
@@ -57,7 +57,7 @@ class JsonParsingTests(unittest.TestCase):
         raw = (
             "Sure, here's the analysis:\n"
             '{"time_average": "O(n log n)", "time_worst": "O(n^2)", "space": "O(n)", '
-            '"hash_dependent": false, "summary": "sorts then scans"}\n'
+            '"hash_dependent": false, "benchmark_model": "n log n", "summary": "sorts then scans"}\n'
             "Let me know if you need more detail."
         )
         data = analyze.parse_complexity_response(raw)
@@ -74,7 +74,7 @@ class JsonParsingTests(unittest.TestCase):
             analyze.parse_complexity_response(raw)
 
     def test_retry_once_then_succeed(self):
-        good = '{"time_average": "O(n)", "time_worst": "O(n)", "space": "O(1)", "hash_dependent": false, "summary": "s"}'
+        good = '{"time_average": "O(n)", "time_worst": "O(n)", "space": "O(1)", "hash_dependent": false, "benchmark_model": "n", "summary": "s"}'
         with mock.patch.object(analyze, "MOONSHOT_API_KEY", "fake-key"):
             with mock.patch.object(
                 analyze, "call_moonshot", side_effect=["not json", good]
@@ -99,6 +99,70 @@ class JsonParsingTests(unittest.TestCase):
         mock_call.assert_not_called()
         self.assertIsNone(error)
         self.assertEqual(data["summary"], "Mock analysis placeholder (no LLM call was made).")
+        self.assertEqual(data["benchmark_model"], "n")
+
+
+class BuildUserPromptTests(unittest.TestCase):
+    def test_includes_scaling_note_when_given(self):
+        prompt = analyze.build_user_prompt("some-slug", "code", "n = array length")
+        self.assertIn("Scaling: n = array length", prompt)
+        self.assertIn("some-slug", prompt)
+        self.assertIn("code", prompt)
+
+    def test_omits_scaling_line_when_none(self):
+        prompt = analyze.build_user_prompt("some-slug", "code", None)
+        self.assertNotIn("Scaling:", prompt)
+
+
+class HasGoodAnalysisTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+
+    def _write(self, name, data):
+        path = self.tmp / name
+        path.write_text(json.dumps(data), encoding="utf-8")
+        return path
+
+    def _record(self, **complexity_overrides):
+        complexity = {
+            "time_average": "O(n)",
+            "time_worst": "O(n)",
+            "space": "O(n)",
+            "hash_dependent": False,
+            "benchmark_model": "n",
+            "summary": "s",
+            "notes": "",
+        }
+        complexity.update(complexity_overrides)
+        return {"complexity": complexity, "model": "kimi-k3"}
+
+    def test_missing_file_is_not_good(self):
+        self.assertFalse(analyze.has_good_analysis(self.tmp / "nope.json"))
+
+    def test_complete_record_is_good(self):
+        path = self._write("ok.json", self._record())
+        self.assertTrue(analyze.has_good_analysis(path))
+
+    def test_missing_benchmark_model_key_is_not_good(self):
+        record = self._record()
+        del record["complexity"]["benchmark_model"]
+        path = self._write("no-bm.json", record)
+        self.assertFalse(analyze.has_good_analysis(path))
+
+    def test_null_benchmark_model_is_not_good(self):
+        path = self._write("null-bm.json", self._record(benchmark_model=None))
+        self.assertFalse(analyze.has_good_analysis(path))
+
+    def test_mock_model_is_not_good(self):
+        record = self._record()
+        record["model"] = "mock"
+        path = self._write("mock.json", record)
+        self.assertFalse(analyze.has_good_analysis(path))
+
+    def test_null_complexity_is_not_good(self):
+        path = self._write("errored.json", {"complexity": None, "model": "kimi-k3"})
+        self.assertFalse(analyze.has_good_analysis(path))
 
 
 class RepoIntegrationTests(unittest.TestCase):
@@ -154,25 +218,31 @@ class RepoIntegrationTests(unittest.TestCase):
         self.assertIn("sample-problem", summary["problems"])
         self.assertEqual(len(summary["problems"]["sample-problem"]["submissions"]), 1)
 
-    def test_skips_already_analyzed_submission(self):
-        out_dir = self.tmp / "analysis" / "sample-problem"
-        out_dir.mkdir(parents=True)
-        existing = {
+    def _existing_record(self, **complexity_overrides):
+        complexity = {
+            "time_average": "O(1)",
+            "time_worst": "O(1)",
+            "space": "O(1)",
+            "hash_dependent": False,
+            "benchmark_model": "1",
+            "summary": "preexisting",
+            "notes": "",
+        }
+        complexity.update(complexity_overrides)
+        return {
             "file": "Data Structures & Algorithms/sample-problem/submission-0.py",
             "slug": "sample-problem",
             "solved_at": "2020-01-01T00:00:00-00:00",
             "golf": {"characters": 1, "bytes": 1, "non_blank_lines": 1, "tokens": 1},
-            "complexity": {
-                "time_average": "O(1)",
-                "time_worst": "O(1)",
-                "space": "O(1)",
-                "hash_dependent": False,
-                "summary": "preexisting",
-                "notes": "",
-            },
+            "complexity": complexity,
             "model": "kimi-k3",
             "analyzed_at": "2020-01-01T00:00:00+00:00",
         }
+
+    def test_skips_already_analyzed_submission(self):
+        out_dir = self.tmp / "analysis" / "sample-problem"
+        out_dir.mkdir(parents=True)
+        existing = self._existing_record()
         (out_dir / "submission-0.json").write_text(json.dumps(existing))
 
         with mock.patch.object(analyze, "call_moonshot") as mock_call:
@@ -183,6 +253,22 @@ class RepoIntegrationTests(unittest.TestCase):
 
         record = json.loads((out_dir / "submission-0.json").read_text())
         self.assertEqual(record["complexity"]["summary"], "preexisting")
+
+    def test_missing_benchmark_model_triggers_reanalysis(self):
+        out_dir = self.tmp / "analysis" / "sample-problem"
+        out_dir.mkdir(parents=True)
+        existing = self._existing_record()
+        del existing["complexity"]["benchmark_model"]
+        (out_dir / "submission-0.json").write_text(json.dumps(existing))
+
+        sys.argv = ["analyze.py", "--mock"]
+        with self.assertRaises(SystemExit):
+            analyze.main()
+
+        # backfilled by re-analysis (mock, in this test) rather than skipped
+        record = json.loads((out_dir / "submission-0.json").read_text())
+        self.assertEqual(record["model"], "mock")
+        self.assertEqual(record["complexity"]["benchmark_model"], "n")
 
     def test_only_flag_filters_slug(self):
         other_dir = self.tmp / "Data Structures & Algorithms" / "other-problem"

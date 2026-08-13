@@ -1,13 +1,17 @@
+import json
 import math
 import random
 import shutil
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import analyze
 import benchmark
 import generators
 
@@ -91,6 +95,177 @@ class SlopeFittingTests(unittest.TestCase):
         slope, r2 = benchmark.fit_loglog([256], [1.0])
         self.assertIsNone(slope)
         self.assertIsNone(r2)
+
+
+class BestFitModelTests(unittest.TestCase):
+    def test_linear_data_best_fit_is_n(self):
+        sizes = [2**k for k in range(8, 17)]  # 256 .. 65536, 9 points
+        times_ms = [0.01 * n for n in sizes]
+        name, r2 = benchmark.fit_best_model(sizes, times_ms)
+        self.assertEqual(name, "n")
+        self.assertGreater(r2, 0.999)
+
+    def test_nlogn_data_best_fit_is_n_log_n(self):
+        sizes = [2**k for k in range(8, 17)]  # 256 .. 65536, 9 points
+        times_ms = [0.01 * n * math.log(n) for n in sizes]
+        name, r2 = benchmark.fit_best_model(sizes, times_ms)
+        self.assertEqual(name, "n log n")
+        self.assertGreater(r2, 0.999)
+
+    def test_noisy_linear_data_best_fit_is_still_n(self):
+        rng = random.Random(11)
+        sizes = [2**k for k in range(8, 17)]
+        times_ms = [0.01 * n * (1 + rng.uniform(-0.05, 0.05)) for n in sizes]
+        name, r2 = benchmark.fit_best_model(sizes, times_ms)
+        self.assertEqual(name, "n")
+        self.assertGreater(r2, 0.95)
+
+    def test_quadratic_data_best_fit_is_n_squared(self):
+        sizes = [2**k for k in range(8, 17)]
+        times_ms = [0.01 * n * n for n in sizes]
+        name, r2 = benchmark.fit_best_model(sizes, times_ms)
+        self.assertEqual(name, "n^2")
+        self.assertGreater(r2, 0.999)
+
+    def test_single_point_returns_none(self):
+        name, r2 = benchmark.fit_best_model([256], [1.0])
+        self.assertIsNone(name)
+        self.assertIsNone(r2)
+
+    def test_extra_candidate_can_win(self):
+        # A K3 candidate matching the data exactly should beat the
+        # built-in CANDIDATE_MODELS set when passed in as an extra.
+        sizes = [2**k for k in range(8, 15)]
+        times_ms = [0.01 * (n**0.5) for n in sizes]
+        candidates = list(benchmark.CANDIDATE_MODELS) + [("n^0.5", lambda n: n**0.5)]
+        name, r2 = benchmark.fit_best_model(sizes, times_ms, candidates)
+        self.assertEqual(name, "n^0.5")
+        self.assertGreater(r2, 0.999)
+
+
+class BenchmarkModelGrammarTests(unittest.TestCase):
+    def test_parses_bare_n(self):
+        f = benchmark.parse_benchmark_model("n")
+        self.assertEqual(f(1000), 1000)
+
+    def test_parses_n_log_n(self):
+        f = benchmark.parse_benchmark_model("n log n")
+        self.assertAlmostEqual(f(1000), 1000 * math.log(1000))
+
+    def test_parses_constant(self):
+        f = benchmark.parse_benchmark_model("1")
+        self.assertEqual(f(1000), 1.0)
+
+    def test_parses_log_n(self):
+        f = benchmark.parse_benchmark_model("log n")
+        self.assertAlmostEqual(f(1000), math.log(1000))
+
+    def test_parses_power(self):
+        f = benchmark.parse_benchmark_model("n^2")
+        self.assertEqual(f(10), 100)
+
+    def test_parses_fractional_power(self):
+        f = benchmark.parse_benchmark_model("n^1.5")
+        self.assertAlmostEqual(f(100), 100**1.5)
+
+    def test_parses_power_log(self):
+        f = benchmark.parse_benchmark_model("n^2 log n")
+        self.assertAlmostEqual(f(100), 100**2 * math.log(100))
+
+    def test_is_case_and_whitespace_insensitive(self):
+        f = benchmark.parse_benchmark_model("  N LOG N  ")
+        self.assertAlmostEqual(f(1000), 1000 * math.log(1000))
+
+    def test_rejects_out_of_grammar_exponent(self):
+        self.assertIsNone(benchmark.parse_benchmark_model("n^4"))
+
+    def test_rejects_free_text(self):
+        self.assertIsNone(benchmark.parse_benchmark_model("O(n log n)"))
+        self.assertIsNone(benchmark.parse_benchmark_model("linear"))
+        self.assertIsNone(benchmark.parse_benchmark_model("n + m"))
+
+    def test_rejects_non_string(self):
+        self.assertIsNone(benchmark.parse_benchmark_model(None))
+        self.assertIsNone(benchmark.parse_benchmark_model(42))
+
+    def test_rejects_empty_string(self):
+        self.assertIsNone(benchmark.parse_benchmark_model(""))
+
+
+class LoadK3ModelTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.patches = [
+            mock.patch.object(analyze, "ANALYSIS_ROOT", self.tmp / "analysis"),
+        ]
+        for p in self.patches:
+            p.start()
+            self.addCleanup(p.stop)
+
+    def _write_analysis(self, slug, number, complexity):
+        out_dir = self.tmp / "analysis" / slug
+        out_dir.mkdir(parents=True, exist_ok=True)
+        (out_dir / f"submission-{number}.json").write_text(
+            json.dumps({"complexity": complexity}), encoding="utf-8"
+        )
+
+    def test_returns_none_when_no_analysis_exists(self):
+        name, fn = benchmark.load_k3_model("some-slug", Path("submission-1.py"))
+        self.assertIsNone(name)
+        self.assertIsNone(fn)
+
+    def test_loads_valid_model(self):
+        self._write_analysis("some-slug", 1, {"benchmark_model": "n log n"})
+        name, fn = benchmark.load_k3_model("some-slug", Path("submission-1.py"))
+        self.assertEqual(name, "n log n")
+        self.assertAlmostEqual(fn(1000), 1000 * math.log(1000))
+
+    def test_ignores_invalid_grammar(self):
+        self._write_analysis("some-slug", 1, {"benchmark_model": "O(n log n)"})
+        name, fn = benchmark.load_k3_model("some-slug", Path("submission-1.py"))
+        self.assertIsNone(name)
+        self.assertIsNone(fn)
+
+    def test_ignores_missing_benchmark_model_field(self):
+        self._write_analysis("some-slug", 1, {"time_average": "O(n)"})
+        name, fn = benchmark.load_k3_model("some-slug", Path("submission-1.py"))
+        self.assertIsNone(name)
+        self.assertIsNone(fn)
+
+
+class RunLadderK3IntegrationTests(unittest.TestCase):
+    def test_k3_model_fields_present_when_no_k3_model(self):
+        result = benchmark.run_ladder(
+            lambda nums: sum(nums),
+            lambda n: ([1] * n,),
+            [256, 512, 1024],
+            10.0,
+            time.perf_counter() + 10.0,
+        )
+        self.assertIsNone(result["k3_model"])
+        self.assertIsNone(result["k3_model_r2"])
+        self.assertIn("best_fit", result)
+
+    def test_k3_model_included_as_candidate_and_can_win(self):
+        sizes = [2**k for k in range(8, 15)]
+
+        def fake_sort(nums):
+            # deliberately not timed against real work; time_call measures
+            # perf_counter around this, so we just need it to run.
+            return sorted(nums)
+
+        result = benchmark.run_ladder(
+            fake_sort,
+            lambda n: ([0] * n,),
+            sizes,
+            10.0,
+            time.perf_counter() + 10.0,
+            "n^0.5",
+            lambda n: n**0.5,
+        )
+        self.assertEqual(result["k3_model"], "n^0.5")
+        self.assertIsNotNone(result["k3_model_r2"])
 
 
 class SolutionExecTests(unittest.TestCase):
