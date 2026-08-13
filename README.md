@@ -179,13 +179,27 @@ skipped), it:
    gets `{"error": "..."}` instead of being timed, and the run moves on
    — one broken submission never blocks the rest.
 2. Times the entry method (best-of-3, `time.perf_counter`) across a
-   size ladder — `256, 1024, 4096, 16384` by default, stopping early if
-   a size takes longer than ~2s — and fits `log(time)` vs `log(n)` by
-   least squares to get a slope (the empirical Big-O exponent) and r².
+   geometric size ladder — `256, 512, 1024, ..., 2**20` (doubling each
+   step), stopping early if a size takes longer than ~2s. Above
+   `n = 2**17` it drops to best-of-2 to keep the wider ladder's wall
+   time sane, and the whole ladder bails once this submission has spent
+   ~30s total (normal + adversarial ladders combined) regardless of the
+   per-size caps. Fits `log(time)` vs `log(n)` by least squares to get a
+   slope (the empirical Big-O exponent) and r², and separately fits
+   `log(time)` against each of a handful of candidate complexity models
+   — `n`, `n log n`, `n^1.5`, `n^2`, `n^3` — picking whichever gives the
+   best r² as `best_fit` (with its own `best_fit_r2`). The slope is a
+   continuous estimate that's easy to eyeball (1.0 vs 2.0 vs 3.0); the
+   4-point ladder used to make the slope hard to trust between
+   neighboring exponents (1.1 vs 1.0 is noise-level over a 64x range),
+   which is why the ladder got wider — `best_fit` is the categorical
+   answer that names an actual complexity class instead of leaving you
+   to eyeball the slope.
 3. Where `generators.py` defines an `adversarial(n)` input for the
-   problem, repeats the same procedure on a smaller ladder
-   (`64, 256, 1024`, capped at ~1.5s) built to trigger worst-case
-   dict/set behavior.
+   problem, repeats the same procedure (including `best_fit`) on a
+   smaller doubling ladder (`64, 128, 256, ..., 65536`, capped at
+   ~1.5s per size, same shared 30s total budget) built to trigger
+   worst-case dict/set behavior.
 4. Writes `analysis/benchmarks/<slug>.json`, then regenerates
    `analysis/summary.json` (via `analyze.build_summary`, the same
    function `analyze.py` uses — there's one summary-building code path,
@@ -240,16 +254,20 @@ it's missing, so local runs don't need to remember the flag.
   "python_hash_seed": "0",
   "submissions": {
     "submission-1.py": {
-      "sizes": [256, 1024, 4096, 16384],
-      "times_ms": [0.01, 0.04, 0.19, 0.79],
-      "slope": 1.05,
-      "r2": 0.9999,
+      "sizes": [256, 512, 1024, ..., 1048576],
+      "times_ms": [0.01, 0.02, 0.04, ..., 41.2],
+      "slope": 1.02,
+      "r2": 0.9998,
+      "best_fit": "n",
+      "best_fit_r2": 0.9997,
       "adversarial": {
         "note": "n distinct multiples of 2**61-1, all hashing to 0, so every dict insert/lookup collides",
-        "sizes": [64, 256, 1024],
-        "times_ms": [0.05, 0.83, 11.40],
+        "sizes": [64, 128, 256, ..., 65536],
+        "times_ms": [0.05, 0.19, 0.83, ..., 5820.0],
         "slope": 1.99,
-        "r2": 0.9995
+        "r2": 0.9995,
+        "best_fit": "n^2",
+        "best_fit_r2": 0.9991
       }
     }
   }
@@ -267,7 +285,13 @@ times will jitter run to run. That's fine for what this measures: the
 log-log **slope** (the Big-O exponent) is far more stable under noise
 than the absolute times, since it only cares about the ratio of growth
 across sizes, not the constant factor. Treat individual `times_ms`
-entries as illustrative, and the slope/r² as the real signal.
+entries as illustrative, and the slope/r²/`best_fit`/`best_fit_r2` as
+the real signal. `best_fit` is picked by comparing residuals across the
+candidate models on the *same* data the slope is fit from, so it
+inherits the slope's noise-robustness rather than adding a new source
+of jitter — and being categorical (a model name, not a number to
+eyeball), it's the more legible of the two when the question is "which
+complexity class is this."
 
 ### Local usage
 
