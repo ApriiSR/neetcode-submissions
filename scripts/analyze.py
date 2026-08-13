@@ -229,13 +229,15 @@ def analyze_submission(slug: str, number: int, path: Path, mock: bool) -> tuple[
     return record, error is not None
 
 
-def load_existing(out_path: Path) -> dict | None:
+def has_good_analysis(out_path: Path) -> bool:
     if not out_path.is_file():
-        return None
+        return False
     try:
-        return json.loads(out_path.read_text(encoding="utf-8"))
+        data = json.loads(out_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
-        return None
+        return False
+    # errored (null) and mock records are retried on later runs
+    return isinstance(data, dict) and data.get("complexity") is not None and data.get("model") != "mock"
 
 
 def build_summary():
@@ -280,7 +282,7 @@ def main():
     for slug, number, path in iter_submissions(args.only):
         out_dir = ANALYSIS_ROOT / slug
         out_path = out_dir / f"submission-{number}.json"
-        if load_existing(out_path) is not None:
+        if has_good_analysis(out_path):
             continue
 
         record, failed = analyze_submission(slug, number, path, args.mock)
