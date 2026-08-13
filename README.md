@@ -115,7 +115,7 @@ This is the one file the website should fetch. Shape:
             "summary": "...",
             "notes": ""
           },
-          "model": "kimi-k3",
+          "model": "k3",
           "analyzed_at": "2026-08-13T20:20:49Z"
         }
       ]
@@ -138,16 +138,22 @@ The workflow needs a Moonshot API key as a repository secret:
 gh secret set MOONSHOT_API_KEY --repo ApriiSR/neetcode-submissions
 ```
 
-Get a new key from the Moonshot open platform console at
-[platform.moonshot.ai](https://platform.moonshot.ai/console/api-keys) (it
-redirects to `platform.kimi.ai` as of August 2026).
+The key in use comes from the **Kimi-for-Coding console** at
+[kimi.com/code/console](https://www.kimi.com/code/console) — those keys bill
+against the Kimi subscription rather than per-token. Endpoint quirks learned
+the hard way on 2026-08-13 (each was a distinct failed run): such keys only
+work against `https://api.kimi.com/coding/v1` (401 on the open platform), the
+model id must be exactly `k3` (400 on `kimi-k3` and `kimi-for-coding/k3`), and
+any `temperature` other than 1 is rejected (the script sends none). These are
+now the script defaults.
 
-Model: the default is `kimi-k3`, Moonshot's current flagship reasoning
-model on the open platform (confirmed present in the platform docs as of
-2026-08-13, alongside `kimi-k2.7-code`/`kimi-k2.6`/`kimi-k2.5`; the older
-`kimi-k2` line was retired). Override it by setting the `MOONSHOT_MODEL`
-repository variable (`gh variable set MOONSHOT_MODEL --repo ApriiSR/neetcode-submissions`)
-or the environment variable of the same name for local runs.
+Alternative: a key from the Moonshot open platform console
+([platform.moonshot.ai](https://platform.moonshot.ai/console/api-keys),
+redirects to `platform.kimi.ai`) bills per-token and uses
+`https://api.moonshot.ai/v1` with model `kimi-k3`. Set the
+`MOONSHOT_BASE_URL` and `MOONSHOT_MODEL` repository variables to switch
+(`gh variable set ... --repo ApriiSR/neetcode-submissions`), or the same
+environment variables for local runs.
 
 ### Local usage
 

@@ -28,8 +28,12 @@ ANALYSIS_ROOT = REPO_ROOT / "analysis"
 
 # `or` fallbacks: the workflow exports these from repo vars, which arrive as
 # empty strings when unset.
-MOONSHOT_BASE_URL = os.environ.get("MOONSHOT_BASE_URL") or "https://api.moonshot.ai/v1"
-MOONSHOT_MODEL = os.environ.get("MOONSHOT_MODEL") or "kimi-k3"
+# Defaults target Kimi-for-Coding (key from kimi.com/code/console, billed to the
+# subscription). That endpoint requires model id exactly "k3" and rejects any
+# temperature other than 1. The open-platform equivalent is
+# https://api.moonshot.ai/v1 with model "kimi-k3".
+MOONSHOT_BASE_URL = os.environ.get("MOONSHOT_BASE_URL") or "https://api.kimi.com/coding/v1"
+MOONSHOT_MODEL = os.environ.get("MOONSHOT_MODEL") or "k3"
 MOONSHOT_API_KEY = os.environ.get("MOONSHOT_API_KEY")
 
 SUBMISSION_RE = re.compile(r"^submission-(\d+)\.py$")
