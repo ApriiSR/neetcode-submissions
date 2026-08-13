@@ -1,0 +1,218 @@
+#!/usr/bin/env python3
+"""Empirical scaling benchmarks + adversarial hash-collision demos.
+
+For each submission of each scalable problem in `generators.PROBLEMS`,
+times the entry method (best-of-3, `time.perf_counter`) across a
+geometric size ladder, fits log(time) vs log(n) by least squares, and —
+where the problem has an `adversarial()` generator — repeats on a
+smaller ladder built from worst-case hash-collision input. Writes
+`analysis/benchmarks/<slug>.json`, then regenerates `analysis/summary.json`
+via `analyze.build_summary`, which merges the benchmark data in under a
+`"benchmarks"` key per submission.
+
+Requires PYTHONHASHSEED=0 (re-execs itself with it set if missing) so
+runs are reproducible and any future string-keyed adversarial generator
+has a fixed hash function to target.
+
+Usage:
+    python3 scripts/benchmark.py [--only SLUG] [--force]
+"""
+
+import argparse
+import json
+import math
+import os
+import random
+import sys
+import time
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import List, Optional
+
+if os.environ.get("PYTHONHASHSEED") != "0":
+    env = dict(os.environ, PYTHONHASHSEED="0")
+    os.execvpe(sys.executable, [sys.executable, str(Path(__file__).resolve())] + sys.argv[1:], env)
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import analyze
+import generators
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+BENCHMARKS_ROOT = REPO_ROOT / "analysis" / "benchmarks"
+
+DEFAULT_SIZES = (256, 1024, 4096, 16384)
+ADVERSARIAL_SIZES = (64, 256, 1024)
+SIZE_CAP_SECONDS = 2.0
+ADVERSARIAL_CAP_SECONDS = 1.5
+CORRECTNESS_N = 8
+SEED = 20260813
+
+
+def load_solution(path):
+    namespace = {"List": List, "Optional": Optional}
+    source = path.read_text(encoding="utf-8")
+    exec(compile(source, str(path), "exec"), namespace)
+    return namespace["Solution"]()
+
+
+def _copy_one(value):
+    if isinstance(value, list):
+        return [_copy_one(v) for v in value]
+    return value
+
+
+def _copy_args(args):
+    return tuple(_copy_one(a) for a in args)
+
+
+def time_call(fn, args, repeats=3):
+    best = None
+    for _ in range(repeats):
+        call_args = _copy_args(args)
+        start = time.perf_counter()
+        fn(*call_args)
+        elapsed = time.perf_counter() - start
+        if best is None or elapsed < best:
+            best = elapsed
+    return best
+
+
+def fit_loglog(sizes, times_ms):
+    if len(sizes) < 2:
+        return None, None
+    xs = [math.log(n) for n in sizes]
+    ys = [math.log(t) for t in times_ms]
+    count = len(xs)
+    mean_x = sum(xs) / count
+    mean_y = sum(ys) / count
+    sxx = sum((x - mean_x) ** 2 for x in xs)
+    if sxx == 0:
+        return None, None
+    sxy = sum((x - mean_x) * (y - mean_y) for x, y in zip(xs, ys))
+    slope = sxy / sxx
+    intercept = mean_y - slope * mean_x
+    ss_tot = sum((y - mean_y) ** 2 for y in ys)
+    ss_res = sum((y - (slope * x + intercept)) ** 2 for x, y in zip(xs, ys))
+    r2 = 1.0 if ss_tot == 0 else 1.0 - ss_res / ss_tot
+    return slope, r2
+
+
+def run_ladder(fn, args_fn, sizes, cap_seconds):
+    sizes_out, times_out = [], []
+    for n in sizes:
+        args = args_fn(n)
+        elapsed = time_call(fn, args)
+        sizes_out.append(n)
+        times_out.append(elapsed * 1000.0)
+        if elapsed > cap_seconds:
+            break
+    slope, r2 = fit_loglog(sizes_out, times_out)
+    return {"sizes": sizes_out, "times_ms": times_out, "slope": slope, "r2": r2}
+
+
+def benchmark_submission(slug, spec, path):
+    rng = random.Random(f"{SEED}-{slug}-{path.name}")
+    solution = load_solution(path)
+    entry = getattr(solution, spec["entry"])
+
+    small_args = spec["generate"](CORRECTNESS_N, rng)
+    try:
+        entry(*_copy_args(small_args))
+        if spec["adversarial"] is not None:
+            entry(*_copy_args(spec["adversarial"](CORRECTNESS_N)))
+    except Exception as exc:
+        return {"error": f"{type(exc).__name__}: {exc}"}
+
+    result = run_ladder(
+        entry,
+        lambda n: spec["generate"](n, rng),
+        DEFAULT_SIZES,
+        SIZE_CAP_SECONDS,
+    )
+
+    if spec["adversarial"] is not None:
+        adversarial = run_ladder(
+            entry,
+            spec["adversarial"],
+            ADVERSARIAL_SIZES,
+            ADVERSARIAL_CAP_SECONDS,
+        )
+        adversarial["note"] = spec["adversarial_note"]
+        result["adversarial"] = adversarial
+    else:
+        result["adversarial"] = None
+
+    return result
+
+
+def has_good_benchmark(record):
+    return isinstance(record, dict) and "error" not in record
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--only")
+    parser.add_argument("--force", action="store_true")
+    args = parser.parse_args()
+
+    BENCHMARKS_ROOT.mkdir(parents=True, exist_ok=True)
+    had_error = False
+    benchmarked = 0
+
+    for slug, spec in generators.PROBLEMS.items():
+        if not spec["scalable"]:
+            continue
+        if args.only and slug != args.only:
+            continue
+
+        out_path = BENCHMARKS_ROOT / f"{slug}.json"
+        if out_path.is_file():
+            try:
+                existing = json.loads(out_path.read_text(encoding="utf-8"))
+            except json.JSONDecodeError:
+                existing = {}
+        else:
+            existing = {}
+        submissions = existing.get("submissions", {})
+
+        any_for_slug = False
+        for found_slug, number, path in analyze.iter_submissions(slug):
+            any_for_slug = True
+            fname = path.name
+            if not args.force and has_good_benchmark(submissions.get(fname)):
+                continue
+
+            record = benchmark_submission(slug, spec, path)
+            submissions[fname] = record
+            benchmarked += 1
+            if "error" in record:
+                had_error = True
+                print(f"[ERROR] {slug} {fname}: {record['error']}")
+            else:
+                print(f"[ok] {slug} {fname} slope={record['slope']}")
+
+        if not any_for_slug:
+            continue
+
+        out_path.write_text(
+            json.dumps(
+                {
+                    "slug": slug,
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "python_hash_seed": os.environ.get("PYTHONHASHSEED"),
+                    "submissions": submissions,
+                },
+                indent=2,
+                sort_keys=True,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+
+    analyze.build_summary()
+    print(f"Benchmarked {benchmarked} submission(s).")
+    sys.exit(1 if had_error else 0)
+
+
+if __name__ == "__main__":
+    main()
