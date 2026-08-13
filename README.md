@@ -163,3 +163,116 @@ python3 scripts/analyze.py --only is-palindrome
 MOONSHOT_API_KEY=... python3 scripts/analyze.py
 python3 -m unittest scripts.test_analyze -v
 ```
+
+---
+
+## Benchmarks
+
+Every push to `main` that touches `Data Structures & Algorithms/**` also
+runs `scripts/benchmark.py`, after `analyze.py`, via the same workflow.
+For each submission of each **scalable** problem (see
+`scripts/generators.py`; `valid-sudoku` is a fixed 9x9 board and is
+skipped), it:
+
+1. Runs the entry method once on a small generated input, and once on
+   the adversarial input if one exists. If either raises, the submission
+   gets `{"error": "..."}` instead of being timed, and the run moves on
+   — one broken submission never blocks the rest.
+2. Times the entry method (best-of-3, `time.perf_counter`) across a
+   size ladder — `256, 1024, 4096, 16384` by default, stopping early if
+   a size takes longer than ~2s — and fits `log(time)` vs `log(n)` by
+   least squares to get a slope (the empirical Big-O exponent) and r².
+3. Where `generators.py` defines an `adversarial(n)` input for the
+   problem, repeats the same procedure on a smaller ladder
+   (`64, 256, 1024`, capped at ~1.5s) built to trigger worst-case
+   dict/set behavior.
+4. Writes `analysis/benchmarks/<slug>.json`, then regenerates
+   `analysis/summary.json` (via `analyze.build_summary`, the same
+   function `analyze.py` uses — there's one summary-building code path,
+   not two), which merges each submission's benchmark record in under a
+   `"benchmarks"` key. A submission with no benchmark data simply has no
+   `"benchmarks"` key; existing consumers of `summary.json` don't need
+   to change.
+
+Already-benchmarked submissions (any record without `"error"`) are
+skipped on subsequent runs; pass `--force` to redo everything.
+
+### Adversarial inputs
+
+`generators.py` builds worst-case-hash-collision inputs for integer-keyed
+problems by exploiting CPython's int hash: for a positive int `k`,
+`hash(k)` reduces modulo the Mersenne prime `2**61 - 1`, so every
+multiple of that prime hashes to `0` (verified empirically — see
+`scripts/test_benchmark.py`). `duplicate-integer`,
+`longest-consecutive-sequence`, `top-k-elements-in-list`,
+`two-integer-sum`, and `two-integer-sum-ii` all use this.
+
+`anagram-groups` gets an adversarial input too (every word a rotation of
+the same 10-letter multiset, so all n words share one exact dict key),
+but it's worth noting honestly: this does **not** reproduce the O(n²)
+degradation the other adversarial cases show. CPython dicts resolve a
+*repeated exact key* by going straight to its slot — there's no probe
+chain to walk, unlike the int-collision cases above where the keys are
+genuinely distinct but share a hash. So this input stresses "one huge
+output group" (worst case for group-construction/output-building work)
+without stressing dict lookup itself. The `adversarial_note` field on
+that problem's benchmark record says as much.
+
+None of the 11 problems currently hash raw, unbounded *strings* in a way
+that's worth attacking (`is-anagram` keys on individual characters — a
+26-symbol alphabet; `string-encode-and-decode` doesn't hash at all), so
+there's no PYTHONHASHSEED-dependent string-collision generator in use
+today. `benchmark.py` still forces `PYTHONHASHSEED=0` for every run
+regardless — string/bytes hashing is otherwise randomized per process,
+and a future string-keyed adversarial generator would need a fixed hash
+function to search against. **CPython only reads `PYTHONHASHSEED` at
+interpreter startup**, so it must be set before the process launches
+(the workflow sets it as the "Run benchmarks" step's `env`, not inside
+Python); `benchmark.py` also re-execs itself with it set if it detects
+it's missing, so local runs don't need to remember the flag.
+
+### `analysis/benchmarks/<slug>.json` contract
+
+```json
+{
+  "slug": "duplicate-integer",
+  "generated_at": "2026-08-13T21:10:44Z",
+  "python_hash_seed": "0",
+  "submissions": {
+    "submission-1.py": {
+      "sizes": [256, 1024, 4096, 16384],
+      "times_ms": [0.01, 0.04, 0.19, 0.79],
+      "slope": 1.05,
+      "r2": 0.9999,
+      "adversarial": {
+        "note": "n distinct multiples of 2**61-1, all hashing to 0, so every dict insert/lookup collides",
+        "sizes": [64, 256, 1024],
+        "times_ms": [0.05, 0.83, 11.40],
+        "slope": 1.99,
+        "r2": 0.9995
+      }
+    }
+  }
+}
+```
+
+`adversarial` is `null` when the problem has no adversarial generator.
+A submission that failed the correctness guard is `{"error": "..."}`
+instead of the above shape.
+
+### Noisy runners
+
+GitHub Actions runners are shared, variable-throughput machines — wall
+times will jitter run to run. That's fine for what this measures: the
+log-log **slope** (the Big-O exponent) is far more stable under noise
+than the absolute times, since it only cares about the ratio of growth
+across sizes, not the constant factor. Treat individual `times_ms`
+entries as illustrative, and the slope/r² as the real signal.
+
+### Local usage
+
+```
+python3 scripts/benchmark.py --only two-integer-sum
+python3 scripts/benchmark.py --force
+python3 -m unittest scripts.test_benchmark -v
+```
