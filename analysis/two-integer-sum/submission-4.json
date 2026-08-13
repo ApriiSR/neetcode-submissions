@@ -1,7 +1,13 @@
 {
-  "analyzed_at": "2026-08-13T20:34:21.413442+00:00",
-  "complexity": null,
-  "error": "HTTPError: HTTP Error 400: Bad Request \u2014 {\"error\":{\"message\":\"invalid temperature: only 1 is allowed for this model\",\"type\":\"invalid_request_error\"}}",
+  "analyzed_at": "2026-08-13T20:37:30.485474+00:00",
+  "complexity": {
+    "hash_dependent": false,
+    "notes": "Works but convoluted: the duplicate-value handling with pop() and index()+1 is fragile and hard to follow. Using negative index high=-1 is valid but less readable than high=len(nums2)-1. A single-pass hash map or sorting (index, value) pairs would be clearer and avoid the O(n) index() recovery entirely.",
+    "space": "O(n)",
+    "summary": "Sorts a copy of the array, then uses a two-pointer scan (from both ends) to find the pair summing to target, and recovers original indices via linear index() searches with a special case for duplicate values.",
+    "time_average": "O(n log n)",
+    "time_worst": "O(n log n)"
+  },
   "file": "Data Structures & Algorithms/two-integer-sum/submission-4.py",
   "golf": {
     "bytes": 579,

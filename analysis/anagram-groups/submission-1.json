@@ -1,7 +1,13 @@
 {
-  "analyzed_at": "2026-08-13T20:34:07.346746+00:00",
-  "complexity": null,
-  "error": "HTTPError: HTTP Error 400: Bad Request \u2014 {\"error\":{\"message\":\"invalid temperature: only 1 is allowed for this model\",\"type\":\"invalid_request_error\"}}",
+  "analyzed_at": "2026-08-13T20:35:35.179072+00:00",
+  "complexity": {
+    "hash_dependent": true,
+    "notes": "Redundant: word_tuple is called twice per word; a single pass with d.setdefault(sig, []).append(word) (or defaultdict(list)) would be cleaner. The annotation tuple(int) is not valid typing (use tuple[int, ...]), and ord(letter)-97 silently assumes lowercase a-z input. `return list(d.values())` is more idiomatic than the final list comprehension.",
+    "space": "O(n * L), for the output groups plus the dict storing all words and their 26-element signatures",
+    "summary": "Each word is mapped to a 26-element letter-count tuple signature, and words sharing a signature are grouped together via a dict. The signature is computed twice per word: once to initialize dict keys and once to append each word to its group.",
+    "time_average": "O(n * L), where n is the number of strings and L is the maximum string length",
+    "time_worst": "O(n^2 + n * L), accounting for adversarial hash collisions degrading each dict lookup/insert to O(n)"
+  },
   "file": "Data Structures & Algorithms/anagram-groups/submission-1.py",
   "golf": {
     "bytes": 422,

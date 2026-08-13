@@ -1,7 +1,13 @@
 {
-  "analyzed_at": "2026-08-13T20:34:23.580301+00:00",
-  "complexity": null,
-  "error": "HTTPError: HTTP Error 400: Bad Request \u2014 {\"error\":{\"message\":\"invalid temperature: only 1 is allowed for this model\",\"type\":\"invalid_request_error\"}}",
+  "analyzed_at": "2026-08-13T20:37:51.374131+00:00",
+  "complexity": {
+    "hash_dependent": false,
+    "notes": "No early exit: 'valid *= isValidLine(...)' keeps scanning all lines even after a failure; 'valid &= ...' or 'return False' would be cleaner. The count-based duplicate check is concise but quadratic per line; a set would be more idiomatic for larger inputs. Also 'List' needs a typing import.",
+    "space": "O(1)",
+    "summary": "Checks each row, column, and 3x3 box for duplicate digits using list.count on every non-empty cell. Since the board is fixed at 9x9, all work is constant; generalized to n cells per line it would be O(n^2) per line due to repeated count scans.",
+    "time_average": "O(1)",
+    "time_worst": "O(1)"
+  },
   "file": "Data Structures & Algorithms/valid-sudoku/submission-0.py",
   "golf": {
     "bytes": 830,

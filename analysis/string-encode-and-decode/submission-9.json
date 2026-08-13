@@ -1,7 +1,13 @@
 {
-  "analyzed_at": "2026-08-13T20:34:19.139857+00:00",
-  "complexity": null,
-  "error": "HTTPError: HTTP Error 400: Bad Request \u2014 {\"error\":{\"message\":\"invalid temperature: only 1 is allowed for this model\",\"type\":\"invalid_request_error\"}}",
+  "analyzed_at": "2026-08-13T20:36:57.278061+00:00",
+  "complexity": {
+    "hash_dependent": false,
+    "notes": "Correctness is fragile: any input string containing the delimiter emoji breaks decoding, and encode([]) and encode(['']) both rely on subtle edge-case behavior of split/pop; a length-prefixed encoding (e.g., 'len#string') is the standard robust approach. Also missing 'from typing import List' import.",
+    "space": "O(L)",
+    "summary": "Joins the strings with an emoji delimiter (plus a trailing delimiter) for encoding, and splits on the same delimiter for decoding, dropping the trailing empty piece. L is the total number of characters across all strings.",
+    "time_average": "O(L)",
+    "time_worst": "O(L)"
+  },
   "file": "Data Structures & Algorithms/string-encode-and-decode/submission-9.py",
   "golf": {
     "bytes": 284,

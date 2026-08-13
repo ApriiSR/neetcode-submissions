@@ -1,12 +1,18 @@
 {
-  "generated_at": "2026-08-13T20:34:23.581921+00:00",
+  "generated_at": "2026-08-13T20:37:51.375622+00:00",
   "problems": {
     "anagram-groups": {
       "submissions": [
         {
-          "analyzed_at": "2026-08-13T20:34:07.346746+00:00",
-          "complexity": null,
-          "error": "HTTPError: HTTP Error 400: Bad Request \u2014 {\"error\":{\"message\":\"invalid temperature: only 1 is allowed for this model\",\"type\":\"invalid_request_error\"}}",
+          "analyzed_at": "2026-08-13T20:35:35.179072+00:00",
+          "complexity": {
+            "hash_dependent": true,
+            "notes": "Redundant: word_tuple is called twice per word; a single pass with d.setdefault(sig, []).append(word) (or defaultdict(list)) would be cleaner. The annotation tuple(int) is not valid typing (use tuple[int, ...]), and ord(letter)-97 silently assumes lowercase a-z input. `return list(d.values())` is more idiomatic than the final list comprehension.",
+            "space": "O(n * L), for the output groups plus the dict storing all words and their 26-element signatures",
+            "summary": "Each word is mapped to a 26-element letter-count tuple signature, and words sharing a signature are grouped together via a dict. The signature is computed twice per word: once to initialize dict keys and once to append each word to its group.",
+            "time_average": "O(n * L), where n is the number of strings and L is the maximum string length",
+            "time_worst": "O(n^2 + n * L), accounting for adversarial hash collisions degrading each dict lookup/insert to O(n)"
+          },
           "file": "Data Structures & Algorithms/anagram-groups/submission-1.py",
           "golf": {
             "bytes": 422,
@@ -23,9 +29,15 @@
     "duplicate-integer": {
       "submissions": [
         {
-          "analyzed_at": "2026-08-13T20:34:08.506099+00:00",
-          "complexity": null,
-          "error": "HTTPError: HTTP Error 400: Bad Request \u2014 {\"error\":{\"message\":\"invalid temperature: only 1 is allowed for this model\",\"type\":\"invalid_request_error\"}}",
+          "analyzed_at": "2026-08-13T20:35:39.631967+00:00",
+          "complexity": {
+            "hash_dependent": true,
+            "notes": "Shadowing the builtin name 'dict' is poor style; a set with early return (return True when a value is already seen) is simpler and avoids the second pass. Worst case assumes adversarial hash collisions making each dict operation O(n).",
+            "space": "O(n)",
+            "summary": "Counts occurrences of each value in a hash map, then scans the array again to find any value whose count exceeds 1.",
+            "time_average": "O(n)",
+            "time_worst": "O(n^2)"
+          },
           "file": "Data Structures & Algorithms/duplicate-integer/submission-1.py",
           "golf": {
             "bytes": 263,
@@ -42,9 +54,15 @@
     "is-anagram": {
       "submissions": [
         {
-          "analyzed_at": "2026-08-13T20:34:09.601423+00:00",
-          "complexity": null,
-          "error": "HTTPError: HTTP Error 400: Bad Request \u2014 {\"error\":{\"message\":\"invalid temperature: only 1 is allowed for this model\",\"type\":\"invalid_request_error\"}}",
+          "analyzed_at": "2026-08-13T20:35:47.635025+00:00",
+          "complexity": {
+            "hash_dependent": true,
+            "notes": "The bare `except` clause is unidiomatic and masks unexpected errors; using `dict.get(i, 0)` or `collections.Counter` (with a simple `Counter(s) == Counter(t)` comparison) would be cleaner and more Pythonic. Space is effectively O(1) if the alphabet is bounded (e.g., lowercase letters).",
+            "space": "O(n + m)",
+            "summary": "Builds character-frequency dictionaries for both strings, then verifies that every key in each dict has a matching count in the other, treating missing keys (KeyError) as a mismatch.",
+            "time_average": "O(n + m)",
+            "time_worst": "O((n + m)^2)"
+          },
           "file": "Data Structures & Algorithms/is-anagram/submission-0.py",
           "golf": {
             "bytes": 650,
@@ -61,9 +79,15 @@
     "is-palindrome": {
       "submissions": [
         {
-          "analyzed_at": "2026-08-13T20:34:10.775739+00:00",
-          "complexity": null,
-          "error": "HTTPError: HTTP Error 400: Bad Request \u2014 {\"error\":{\"message\":\"invalid temperature: only 1 is allowed for this model\",\"type\":\"invalid_request_error\"}}",
+          "analyzed_at": "2026-08-13T20:35:54.185189+00:00",
+          "complexity": {
+            "hash_dependent": false,
+            "notes": "The s.lower() call creates a full copy of the string, costing O(n) extra space; comparing characters with .lower() on the fly (or using casefold) would keep space at O(1). The early return when a reaches len(s) is slightly awkward\u2014bounding the inner loops with a < b would read more cleanly.",
+            "space": "O(n)",
+            "summary": "Two-pointer approach: after lowercasing, advance inward from both ends skipping non-alphanumeric characters and compare the remaining characters pairwise.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
           "file": "Data Structures & Algorithms/is-palindrome/submission-1.py",
           "golf": {
             "bytes": 441,
@@ -76,9 +100,15 @@
           "solved_at": "2026-08-12T20:08:33-07:00"
         },
         {
-          "analyzed_at": "2026-08-13T20:34:11.870728+00:00",
-          "complexity": null,
-          "error": "HTTPError: HTTP Error 400: Bad Request \u2014 {\"error\":{\"message\":\"invalid temperature: only 1 is allowed for this model\",\"type\":\"invalid_request_error\"}}",
+          "analyzed_at": "2026-08-13T20:35:57.190236+00:00",
+          "complexity": {
+            "hash_dependent": false,
+            "notes": "Concise and idiomatic; a two-pointer approach would reduce extra space to O(1) but this is perfectly readable for typical inputs.",
+            "space": "O(n)",
+            "summary": "Builds a cleaned lowercase alphanumeric-only copy of the string, then checks whether it equals its reverse.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
           "file": "Data Structures & Algorithms/is-palindrome/submission-2.py",
           "golf": {
             "bytes": 153,
@@ -95,9 +125,15 @@
     "longest-consecutive-sequence": {
       "submissions": [
         {
-          "analyzed_at": "2026-08-13T20:34:13.009541+00:00",
-          "complexity": null,
-          "error": "HTTPError: HTTP Error 400: Bad Request \u2014 {\"error\":{\"message\":\"invalid temperature: only 1 is allowed for this model\",\"type\":\"invalid_request_error\"}}",
+          "analyzed_at": "2026-08-13T20:36:06.654208+00:00",
+          "complexity": {
+            "hash_dependent": true,
+            "notes": "Removing visited elements from the set is a nice touch that guarantees each number is processed once. Note the algorithm does not skip non-sequence-starts like the classic approach, but the removal strategy makes that unnecessary. Worst case degrades to O(n^2) under adversarial hash collisions since each set membership check could cost O(n).",
+            "space": "O(n)",
+            "summary": "Builds a set of the numbers, then repeatedly pops an arbitrary element and expands outward in both directions, removing each consecutive element as it is found. Since every element is removed exactly once, total work is linear on average.",
+            "time_average": "O(n)",
+            "time_worst": "O(n^2)"
+          },
           "file": "Data Structures & Algorithms/longest-consecutive-sequence/submission-0.py",
           "golf": {
             "bytes": 586,
@@ -114,9 +150,15 @@
     "products-of-array-discluding-self": {
       "submissions": [
         {
-          "analyzed_at": "2026-08-13T20:34:14.135827+00:00",
-          "complexity": null,
-          "error": "HTTPError: HTTP Error 400: Bad Request \u2014 {\"error\":{\"message\":\"invalid temperature: only 1 is allowed for this model\",\"type\":\"invalid_request_error\"}}",
+          "analyzed_at": "2026-08-13T20:36:30.638443+00:00",
+          "complexity": {
+            "hash_dependent": false,
+            "notes": "Uses integer division (prod // num), which is exact here but violates the common 'no division' variant of this problem and relies on exact divisibility. The one-zero branch slices nums[:zero] and nums[zero+1:], creating O(n) copies; iterating by index and skipping zero would avoid that. The match/case with a guarded wildcard is less readable than simple if/elif, and requires Python 3.10+.",
+            "space": "O(n)",
+            "summary": "Counts zeros and branches: multiple zeros yield all zeros; exactly one zero yields the product of the remaining elements only at that index; otherwise computes the total product and divides by each element.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
           "file": "Data Structures & Algorithms/products-of-array-discluding-self/submission-0.py",
           "golf": {
             "bytes": 633,
@@ -133,9 +175,15 @@
     "string-encode-and-decode": {
       "submissions": [
         {
-          "analyzed_at": "2026-08-13T20:34:19.139857+00:00",
-          "complexity": null,
-          "error": "HTTPError: HTTP Error 400: Bad Request \u2014 {\"error\":{\"message\":\"invalid temperature: only 1 is allowed for this model\",\"type\":\"invalid_request_error\"}}",
+          "analyzed_at": "2026-08-13T20:36:57.278061+00:00",
+          "complexity": {
+            "hash_dependent": false,
+            "notes": "Correctness is fragile: any input string containing the delimiter emoji breaks decoding, and encode([]) and encode(['']) both rely on subtle edge-case behavior of split/pop; a length-prefixed encoding (e.g., 'len#string') is the standard robust approach. Also missing 'from typing import List' import.",
+            "space": "O(L)",
+            "summary": "Joins the strings with an emoji delimiter (plus a trailing delimiter) for encoding, and splits on the same delimiter for decoding, dropping the trailing empty piece. L is the total number of characters across all strings.",
+            "time_average": "O(L)",
+            "time_worst": "O(L)"
+          },
           "file": "Data Structures & Algorithms/string-encode-and-decode/submission-9.py",
           "golf": {
             "bytes": 284,
@@ -148,9 +196,15 @@
           "solved_at": "2026-08-12T18:40:56-07:00"
         },
         {
-          "analyzed_at": "2026-08-13T20:34:15.330115+00:00",
-          "complexity": null,
-          "error": "HTTPError: HTTP Error 400: Bad Request \u2014 {\"error\":{\"message\":\"invalid temperature: only 1 is allowed for this model\",\"type\":\"invalid_request_error\"}}",
+          "analyzed_at": "2026-08-13T20:36:36.002592+00:00",
+          "complexity": {
+            "hash_dependent": false,
+            "notes": "The approach is not robust: if any input string contains the delimiter substring, decoding is incorrect. A length-prefix scheme (e.g., 'len#string') is the standard safe encoding. Also, 'output.pop(-1)' could be written as 'output.pop()', and the encode/decode edge cases (empty list, empty strings) should be handled symmetrically.",
+            "space": "O(n)",
+            "summary": "Encodes by joining the strings with a long fixed delimiter (and appending it at the end), and decodes by splitting on that delimiter. Both operations are linear scans over the total character count n.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
           "file": "Data Structures & Algorithms/string-encode-and-decode/submission-10.py",
           "golf": {
             "bytes": 365,
@@ -163,9 +217,15 @@
           "solved_at": "2026-08-12T18:40:56-07:00"
         },
         {
-          "analyzed_at": "2026-08-13T20:34:17.547482+00:00",
-          "complexity": null,
-          "error": "HTTPError: HTTP Error 400: Bad Request \u2014 {\"error\":{\"message\":\"invalid temperature: only 1 is allowed for this model\",\"type\":\"invalid_request_error\"}}",
+          "analyzed_at": "2026-08-13T20:36:46.415565+00:00",
+          "complexity": {
+            "hash_dependent": false,
+            "notes": "Decode is quadratic due to repeated s = s[...] slicing; using an index pointer (or StringIO/pointer walk) instead of re-slicing would make it O(n). Also int(s[0:a]) and s.index('|') re-scan the header each time; encode is fine. Consider a delimiter unlikely to confuse (current scheme is actually correct since length prefix disambiguates '|' inside content).",
+            "space": "O(n)",
+            "summary": "Encodes each string as 'length|content' concatenated together; decode repeatedly finds the next '|', parses the length prefix, and slices out that many characters. Because decode re-slices the remaining string on every iteration, each of the k strings triggers an O(n) copy, giving O(n*k) = O(n^2) overall.",
+            "time_average": "O(n^2)",
+            "time_worst": "O(n^2)"
+          },
           "file": "Data Structures & Algorithms/string-encode-and-decode/submission-11.py",
           "golf": {
             "bytes": 332,
@@ -182,9 +242,15 @@
     "top-k-elements-in-list": {
       "submissions": [
         {
-          "analyzed_at": "2026-08-13T20:34:20.235116+00:00",
-          "complexity": null,
-          "error": "HTTPError: HTTP Error 400: Bad Request \u2014 {\"error\":{\"message\":\"invalid temperature: only 1 is allowed for this model\",\"type\":\"invalid_request_error\"}}",
+          "analyzed_at": "2026-08-13T20:37:18.394357+00:00",
+          "complexity": {
+            "hash_dependent": true,
+            "notes": "m = number of distinct values. The nested scan over all (key, value) pairs for each of the k top counts is O(k*m) and can degenerate to O(n^2); using collections.Counter with most_common(k) or a heap would be cleaner and O(n log k). Also, the sort-plus-match approach can return more than k elements when frequencies tie at the cutoff, and worst-case time includes adversarial dict hash collisions.",
+            "space": "O(n)",
+            "summary": "Builds a frequency map with a dict, sorts the frequency values to find the k largest, then collects all keys whose frequency matches any of those top-k counts. The final set() deduplicates keys gathered when multiple elements share the same frequency.",
+            "time_average": "O(n log n + k*m)",
+            "time_worst": "O(n^2)"
+          },
           "file": "Data Structures & Algorithms/top-k-elements-in-list/submission-2.py",
           "golf": {
             "bytes": 425,
@@ -201,9 +267,15 @@
     "two-integer-sum": {
       "submissions": [
         {
-          "analyzed_at": "2026-08-13T20:34:21.413442+00:00",
-          "complexity": null,
-          "error": "HTTPError: HTTP Error 400: Bad Request \u2014 {\"error\":{\"message\":\"invalid temperature: only 1 is allowed for this model\",\"type\":\"invalid_request_error\"}}",
+          "analyzed_at": "2026-08-13T20:37:30.485474+00:00",
+          "complexity": {
+            "hash_dependent": false,
+            "notes": "Works but convoluted: the duplicate-value handling with pop() and index()+1 is fragile and hard to follow. Using negative index high=-1 is valid but less readable than high=len(nums2)-1. A single-pass hash map or sorting (index, value) pairs would be clearer and avoid the O(n) index() recovery entirely.",
+            "space": "O(n)",
+            "summary": "Sorts a copy of the array, then uses a two-pointer scan (from both ends) to find the pair summing to target, and recovers original indices via linear index() searches with a special case for duplicate values.",
+            "time_average": "O(n log n)",
+            "time_worst": "O(n log n)"
+          },
           "file": "Data Structures & Algorithms/two-integer-sum/submission-4.py",
           "golf": {
             "bytes": 579,
@@ -220,9 +292,15 @@
     "two-integer-sum-ii": {
       "submissions": [
         {
-          "analyzed_at": "2026-08-13T20:34:22.520230+00:00",
-          "complexity": null,
-          "error": "HTTPError: HTTP Error 400: Bad Request \u2014 {\"error\":{\"message\":\"invalid temperature: only 1 is allowed for this model\",\"type\":\"invalid_request_error\"}}",
+          "analyzed_at": "2026-08-13T20:37:41.843398+00:00",
+          "complexity": {
+            "hash_dependent": false,
+            "notes": "Sorting discards original positions, forcing O(n) index() lookups afterward; sorting (value, index) pairs would avoid the awkward pop-and-re-search duplicate handling. Also note Two Sum II typically assumes the input is already sorted, in which case sorting here adds an unnecessary O(n log n) factor instead of the intended O(n) two-pointer pass. The high = -1 negative-index trick is valid Python but less readable than len(nums2) - 1.",
+            "space": "O(n)",
+            "summary": "Sorts a copy of the array, then uses two pointers to find the pair summing to target, and recovers original 1-based indices via linear index() searches (with a pop workaround for duplicate values).",
+            "time_average": "O(n log n)",
+            "time_worst": "O(n log n)"
+          },
           "file": "Data Structures & Algorithms/two-integer-sum-ii/submission-1.py",
           "golf": {
             "bytes": 585,
@@ -239,9 +317,15 @@
     "valid-sudoku": {
       "submissions": [
         {
-          "analyzed_at": "2026-08-13T20:34:23.580301+00:00",
-          "complexity": null,
-          "error": "HTTPError: HTTP Error 400: Bad Request \u2014 {\"error\":{\"message\":\"invalid temperature: only 1 is allowed for this model\",\"type\":\"invalid_request_error\"}}",
+          "analyzed_at": "2026-08-13T20:37:51.374131+00:00",
+          "complexity": {
+            "hash_dependent": false,
+            "notes": "No early exit: 'valid *= isValidLine(...)' keeps scanning all lines even after a failure; 'valid &= ...' or 'return False' would be cleaner. The count-based duplicate check is concise but quadratic per line; a set would be more idiomatic for larger inputs. Also 'List' needs a typing import.",
+            "space": "O(1)",
+            "summary": "Checks each row, column, and 3x3 box for duplicate digits using list.count on every non-empty cell. Since the board is fixed at 9x9, all work is constant; generalized to n cells per line it would be O(n^2) per line due to repeated count scans.",
+            "time_average": "O(1)",
+            "time_worst": "O(1)"
+          },
           "file": "Data Structures & Algorithms/valid-sudoku/submission-0.py",
           "golf": {
             "bytes": 830,

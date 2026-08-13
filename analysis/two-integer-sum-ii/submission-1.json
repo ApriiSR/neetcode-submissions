@@ -1,7 +1,13 @@
 {
-  "analyzed_at": "2026-08-13T20:34:22.520230+00:00",
-  "complexity": null,
-  "error": "HTTPError: HTTP Error 400: Bad Request \u2014 {\"error\":{\"message\":\"invalid temperature: only 1 is allowed for this model\",\"type\":\"invalid_request_error\"}}",
+  "analyzed_at": "2026-08-13T20:37:41.843398+00:00",
+  "complexity": {
+    "hash_dependent": false,
+    "notes": "Sorting discards original positions, forcing O(n) index() lookups afterward; sorting (value, index) pairs would avoid the awkward pop-and-re-search duplicate handling. Also note Two Sum II typically assumes the input is already sorted, in which case sorting here adds an unnecessary O(n log n) factor instead of the intended O(n) two-pointer pass. The high = -1 negative-index trick is valid Python but less readable than len(nums2) - 1.",
+    "space": "O(n)",
+    "summary": "Sorts a copy of the array, then uses two pointers to find the pair summing to target, and recovers original 1-based indices via linear index() searches (with a pop workaround for duplicate values).",
+    "time_average": "O(n log n)",
+    "time_worst": "O(n log n)"
+  },
   "file": "Data Structures & Algorithms/two-integer-sum-ii/submission-1.py",
   "golf": {
     "bytes": 585,

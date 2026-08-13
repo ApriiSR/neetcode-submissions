@@ -1,7 +1,13 @@
 {
-  "analyzed_at": "2026-08-13T20:34:17.547482+00:00",
-  "complexity": null,
-  "error": "HTTPError: HTTP Error 400: Bad Request \u2014 {\"error\":{\"message\":\"invalid temperature: only 1 is allowed for this model\",\"type\":\"invalid_request_error\"}}",
+  "analyzed_at": "2026-08-13T20:36:46.415565+00:00",
+  "complexity": {
+    "hash_dependent": false,
+    "notes": "Decode is quadratic due to repeated s = s[...] slicing; using an index pointer (or StringIO/pointer walk) instead of re-slicing would make it O(n). Also int(s[0:a]) and s.index('|') re-scan the header each time; encode is fine. Consider a delimiter unlikely to confuse (current scheme is actually correct since length prefix disambiguates '|' inside content).",
+    "space": "O(n)",
+    "summary": "Encodes each string as 'length|content' concatenated together; decode repeatedly finds the next '|', parses the length prefix, and slices out that many characters. Because decode re-slices the remaining string on every iteration, each of the k strings triggers an O(n) copy, giving O(n*k) = O(n^2) overall.",
+    "time_average": "O(n^2)",
+    "time_worst": "O(n^2)"
+  },
   "file": "Data Structures & Algorithms/string-encode-and-decode/submission-11.py",
   "golf": {
     "bytes": 332,

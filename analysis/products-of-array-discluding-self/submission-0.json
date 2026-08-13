@@ -1,7 +1,13 @@
 {
-  "analyzed_at": "2026-08-13T20:34:14.135827+00:00",
-  "complexity": null,
-  "error": "HTTPError: HTTP Error 400: Bad Request \u2014 {\"error\":{\"message\":\"invalid temperature: only 1 is allowed for this model\",\"type\":\"invalid_request_error\"}}",
+  "analyzed_at": "2026-08-13T20:36:30.638443+00:00",
+  "complexity": {
+    "hash_dependent": false,
+    "notes": "Uses integer division (prod // num), which is exact here but violates the common 'no division' variant of this problem and relies on exact divisibility. The one-zero branch slices nums[:zero] and nums[zero+1:], creating O(n) copies; iterating by index and skipping zero would avoid that. The match/case with a guarded wildcard is less readable than simple if/elif, and requires Python 3.10+.",
+    "space": "O(n)",
+    "summary": "Counts zeros and branches: multiple zeros yield all zeros; exactly one zero yields the product of the remaining elements only at that index; otherwise computes the total product and divides by each element.",
+    "time_average": "O(n)",
+    "time_worst": "O(n)"
+  },
   "file": "Data Structures & Algorithms/products-of-array-discluding-self/submission-0.py",
   "golf": {
     "bytes": 633,
