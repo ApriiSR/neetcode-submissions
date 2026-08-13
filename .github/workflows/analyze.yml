@@ -19,7 +19,9 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          # 3.14+: lazy annotation evaluation (PEP 649) — some solutions have
+          # annotations that would raise if evaluated eagerly (e.g. `tuple(int)`)
+          python-version: "3.14"
 
       - name: Run analysis
         env:
