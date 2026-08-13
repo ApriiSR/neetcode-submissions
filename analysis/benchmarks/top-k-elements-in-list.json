@@ -1,0 +1,38 @@
+{
+  "generated_at": "2026-08-13T21:17:23.528904+00:00",
+  "python_hash_seed": "0",
+  "slug": "top-k-elements-in-list",
+  "submissions": {
+    "submission-2.py": {
+      "adversarial": {
+        "note": "n distinct multiples of 2**61-1, all hashing to 0, so every dict insert/lookup collides",
+        "r2": 0.9990718021680224,
+        "sizes": [
+          64,
+          256,
+          1024
+        ],
+        "slope": 1.9222804349088674,
+        "times_ms": [
+          0.25441599999709297,
+          3.175212999998678,
+          52.50500500000044
+        ]
+      },
+      "r2": 0.9984113892382228,
+      "sizes": [
+        256,
+        1024,
+        4096,
+        16384
+      ],
+      "slope": 1.0528851708277156,
+      "times_ms": [
+        0.02867399999928466,
+        0.10575799999656965,
+        0.5362130000037268,
+        2.1651120000001356
+      ]
+    }
+  }
+}

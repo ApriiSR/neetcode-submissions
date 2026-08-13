@@ -1,10 +1,41 @@
 {
-  "generated_at": "2026-08-13T21:15:54.178697+00:00",
+  "generated_at": "2026-08-13T21:17:23.580076+00:00",
   "problems": {
     "anagram-groups": {
       "submissions": [
         {
           "analyzed_at": "2026-08-13T20:35:35.179072+00:00",
+          "benchmarks": {
+            "adversarial": {
+              "note": "every word is a rotation of the same 10-letter multiset, so all n words share one anagram signature (one exact dict key, not merely one hash bucket) and land in a single group; empirically this does NOT degrade to O(n^2) the way distinct-but-colliding keys do, since CPython dicts resolve a repeated exact key by direct slot lookup rather than probing a chain \u2014 see README",
+              "r2": 0.9999821747370903,
+              "sizes": [
+                64,
+                256,
+                1024
+              ],
+              "slope": 1.0047342013817213,
+              "times_ms": [
+                0.182170999998732,
+                0.726049000000728,
+                2.9532470000006583
+              ]
+            },
+            "r2": 0.9999849464758006,
+            "sizes": [
+              256,
+              1024,
+              4096,
+              16384
+            ],
+            "slope": 1.007041974319511,
+            "times_ms": [
+              0.64243199999936,
+              2.553728999998839,
+              10.404101999995419,
+              42.21655999999996
+            ]
+          },
           "complexity": {
             "hash_dependent": true,
             "notes": "Redundant: word_tuple is called twice per word; a single pass with d.setdefault(sig, []).append(word) (or defaultdict(list)) would be cleaner. The annotation tuple(int) is not valid typing (use tuple[int, ...]), and ord(letter)-97 silently assumes lowercase a-z input. `return list(d.values())` is more idiomatic than the final list comprehension.",
@@ -30,6 +61,37 @@
       "submissions": [
         {
           "analyzed_at": "2026-08-13T20:35:39.631967+00:00",
+          "benchmarks": {
+            "adversarial": {
+              "note": "n distinct multiples of 2**61-1, all hashing to 0, so every dict insert/lookup collides",
+              "r2": 0.9999791303503608,
+              "sizes": [
+                64,
+                256,
+                1024
+              ],
+              "slope": 1.9877875378608076,
+              "times_ms": [
+                0.08025099999997565,
+                1.2352309999954514,
+                19.860270000002345
+              ]
+            },
+            "r2": 0.9969014794237768,
+            "sizes": [
+              256,
+              1024,
+              4096,
+              16384
+            ],
+            "slope": 1.0866006440718736,
+            "times_ms": [
+              0.023884000000862216,
+              0.0903290000024981,
+              0.40057900000078916,
+              2.2036840000012603
+            ]
+          },
           "complexity": {
             "hash_dependent": true,
             "notes": "Shadowing the builtin name 'dict' is poor style; a set with early return (return True when a value is already seen) is simpler and avoids the second pass. Worst case assumes adversarial hash collisions making each dict operation O(n).",
@@ -55,6 +117,23 @@
       "submissions": [
         {
           "analyzed_at": "2026-08-13T20:35:47.635025+00:00",
+          "benchmarks": {
+            "adversarial": null,
+            "r2": 0.9993485230874777,
+            "sizes": [
+              256,
+              1024,
+              4096,
+              16384
+            ],
+            "slope": 1.0146791008010727,
+            "times_ms": [
+              0.0341129999981149,
+              0.12648700000283952,
+              0.5309740000001284,
+              2.2991629999964402
+            ]
+          },
           "complexity": {
             "hash_dependent": true,
             "notes": "The bare `except` clause is unidiomatic and masks unexpected errors; using `dict.get(i, 0)` or `collections.Counter` (with a simple `Counter(s) == Counter(t)` comparison) would be cleaner and more Pythonic. Space is effectively O(1) if the alphabet is bounded (e.g., lowercase letters).",
@@ -80,6 +159,23 @@
       "submissions": [
         {
           "analyzed_at": "2026-08-13T20:35:54.185189+00:00",
+          "benchmarks": {
+            "adversarial": null,
+            "r2": 0.9993212081394732,
+            "sizes": [
+              256,
+              1024,
+              4096,
+              16384
+            ],
+            "slope": 1.0542345335642018,
+            "times_ms": [
+              0.01111099999917542,
+              0.05266799999503746,
+              0.22367800000466787,
+              0.895576000004894
+            ]
+          },
           "complexity": {
             "hash_dependent": false,
             "notes": "The s.lower() call creates a full copy of the string, costing O(n) extra space; comparing characters with .lower() on the fly (or using casefold) would keep space at O(1). The early return when a reaches len(s) is slightly awkward\u2014bounding the inner loops with a < b would read more cleanly.",
@@ -101,6 +197,23 @@
         },
         {
           "analyzed_at": "2026-08-13T20:35:57.190236+00:00",
+          "benchmarks": {
+            "adversarial": null,
+            "r2": 0.9997681338929328,
+            "sizes": [
+              256,
+              1024,
+              4096,
+              16384
+            ],
+            "slope": 0.9648530718177122,
+            "times_ms": [
+              0.013375000001758508,
+              0.04815999999863152,
+              0.18721100000362867,
+              0.7346439999977861
+            ]
+          },
           "complexity": {
             "hash_dependent": false,
             "notes": "Concise and idiomatic; a two-pointer approach would reduce extra space to O(1) but this is perfectly readable for typical inputs.",
@@ -126,6 +239,37 @@
       "submissions": [
         {
           "analyzed_at": "2026-08-13T20:36:06.654208+00:00",
+          "benchmarks": {
+            "adversarial": {
+              "note": "n distinct multiples of 2**61-1, all hashing to 0, so every set insert/lookup collides",
+              "r2": 0.9989634769158953,
+              "sizes": [
+                64,
+                256,
+                1024
+              ],
+              "slope": 1.8693282044902062,
+              "times_ms": [
+                0.05846999999903346,
+                0.6754439999951956,
+                10.419059999996705
+              ]
+            },
+            "r2": 0.9966574150799571,
+            "sizes": [
+              256,
+              1024,
+              4096,
+              16384
+            ],
+            "slope": 1.127179197119082,
+            "times_ms": [
+              0.01746299999894063,
+              0.10805200000163495,
+              0.4595899999983999,
+              1.970779000004086
+            ]
+          },
           "complexity": {
             "hash_dependent": true,
             "notes": "Removing visited elements from the set is a nice touch that guarantees each number is processed once. Note the algorithm does not skip non-sequence-starts like the classic approach, but the removal strategy makes that unnecessary. Worst case degrades to O(n^2) under adversarial hash collisions since each set membership check could cost O(n).",
@@ -151,6 +295,23 @@
       "submissions": [
         {
           "analyzed_at": "2026-08-13T20:36:30.638443+00:00",
+          "benchmarks": {
+            "adversarial": null,
+            "r2": 0.9995242477308538,
+            "sizes": [
+              256,
+              1024,
+              4096,
+              16384
+            ],
+            "slope": 0.9787271499022825,
+            "times_ms": [
+              0.012444000006439637,
+              0.04446299999472103,
+              0.18675900000175716,
+              0.7101890000029698
+            ]
+          },
           "complexity": {
             "hash_dependent": false,
             "notes": "Uses integer division (prod // num), which is exact here but violates the common 'no division' variant of this problem and relies on exact divisibility. The one-zero branch slices nums[:zero] and nums[zero+1:], creating O(n) copies; iterating by index and skipping zero would avoid that. The match/case with a guarded wildcard is less readable than simple if/elif, and requires Python 3.10+.",
@@ -176,6 +337,23 @@
       "submissions": [
         {
           "analyzed_at": "2026-08-13T20:36:57.278061+00:00",
+          "benchmarks": {
+            "adversarial": null,
+            "r2": 0.9976005752919553,
+            "sizes": [
+              256,
+              1024,
+              4096,
+              16384
+            ],
+            "slope": 1.0979421662537812,
+            "times_ms": [
+              0.005619999996042679,
+              0.020608999996341026,
+              0.10761200000075632,
+              0.5174779999990164
+            ]
+          },
           "complexity": {
             "hash_dependent": false,
             "notes": "Correctness is fragile: any input string containing the delimiter emoji breaks decoding, and encode([]) and encode(['']) both rely on subtle edge-case behavior of split/pop; a length-prefixed encoding (e.g., 'len#string') is the standard robust approach. Also missing 'from typing import List' import.",
@@ -197,6 +375,23 @@
         },
         {
           "analyzed_at": "2026-08-13T20:36:36.002592+00:00",
+          "benchmarks": {
+            "adversarial": null,
+            "r2": 0.9752563895087789,
+            "sizes": [
+              256,
+              1024,
+              4096,
+              16384
+            ],
+            "slope": 1.2341298000593235,
+            "times_ms": [
+              0.0028360000001725894,
+              0.01001900000119349,
+              0.04493400000171732,
+              0.5154540000020802
+            ]
+          },
           "complexity": {
             "hash_dependent": false,
             "notes": "The approach is not robust: if any input string contains the delimiter substring, decoding is incorrect. A length-prefix scheme (e.g., 'len#string') is the standard safe encoding. Also, 'output.pop(-1)' could be written as 'output.pop()', and the encode/decode edge cases (empty list, empty strings) should be handled symmetrically.",
@@ -218,6 +413,23 @@
         },
         {
           "analyzed_at": "2026-08-13T20:36:46.415565+00:00",
+          "benchmarks": {
+            "adversarial": null,
+            "r2": 0.9999941133834689,
+            "sizes": [
+              256,
+              1024,
+              4096,
+              16384
+            ],
+            "slope": 1.0023012818972565,
+            "times_ms": [
+              0.04643700000173112,
+              0.18587699999983442,
+              0.7416879999979642,
+              3.0061960000011823
+            ]
+          },
           "complexity": {
             "hash_dependent": false,
             "notes": "Decode is quadratic due to repeated s = s[...] slicing; using an index pointer (or StringIO/pointer walk) instead of re-slicing would make it O(n). Also int(s[0:a]) and s.index('|') re-scan the header each time; encode is fine. Consider a delimiter unlikely to confuse (current scheme is actually correct since length prefix disambiguates '|' inside content).",
@@ -243,6 +455,37 @@
       "submissions": [
         {
           "analyzed_at": "2026-08-13T20:37:18.394357+00:00",
+          "benchmarks": {
+            "adversarial": {
+              "note": "n distinct multiples of 2**61-1, all hashing to 0, so every dict insert/lookup collides",
+              "r2": 0.9990718021680224,
+              "sizes": [
+                64,
+                256,
+                1024
+              ],
+              "slope": 1.9222804349088674,
+              "times_ms": [
+                0.25441599999709297,
+                3.175212999998678,
+                52.50500500000044
+              ]
+            },
+            "r2": 0.9984113892382228,
+            "sizes": [
+              256,
+              1024,
+              4096,
+              16384
+            ],
+            "slope": 1.0528851708277156,
+            "times_ms": [
+              0.02867399999928466,
+              0.10575799999656965,
+              0.5362130000037268,
+              2.1651120000001356
+            ]
+          },
           "complexity": {
             "hash_dependent": true,
             "notes": "m = number of distinct values. The nested scan over all (key, value) pairs for each of the k top counts is O(k*m) and can degenerate to O(n^2); using collections.Counter with most_common(k) or a heap would be cleaner and O(n log k). Also, the sort-plus-match approach can return more than k elements when frequencies tie at the cutoff, and worst-case time includes adversarial dict hash collisions.",
@@ -268,6 +511,37 @@
       "submissions": [
         {
           "analyzed_at": "2026-08-13T20:37:30.485474+00:00",
+          "benchmarks": {
+            "adversarial": {
+              "note": "n distinct multiples of 2**61-1, all hashing to 0, so every dict insert/lookup collides",
+              "r2": 0.9999251923412503,
+              "sizes": [
+                64,
+                256,
+                1024
+              ],
+              "slope": 0.9732875936889565,
+              "times_ms": [
+                0.011211000000344029,
+                0.04234899999744357,
+                0.16657100000116998
+              ]
+            },
+            "r2": 0.9936922728564792,
+            "sizes": [
+              256,
+              1024,
+              4096,
+              16384
+            ],
+            "slope": 1.0397104715278929,
+            "times_ms": [
+              0.03699900000242451,
+              0.11245099999968033,
+              0.5496289999982196,
+              2.6610199999979045
+            ]
+          },
           "complexity": {
             "hash_dependent": false,
             "notes": "Works but convoluted: the duplicate-value handling with pop() and index()+1 is fragile and hard to follow. Using negative index high=-1 is valid but less readable than high=len(nums2)-1. A single-pass hash map or sorting (index, value) pairs would be clearer and avoid the O(n) index() recovery entirely.",
@@ -293,6 +567,37 @@
       "submissions": [
         {
           "analyzed_at": "2026-08-13T20:37:41.843398+00:00",
+          "benchmarks": {
+            "adversarial": {
+              "note": "n distinct multiples of 2**61-1 (already ascending), all hashing to 0, so every dict insert/lookup collides",
+              "r2": 0.9999149028399804,
+              "sizes": [
+                64,
+                256,
+                1024
+              ],
+              "slope": 0.9712323418915431,
+              "times_ms": [
+                0.01104999999768097,
+                0.0415680000003249,
+                0.1632459999996172
+              ]
+            },
+            "r2": 0.9997606296573197,
+            "sizes": [
+              256,
+              1024,
+              4096,
+              16384
+            ],
+            "slope": 1.0789170528137229,
+            "times_ms": [
+              0.01875499999925978,
+              0.07958900000204494,
+              0.38061200000072404,
+              1.6286079999972003
+            ]
+          },
           "complexity": {
             "hash_dependent": false,
             "notes": "Sorting discards original positions, forcing O(n) index() lookups afterward; sorting (value, index) pairs would avoid the awkward pop-and-re-search duplicate handling. Also note Two Sum II typically assumes the input is already sorted, in which case sorting here adds an unnecessary O(n log n) factor instead of the intended O(n) two-pointer pass. The high = -1 negative-index trick is valid Python but less readable than len(nums2) - 1.",
