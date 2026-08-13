@@ -1,7 +1,7 @@
 {
-  "analyzed_at": "2026-08-13T20:27:59.273396+00:00",
+  "analyzed_at": "2026-08-13T20:32:14.338332+00:00",
   "complexity": null,
-  "error": "HTTPError: HTTP Error 401: Unauthorized",
+  "error": "HTTPError: HTTP Error 400: Bad Request",
   "file": "Data Structures & Algorithms/longest-consecutive-sequence/submission-0.py",
   "golf": {
     "bytes": 586,

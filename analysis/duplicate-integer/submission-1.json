@@ -1,7 +1,7 @@
 {
-  "analyzed_at": "2026-08-13T20:27:56.719993+00:00",
+  "analyzed_at": "2026-08-13T20:32:09.587585+00:00",
   "complexity": null,
-  "error": "HTTPError: HTTP Error 401: Unauthorized",
+  "error": "HTTPError: HTTP Error 400: Bad Request",
   "file": "Data Structures & Algorithms/duplicate-integer/submission-1.py",
   "golf": {
     "bytes": 263,

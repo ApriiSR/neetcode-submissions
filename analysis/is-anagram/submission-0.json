@@ -1,7 +1,7 @@
 {
-  "analyzed_at": "2026-08-13T20:27:57.348872+00:00",
+  "analyzed_at": "2026-08-13T20:32:10.784722+00:00",
   "complexity": null,
-  "error": "HTTPError: HTTP Error 401: Unauthorized",
+  "error": "HTTPError: HTTP Error 400: Bad Request",
   "file": "Data Structures & Algorithms/is-anagram/submission-0.py",
   "golf": {
     "bytes": 650,
