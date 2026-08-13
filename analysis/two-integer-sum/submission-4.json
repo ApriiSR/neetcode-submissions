@@ -1,10 +1,11 @@
 {
-  "analyzed_at": "2026-08-13T20:37:30.485474+00:00",
+  "analyzed_at": "2026-08-13T21:55:14.913458+00:00",
   "complexity": {
+    "benchmark_model": "n log n",
     "hash_dependent": false,
-    "notes": "Works but convoluted: the duplicate-value handling with pop() and index()+1 is fragile and hard to follow. Using negative index high=-1 is valid but less readable than high=len(nums2)-1. A single-pass hash map or sorting (index, value) pairs would be clearer and avoid the O(n) index() recovery entirely.",
+    "notes": "The index()-based index recovery is O(n) per call and mutates the input via pop(); sorting (value, original_index) pairs would avoid this entirely. A hash map would give O(n) average time, and the loop lacks a termination guard if no valid pair exists (it would raise IndexError rather than exit cleanly).",
     "space": "O(n)",
-    "summary": "Sorts a copy of the array, then uses a two-pointer scan (from both ends) to find the pair summing to target, and recovers original indices via linear index() searches with a special case for duplicate values.",
+    "summary": "Sorts a copy of the array and uses a two-pointer scan from both ends to find the pair summing to target, then recovers the original indices via linear index() lookups (with a pop-and-research workaround for duplicate values).",
     "time_average": "O(n log n)",
     "time_worst": "O(n log n)"
   },

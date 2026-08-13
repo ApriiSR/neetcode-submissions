@@ -1,10 +1,11 @@
 {
-  "analyzed_at": "2026-08-13T20:36:46.415565+00:00",
+  "analyzed_at": "2026-08-13T21:54:36.631384+00:00",
   "complexity": {
+    "benchmark_model": "n^2",
     "hash_dependent": false,
-    "notes": "Decode is quadratic due to repeated s = s[...] slicing; using an index pointer (or StringIO/pointer walk) instead of re-slicing would make it O(n). Also int(s[0:a]) and s.index('|') re-scan the header each time; encode is fine. Consider a delimiter unlikely to confuse (current scheme is actually correct since length prefix disambiguates '|' inside content).",
+    "notes": "Encode is clean and linear. Decode would be O(n) if it used an index pointer into the original string instead of reslicing s each loop; the repeated s = s[k:] copies dominate the runtime. Also note int(s[0:a]) is computed twice per iteration and could be stored in a variable.",
     "space": "O(n)",
-    "summary": "Encodes each string as 'length|content' concatenated together; decode repeatedly finds the next '|', parses the length prefix, and slices out that many characters. Because decode re-slices the remaining string on every iteration, each of the k strings triggers an O(n) copy, giving O(n*k) = O(n^2) overall.",
+    "summary": "Encodes each string as a length-prefixed token (len|s). Decoding repeatedly finds the delimiter, slices out the string, and reassigns s to the sliced remainder, which copies the remaining characters every iteration and makes decode quadratic in the total character volume.",
     "time_average": "O(n^2)",
     "time_worst": "O(n^2)"
   },
@@ -13,7 +14,7 @@
     "bytes": 332,
     "characters": 332,
     "non_blank_lines": 10,
-    "tokens": 107
+    "tokens": 118
   },
   "model": "k3",
   "slug": "string-encode-and-decode",

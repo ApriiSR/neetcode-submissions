@@ -1,11 +1,12 @@
 {
-  "analyzed_at": "2026-08-13T20:37:18.394357+00:00",
+  "analyzed_at": "2026-08-13T21:55:06.514325+00:00",
   "complexity": {
+    "benchmark_model": "n log n",
     "hash_dependent": true,
-    "notes": "m = number of distinct values. The nested scan over all (key, value) pairs for each of the k top counts is O(k*m) and can degenerate to O(n^2); using collections.Counter with most_common(k) or a heap would be cleaner and O(n log k). Also, the sort-plus-match approach can return more than k elements when frequencies tie at the cutoff, and worst-case time includes adversarial dict hash collisions.",
+    "notes": "Non-idiomatic counting (use dict.get(num, 0) + 1 or collections.Counter) and the reverse lookup re-scans the dict up to k times instead of sorting items by frequency directly. Also, when multiple keys share a frequency, the set-deduped result can return more than k elements, and duplicate frequencies in the sliced list cause redundant scans.",
     "space": "O(n)",
-    "summary": "Builds a frequency map with a dict, sorts the frequency values to find the k largest, then collects all keys whose frequency matches any of those top-k counts. The final set() deduplicates keys gathered when multiple elements share the same frequency.",
-    "time_average": "O(n log n + k*m)",
+    "summary": "Builds a frequency map with a dict, sorts the frequency values and keeps the top k (k <= 5, so bounded), then for each retained frequency scans the whole dict to recover matching keys, deduplicating with a set at the end.",
+    "time_average": "O(n log n)",
     "time_worst": "O(n^2)"
   },
   "file": "Data Structures & Algorithms/top-k-elements-in-list/submission-2.py",

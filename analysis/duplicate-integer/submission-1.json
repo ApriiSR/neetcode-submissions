@@ -1,10 +1,11 @@
 {
-  "analyzed_at": "2026-08-13T20:35:39.631967+00:00",
+  "analyzed_at": "2026-08-13T21:53:09.347705+00:00",
   "complexity": {
+    "benchmark_model": "n",
     "hash_dependent": true,
-    "notes": "Shadowing the builtin name 'dict' is poor style; a set with early return (return True when a value is already seen) is simpler and avoids the second pass. Worst case assumes adversarial hash collisions making each dict operation O(n).",
+    "notes": "Naming the local variable `dict` shadows the built-in type. A simpler idiom is a single pass with a set, returning True on the first element already seen; alternatively `len(nums) != len(set(nums))`. Since values are bounded by 4n+1, hashing could also be avoided with a fixed-size boolean array or a bitset for guaranteed O(n) worst case.",
     "space": "O(n)",
-    "summary": "Counts occurrences of each value in a hash map, then scans the array again to find any value whose count exceeds 1.",
+    "summary": "Counts occurrences of each value in a dict over the array, then makes a second pass to check whether any count exceeds 1. Correct but does two passes where one would suffice.",
     "time_average": "O(n)",
     "time_worst": "O(n^2)"
   },

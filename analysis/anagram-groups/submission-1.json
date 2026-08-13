@@ -1,12 +1,13 @@
 {
-  "analyzed_at": "2026-08-13T20:35:35.179072+00:00",
+  "analyzed_at": "2026-08-13T21:52:56.794234+00:00",
   "complexity": {
+    "benchmark_model": "n",
     "hash_dependent": true,
-    "notes": "Redundant: word_tuple is called twice per word; a single pass with d.setdefault(sig, []).append(word) (or defaultdict(list)) would be cleaner. The annotation tuple(int) is not valid typing (use tuple[int, ...]), and ord(letter)-97 silently assumes lowercase a-z input. `return list(d.values())` is more idiomatic than the final list comprehension.",
-    "space": "O(n * L), for the output groups plus the dict storing all words and their 26-element signatures",
-    "summary": "Each word is mapped to a 26-element letter-count tuple signature, and words sharing a signature are grouped together via a dict. The signature is computed twice per word: once to initialize dict keys and once to append each word to its group.",
-    "time_average": "O(n * L), where n is the number of strings and L is the maximum string length",
-    "time_worst": "O(n^2 + n * L), accounting for adversarial hash collisions degrading each dict lookup/insert to O(n)"
+    "notes": "word_tuple is computed twice per word (once to build the dict, once to append); a collections.defaultdict(list) or dict.setdefault would avoid the redundant work and be cleaner. The annotation 'tuple(int)' is a runtime call, not a type hint \u2014 it should be 'tuple[int, ...]'. Worst case is O(n^2) because adversarial hash collisions degrade dict operations to O(n) each.",
+    "space": "O(n)",
+    "summary": "Each word is mapped to a 26-element letter-count tuple used as a dict key, and words are grouped by identical signatures. Since word length is bounded by a small constant, each signature is computed in O(1), giving linear average time overall.",
+    "time_average": "O(n)",
+    "time_worst": "O(n^2)"
   },
   "file": "Data Structures & Algorithms/anagram-groups/submission-1.py",
   "golf": {

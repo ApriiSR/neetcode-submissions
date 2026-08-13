@@ -1,0 +1,80 @@
+{
+  "generated_at": "2026-08-13T21:55:52.421207+00:00",
+  "python_hash_seed": "0",
+  "slug": "anagram-groups",
+  "submissions": {
+    "submission-1.py": {
+      "adversarial": {
+        "best_fit": "n",
+        "best_fit_r2": 0.9999762609443678,
+        "k3_model": "n",
+        "k3_model_r2": 0.9999762609443678,
+        "note": "every word is a rotation of the same 10-letter multiset, so all n words share one anagram signature (one exact dict key, not merely one hash bucket) and land in a single group; empirically this does NOT degrade to O(n^2) the way distinct-but-colliding keys do, since CPython dicts resolve a repeated exact key by direct slot lookup rather than probing a chain \u2014 see README",
+        "r2": 0.9999766927231787,
+        "sizes": [
+          64,
+          128,
+          256,
+          512,
+          1024,
+          2048,
+          4096,
+          8192,
+          16384,
+          32768,
+          65536
+        ],
+        "slope": 1.0006575385137397,
+        "times_ms": [
+          0.1370869999846036,
+          0.2737419999903068,
+          0.5543519999946511,
+          1.1026379999918845,
+          2.2266880000074707,
+          4.307877000002236,
+          8.624778000012157,
+          17.5961559999962,
+          35.572803999997404,
+          70.65751900000805,
+          141.6922619999923
+        ]
+      },
+      "best_fit": "n",
+      "best_fit_r2": 0.9975328922251521,
+      "k3_model": "n",
+      "k3_model_r2": 0.9975328922251521,
+      "r2": 0.9990348145627199,
+      "sizes": [
+        256,
+        512,
+        1024,
+        2048,
+        4096,
+        8192,
+        16384,
+        32768,
+        65536,
+        131072,
+        262144,
+        524288,
+        1048576
+      ],
+      "slope": 1.0403373745517013,
+      "times_ms": [
+        0.5413219999752528,
+        1.0062300000015512,
+        2.1150949999935165,
+        4.380018000006203,
+        8.353096000007554,
+        15.924338999980137,
+        33.057562999999845,
+        67.5277670000014,
+        136.28431999998725,
+        311.8102430000249,
+        672.6203180000141,
+        1424.0741979999996,
+        3191.999741000018
+      ]
+    }
+  }
+}

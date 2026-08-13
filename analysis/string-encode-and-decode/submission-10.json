@@ -1,10 +1,11 @@
 {
-  "analyzed_at": "2026-08-13T20:36:36.002592+00:00",
+  "analyzed_at": "2026-08-13T21:54:17.344215+00:00",
   "complexity": {
+    "benchmark_model": "n",
     "hash_dependent": false,
-    "notes": "The approach is not robust: if any input string contains the delimiter substring, decoding is incorrect. A length-prefix scheme (e.g., 'len#string') is the standard safe encoding. Also, 'output.pop(-1)' could be written as 'output.pop()', and the encode/decode edge cases (empty list, empty strings) should be handled symmetrically.",
+    "notes": "Correctness is fragile: any input string containing the literal delimiter breaks decode, so this is not a robust encoding scheme (a length-prefix format would be). Also, decode(\"\") returns [] only incidentally via pop, and the delimiter constant is repeated rather than defined once.",
     "space": "O(n)",
-    "summary": "Encodes by joining the strings with a long fixed delimiter (and appending it at the end), and decodes by splitting on that delimiter. Both operations are linear scans over the total character count n.",
+    "summary": "Encodes by joining all strings with a fixed hardcoded delimiter (and appending it at the end), and decodes by splitting on that delimiter and dropping the trailing empty piece. Both operations are linear in the total character volume, which scales linearly with n.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },

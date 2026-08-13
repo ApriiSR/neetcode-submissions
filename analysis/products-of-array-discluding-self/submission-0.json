@@ -1,10 +1,11 @@
 {
-  "analyzed_at": "2026-08-13T20:36:30.638443+00:00",
+  "analyzed_at": "2026-08-13T21:54:02.267350+00:00",
   "complexity": {
+    "benchmark_model": "n",
     "hash_dependent": false,
-    "notes": "Uses integer division (prod // num), which is exact here but violates the common 'no division' variant of this problem and relies on exact divisibility. The one-zero branch slices nums[:zero] and nums[zero+1:], creating O(n) copies; iterating by index and skipping zero would avoid that. The match/case with a guarded wildcard is less readable than simple if/elif, and requires Python 3.10+.",
+    "notes": "Correct but heavier than needed: the zero-handling branches, list slicing (which copies O(n) elements), and match/case add complexity versus the standard two-pass prefix/suffix approach, which also avoids division entirely. Division via // relies on exact divisibility and would break if division were disallowed, as the classic problem requires.",
     "space": "O(n)",
-    "summary": "Counts zeros and branches: multiple zeros yield all zeros; exactly one zero yields the product of the remaining elements only at that index; otherwise computes the total product and divides by each element.",
+    "summary": "Counts zeros and branches: with 2+ zeros all outputs are 0; with exactly 1 zero it computes the product of the non-zero elements and places it at the zero's position; with no zeros it computes the total product and divides by each element.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },

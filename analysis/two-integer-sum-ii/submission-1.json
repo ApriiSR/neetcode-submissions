@@ -1,10 +1,11 @@
 {
-  "analyzed_at": "2026-08-13T20:37:41.843398+00:00",
+  "analyzed_at": "2026-08-13T21:55:27.632309+00:00",
   "complexity": {
+    "benchmark_model": "n log n",
     "hash_dependent": false,
-    "notes": "Sorting discards original positions, forcing O(n) index() lookups afterward; sorting (value, index) pairs would avoid the awkward pop-and-re-search duplicate handling. Also note Two Sum II typically assumes the input is already sorted, in which case sorting here adds an unnecessary O(n log n) factor instead of the intended O(n) two-pointer pass. The high = -1 negative-index trick is valid Python but less readable than len(nums2) - 1.",
+    "notes": "Re-sorting is unnecessary since the input is already sorted, making the solution O(n log n) instead of the optimal O(n). The multiple nums.index calls and pop-based duplicate handling are unidiomatic and fragile; tracking original indices while scanning would be cleaner.",
     "space": "O(n)",
-    "summary": "Sorts a copy of the array, then uses two pointers to find the pair summing to target, and recovers original 1-based indices via linear index() searches (with a pop workaround for duplicate values).",
+    "summary": "Copies and sorts the array, then runs a two-pointer scan to find the pair; original 1-indexed positions are recovered via list.index, with special handling for duplicate values using pop.",
     "time_average": "O(n log n)",
     "time_worst": "O(n log n)"
   },

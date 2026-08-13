@@ -1,10 +1,11 @@
 {
-  "analyzed_at": "2026-08-13T20:35:57.190236+00:00",
+  "analyzed_at": "2026-08-13T21:53:33.757100+00:00",
   "complexity": {
+    "benchmark_model": "n",
     "hash_dependent": false,
-    "notes": "Concise and idiomatic; a two-pointer approach would reduce extra space to O(1) but this is perfectly readable for typical inputs.",
+    "notes": "Idiomatic and concise. An O(1)-extra-space alternative would use two pointers on the original string, skipping non-alphanumeric characters, avoiding the O(n) filtered copy and reversed copy.",
     "space": "O(n)",
-    "summary": "Builds a cleaned lowercase alphanumeric-only copy of the string, then checks whether it equals its reverse.",
+    "summary": "Filters the lowercased string down to alphanumeric characters, then checks whether the filtered string equals its reverse.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },

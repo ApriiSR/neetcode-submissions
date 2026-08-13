@@ -1,17 +1,91 @@
 {
-  "generated_at": "2026-08-13T21:52:25.396692+00:00",
+  "generated_at": "2026-08-13T21:56:50.005293+00:00",
   "problems": {
     "anagram-groups": {
       "submissions": [
         {
-          "analyzed_at": "2026-08-13T20:35:35.179072+00:00",
+          "analyzed_at": "2026-08-13T21:52:56.794234+00:00",
+          "benchmarks": {
+            "adversarial": {
+              "best_fit": "n",
+              "best_fit_r2": 0.9999762609443678,
+              "k3_model": "n",
+              "k3_model_r2": 0.9999762609443678,
+              "note": "every word is a rotation of the same 10-letter multiset, so all n words share one anagram signature (one exact dict key, not merely one hash bucket) and land in a single group; empirically this does NOT degrade to O(n^2) the way distinct-but-colliding keys do, since CPython dicts resolve a repeated exact key by direct slot lookup rather than probing a chain \u2014 see README",
+              "r2": 0.9999766927231787,
+              "sizes": [
+                64,
+                128,
+                256,
+                512,
+                1024,
+                2048,
+                4096,
+                8192,
+                16384,
+                32768,
+                65536
+              ],
+              "slope": 1.0006575385137397,
+              "times_ms": [
+                0.1370869999846036,
+                0.2737419999903068,
+                0.5543519999946511,
+                1.1026379999918845,
+                2.2266880000074707,
+                4.307877000002236,
+                8.624778000012157,
+                17.5961559999962,
+                35.572803999997404,
+                70.65751900000805,
+                141.6922619999923
+              ]
+            },
+            "best_fit": "n",
+            "best_fit_r2": 0.9975328922251521,
+            "k3_model": "n",
+            "k3_model_r2": 0.9975328922251521,
+            "r2": 0.9990348145627199,
+            "sizes": [
+              256,
+              512,
+              1024,
+              2048,
+              4096,
+              8192,
+              16384,
+              32768,
+              65536,
+              131072,
+              262144,
+              524288,
+              1048576
+            ],
+            "slope": 1.0403373745517013,
+            "times_ms": [
+              0.5413219999752528,
+              1.0062300000015512,
+              2.1150949999935165,
+              4.380018000006203,
+              8.353096000007554,
+              15.924338999980137,
+              33.057562999999845,
+              67.5277670000014,
+              136.28431999998725,
+              311.8102430000249,
+              672.6203180000141,
+              1424.0741979999996,
+              3191.999741000018
+            ]
+          },
           "complexity": {
+            "benchmark_model": "n",
             "hash_dependent": true,
-            "notes": "Redundant: word_tuple is called twice per word; a single pass with d.setdefault(sig, []).append(word) (or defaultdict(list)) would be cleaner. The annotation tuple(int) is not valid typing (use tuple[int, ...]), and ord(letter)-97 silently assumes lowercase a-z input. `return list(d.values())` is more idiomatic than the final list comprehension.",
-            "space": "O(n * L), for the output groups plus the dict storing all words and their 26-element signatures",
-            "summary": "Each word is mapped to a 26-element letter-count tuple signature, and words sharing a signature are grouped together via a dict. The signature is computed twice per word: once to initialize dict keys and once to append each word to its group.",
-            "time_average": "O(n * L), where n is the number of strings and L is the maximum string length",
-            "time_worst": "O(n^2 + n * L), accounting for adversarial hash collisions degrading each dict lookup/insert to O(n)"
+            "notes": "word_tuple is computed twice per word (once to build the dict, once to append); a collections.defaultdict(list) or dict.setdefault would avoid the redundant work and be cleaner. The annotation 'tuple(int)' is a runtime call, not a type hint \u2014 it should be 'tuple[int, ...]'. Worst case is O(n^2) because adversarial hash collisions degrade dict operations to O(n) each.",
+            "space": "O(n)",
+            "summary": "Each word is mapped to a 26-element letter-count tuple used as a dict key, and words are grouped by identical signatures. Since word length is bounded by a small constant, each signature is computed in O(1), giving linear average time overall.",
+            "time_average": "O(n)",
+            "time_worst": "O(n^2)"
           },
           "file": "Data Structures & Algorithms/anagram-groups/submission-1.py",
           "golf": {
@@ -29,12 +103,82 @@
     "duplicate-integer": {
       "submissions": [
         {
-          "analyzed_at": "2026-08-13T20:35:39.631967+00:00",
+          "analyzed_at": "2026-08-13T21:53:09.347705+00:00",
+          "benchmarks": {
+            "adversarial": {
+              "best_fit": "n^2",
+              "best_fit_r2": 0.9999365414767085,
+              "k3_model": "n",
+              "k3_model_r2": 0.7522942064512498,
+              "note": "n distinct multiples of 2**61-1, all hashing to 0, so every dict insert/lookup collides",
+              "r2": 0.9999582753854102,
+              "sizes": [
+                64,
+                128,
+                256,
+                512,
+                1024,
+                2048,
+                4096,
+                8192,
+                16384
+              ],
+              "slope": 1.9907191453105995,
+              "times_ms": [
+                0.06638699997552067,
+                0.25083500000278036,
+                0.9657089999848267,
+                3.9241150000179914,
+                15.468231999989257,
+                62.079745999994884,
+                248.9967090000107,
+                1010.6690240000091,
+                3996.541694999991
+              ]
+            },
+            "best_fit": "n log n",
+            "best_fit_r2": 0.9956128590727742,
+            "k3_model": "n",
+            "k3_model_r2": 0.9843403986437537,
+            "r2": 0.9972471473692939,
+            "sizes": [
+              256,
+              512,
+              1024,
+              2048,
+              4096,
+              8192,
+              16384,
+              32768,
+              65536,
+              131072,
+              262144,
+              524288,
+              1048576
+            ],
+            "slope": 1.1283683377282665,
+            "times_ms": [
+              0.019837999985838906,
+              0.039284000024508714,
+              0.0774720000151774,
+              0.15866999999047948,
+              0.30684500001143533,
+              0.6294700000069042,
+              1.6096970000205602,
+              3.3708809999950518,
+              7.241907999997466,
+              16.338248000010935,
+              36.110497999999325,
+              97.33848299998726,
+              255.89336200002322
+            ]
+          },
           "complexity": {
+            "benchmark_model": "n",
             "hash_dependent": true,
-            "notes": "Shadowing the builtin name 'dict' is poor style; a set with early return (return True when a value is already seen) is simpler and avoids the second pass. Worst case assumes adversarial hash collisions making each dict operation O(n).",
+            "notes": "Naming the local variable `dict` shadows the built-in type. A simpler idiom is a single pass with a set, returning True on the first element already seen; alternatively `len(nums) != len(set(nums))`. Since values are bounded by 4n+1, hashing could also be avoided with a fixed-size boolean array or a bitset for guaranteed O(n) worst case.",
             "space": "O(n)",
-            "summary": "Counts occurrences of each value in a hash map, then scans the array again to find any value whose count exceeds 1.",
+            "summary": "Counts occurrences of each value in a dict over the array, then makes a second pass to check whether any count exceeds 1. Correct but does two passes where one would suffice.",
             "time_average": "O(n)",
             "time_worst": "O(n^2)"
           },
@@ -54,14 +198,54 @@
     "is-anagram": {
       "submissions": [
         {
-          "analyzed_at": "2026-08-13T20:35:47.635025+00:00",
+          "analyzed_at": "2026-08-13T21:53:21.381325+00:00",
+          "benchmarks": {
+            "adversarial": null,
+            "best_fit": "n",
+            "best_fit_r2": 0.9987252559700477,
+            "k3_model": "n",
+            "k3_model_r2": 0.9987252559700477,
+            "r2": 0.999482586273109,
+            "sizes": [
+              256,
+              512,
+              1024,
+              2048,
+              4096,
+              8192,
+              16384,
+              32768,
+              65536,
+              131072,
+              262144,
+              524288,
+              1048576
+            ],
+            "slope": 1.0283059275398585,
+            "times_ms": [
+              0.023487000021304993,
+              0.04168300000628733,
+              0.08169000000179949,
+              0.15713899998104353,
+              0.31434599998192425,
+              0.7069820000253912,
+              1.4386480000041502,
+              2.9815589999770964,
+              6.271195000010721,
+              12.032688999994434,
+              26.302129000015384,
+              51.09185699998875,
+              108.51034299997764
+            ]
+          },
           "complexity": {
+            "benchmark_model": "n",
             "hash_dependent": true,
-            "notes": "The bare `except` clause is unidiomatic and masks unexpected errors; using `dict.get(i, 0)` or `collections.Counter` (with a simple `Counter(s) == Counter(t)` comparison) would be cleaner and more Pythonic. Space is effectively O(1) if the alphabet is bounded (e.g., lowercase letters).",
-            "space": "O(n + m)",
-            "summary": "Builds character-frequency dictionaries for both strings, then verifies that every key in each dict has a matching count in the other, treating missing keys (KeyError) as a mismatch.",
-            "time_average": "O(n + m)",
-            "time_worst": "O((n + m)^2)"
+            "notes": "Bare `except` to catch missing keys is poor style; `dict.get(i, 0)` or `collections.Counter` would be cleaner. The two comparison loops are redundant with each other, and equality of the two dicts could be checked directly with `multiset_s == multiset_t`. A length check up front would also short-circuit mismatched inputs.",
+            "space": "O(n)",
+            "summary": "Builds a character frequency dict for each string, then verifies the two multisets contain identical counts by iterating over both dicts. Anagrams are detected when all counts match.",
+            "time_average": "O(n)",
+            "time_worst": "O(n^2)"
           },
           "file": "Data Structures & Algorithms/is-anagram/submission-0.py",
           "golf": {
@@ -79,12 +263,52 @@
     "is-palindrome": {
       "submissions": [
         {
-          "analyzed_at": "2026-08-13T20:35:54.185189+00:00",
+          "analyzed_at": "2026-08-13T21:53:28.519402+00:00",
+          "benchmarks": {
+            "adversarial": null,
+            "best_fit": "n",
+            "best_fit_r2": 0.9991432810954558,
+            "k3_model": "n",
+            "k3_model_r2": 0.9991432810954558,
+            "r2": 0.9991599993579033,
+            "sizes": [
+              256,
+              512,
+              1024,
+              2048,
+              4096,
+              8192,
+              16384,
+              32768,
+              65536,
+              131072,
+              262144,
+              524288,
+              1048576
+            ],
+            "slope": 0.9959261485854953,
+            "times_ms": [
+              0.008718000003682391,
+              0.0192389999824627,
+              0.04352599998469486,
+              0.08874599998875965,
+              0.18055700002150843,
+              0.3540719999932662,
+              0.695823000000928,
+              1.3545269999895027,
+              2.5963489999867306,
+              4.895752000010134,
+              9.829932000002373,
+              19.848191999983555,
+              39.820797000004404
+            ]
+          },
           "complexity": {
+            "benchmark_model": "n",
             "hash_dependent": false,
-            "notes": "The s.lower() call creates a full copy of the string, costing O(n) extra space; comparing characters with .lower() on the fly (or using casefold) would keep space at O(1). The early return when a reaches len(s) is slightly awkward\u2014bounding the inner loops with a < b would read more cleanly.",
+            "notes": "The inner loop on pointer a can advance past b without a bounds check against b, though the len(s) guard prevents index errors; the code is correct but slightly awkward\u2014an a < b check inside the skip loops would be cleaner. The s.lower() call creates an O(n) copy; otherwise the algorithm itself is O(1) extra space.",
             "space": "O(n)",
-            "summary": "Two-pointer approach: after lowercasing, advance inward from both ends skipping non-alphanumeric characters and compare the remaining characters pairwise.",
+            "summary": "Two-pointer scan from both ends, skipping non-alphanumeric characters and comparing lowercased characters until the pointers meet or a mismatch is found.",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },
@@ -100,12 +324,52 @@
           "solved_at": "2026-08-12T20:08:33-07:00"
         },
         {
-          "analyzed_at": "2026-08-13T20:35:57.190236+00:00",
+          "analyzed_at": "2026-08-13T21:53:33.757100+00:00",
+          "benchmarks": {
+            "adversarial": null,
+            "best_fit": "n",
+            "best_fit_r2": 0.9994684006291531,
+            "k3_model": "n",
+            "k3_model_r2": 0.9994684006291531,
+            "r2": 0.9997404923415449,
+            "sizes": [
+              256,
+              512,
+              1024,
+              2048,
+              4096,
+              8192,
+              16384,
+              32768,
+              65536,
+              131072,
+              262144,
+              524288,
+              1048576
+            ],
+            "slope": 0.9837704018143758,
+            "times_ms": [
+              0.009716999983311325,
+              0.017528000000766042,
+              0.03369500001326742,
+              0.06487699999979668,
+              0.12841400001661896,
+              0.2547070000105123,
+              0.4984609999780787,
+              1.0135059999925033,
+              2.029354000001149,
+              4.017301000004636,
+              8.164639000000307,
+              16.215248999998266,
+              32.63653700000191
+            ]
+          },
           "complexity": {
+            "benchmark_model": "n",
             "hash_dependent": false,
-            "notes": "Concise and idiomatic; a two-pointer approach would reduce extra space to O(1) but this is perfectly readable for typical inputs.",
+            "notes": "Idiomatic and concise. An O(1)-extra-space alternative would use two pointers on the original string, skipping non-alphanumeric characters, avoiding the O(n) filtered copy and reversed copy.",
             "space": "O(n)",
-            "summary": "Builds a cleaned lowercase alphanumeric-only copy of the string, then checks whether it equals its reverse.",
+            "summary": "Filters the lowercased string down to alphanumeric characters, then checks whether the filtered string equals its reverse.",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },
@@ -125,12 +389,82 @@
     "longest-consecutive-sequence": {
       "submissions": [
         {
-          "analyzed_at": "2026-08-13T20:36:06.654208+00:00",
+          "analyzed_at": "2026-08-13T21:53:42.500776+00:00",
+          "benchmarks": {
+            "adversarial": {
+              "best_fit": "n^2",
+              "best_fit_r2": 0.9983957947285017,
+              "k3_model": "n",
+              "k3_model_r2": 0.7632578676699893,
+              "note": "n distinct multiples of 2**61-1, all hashing to 0, so every set insert/lookup collides",
+              "r2": 0.9991877403844694,
+              "sizes": [
+                64,
+                128,
+                256,
+                512,
+                1024,
+                2048,
+                4096,
+                8192,
+                16384
+              ],
+              "slope": 1.9452358431803598,
+              "times_ms": [
+                0.04436000000396234,
+                0.13104499998917163,
+                0.49148799999443327,
+                1.8753249999861055,
+                7.498798000000306,
+                27.542429999982687,
+                121.96709799999894,
+                451.76921099999845,
+                1942.6213369999914
+              ]
+            },
+            "best_fit": "n log n",
+            "best_fit_r2": 0.9981076027098634,
+            "k3_model": "n",
+            "k3_model_r2": 0.9940917445106736,
+            "r2": 0.9987991185495111,
+            "sizes": [
+              256,
+              512,
+              1024,
+              2048,
+              4096,
+              8192,
+              16384,
+              32768,
+              65536,
+              131072,
+              262144,
+              524288,
+              1048576
+            ],
+            "slope": 1.0737119800841135,
+            "times_ms": [
+              0.012894000008145667,
+              0.03606199999239834,
+              0.0828229999854102,
+              0.18253199999662684,
+              0.34438200000863617,
+              0.7319919999986269,
+              1.4315720000013243,
+              3.040370000007897,
+              6.121156999995492,
+              12.858467000000928,
+              29.68579299999874,
+              56.9421689999956,
+              126.72669899998823
+            ]
+          },
           "complexity": {
+            "benchmark_model": "n",
             "hash_dependent": true,
-            "notes": "Removing visited elements from the set is a nice touch that guarantees each number is processed once. Note the algorithm does not skip non-sequence-starts like the classic approach, but the removal strategy makes that unnecessary. Worst case degrades to O(n^2) under adversarial hash collisions since each set membership check could cost O(n).",
+            "notes": "The pop-then-expand trick avoids the usual 'only start from run beginnings' check and is elegant, though slightly less conventional than the canonical sequence-start approach; readability is still good.",
             "space": "O(n)",
-            "summary": "Builds a set of the numbers, then repeatedly pops an arbitrary element and expands outward in both directions, removing each consecutive element as it is found. Since every element is removed exactly once, total work is linear on average.",
+            "summary": "Builds a set of the values, then repeatedly pops an arbitrary element and expands outward to consume its entire consecutive run, tracking the maximum run length. Each element is removed from the set exactly once, giving linear total work on average.",
             "time_average": "O(n)",
             "time_worst": "O(n^2)"
           },
@@ -150,12 +484,52 @@
     "products-of-array-discluding-self": {
       "submissions": [
         {
-          "analyzed_at": "2026-08-13T20:36:30.638443+00:00",
+          "analyzed_at": "2026-08-13T21:54:02.267350+00:00",
+          "benchmarks": {
+            "adversarial": null,
+            "best_fit": "n",
+            "best_fit_r2": 0.9996328137552536,
+            "k3_model": "n",
+            "k3_model_r2": 0.9996328137552536,
+            "r2": 0.9996702969177894,
+            "sizes": [
+              256,
+              512,
+              1024,
+              2048,
+              4096,
+              8192,
+              16384,
+              32768,
+              65536,
+              131072,
+              262144,
+              524288,
+              1048576
+            ],
+            "slope": 1.006161085495851,
+            "times_ms": [
+              0.009267999985240749,
+              0.017605000010689764,
+              0.0345690000074228,
+              0.07209099999272439,
+              0.15702600001077371,
+              0.3196430000116379,
+              0.5718289999947501,
+              1.1553239999955167,
+              2.3123180000084176,
+              5.287366999993992,
+              9.433677000004081,
+              19.549434999987625,
+              37.80350099998486
+            ]
+          },
           "complexity": {
+            "benchmark_model": "n",
             "hash_dependent": false,
-            "notes": "Uses integer division (prod // num), which is exact here but violates the common 'no division' variant of this problem and relies on exact divisibility. The one-zero branch slices nums[:zero] and nums[zero+1:], creating O(n) copies; iterating by index and skipping zero would avoid that. The match/case with a guarded wildcard is less readable than simple if/elif, and requires Python 3.10+.",
+            "notes": "Correct but heavier than needed: the zero-handling branches, list slicing (which copies O(n) elements), and match/case add complexity versus the standard two-pass prefix/suffix approach, which also avoids division entirely. Division via // relies on exact divisibility and would break if division were disallowed, as the classic problem requires.",
             "space": "O(n)",
-            "summary": "Counts zeros and branches: multiple zeros yield all zeros; exactly one zero yields the product of the remaining elements only at that index; otherwise computes the total product and divides by each element.",
+            "summary": "Counts zeros and branches: with 2+ zeros all outputs are 0; with exactly 1 zero it computes the product of the non-zero elements and places it at the zero's position; with no zeros it computes the total product and divides by each element.",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },
@@ -175,14 +549,54 @@
     "string-encode-and-decode": {
       "submissions": [
         {
-          "analyzed_at": "2026-08-13T20:36:57.278061+00:00",
+          "analyzed_at": "2026-08-13T21:54:44.397417+00:00",
+          "benchmarks": {
+            "adversarial": null,
+            "best_fit": "n log n",
+            "best_fit_r2": 0.9982010990522185,
+            "k3_model": "n",
+            "k3_model_r2": 0.9952449165795492,
+            "r2": 0.9996045416644436,
+            "sizes": [
+              256,
+              512,
+              1024,
+              2048,
+              4096,
+              8192,
+              16384,
+              32768,
+              65536,
+              131072,
+              262144,
+              524288,
+              1048576
+            ],
+            "slope": 1.0707102584705488,
+            "times_ms": [
+              0.00508300001911266,
+              0.010034000013092736,
+              0.021568000022398337,
+              0.0471230000016476,
+              0.10728400002335547,
+              0.20514000004823174,
+              0.4272380000429621,
+              0.9033480000084637,
+              1.81372399998736,
+              3.6660879999885765,
+              7.6819349999937,
+              19.424534999984644,
+              38.083228000004965
+            ]
+          },
           "complexity": {
+            "benchmark_model": "n",
             "hash_dependent": false,
-            "notes": "Correctness is fragile: any input string containing the delimiter emoji breaks decoding, and encode([]) and encode(['']) both rely on subtle edge-case behavior of split/pop; a length-prefixed encoding (e.g., 'len#string') is the standard robust approach. Also missing 'from typing import List' import.",
-            "space": "O(L)",
-            "summary": "Joins the strings with an emoji delimiter (plus a trailing delimiter) for encoding, and splits on the same delimiter for decoding, dropping the trailing empty piece. L is the total number of characters across all strings.",
-            "time_average": "O(L)",
-            "time_worst": "O(L)"
+            "notes": "The approach breaks if any input string contains the emoji delimiter itself; a length-prefix scheme would be more robust. Also, decoding the empty string works only incidentally via pop on the single empty split piece \u2014 an explicit guard would be clearer.",
+            "space": "O(n)",
+            "summary": "Encodes by joining all strings with an emoji delimiter (plus a trailing delimiter), and decodes by splitting on that delimiter and dropping the empty trailing piece. Both operations are linear scans over the total character volume, which is O(n) since string lengths are bounded.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
           },
           "file": "Data Structures & Algorithms/string-encode-and-decode/submission-9.py",
           "golf": {
@@ -196,12 +610,52 @@
           "solved_at": "2026-08-12T18:40:56-07:00"
         },
         {
-          "analyzed_at": "2026-08-13T20:36:36.002592+00:00",
+          "analyzed_at": "2026-08-13T21:54:17.344215+00:00",
+          "benchmarks": {
+            "adversarial": null,
+            "best_fit": "n log n",
+            "best_fit_r2": 0.9983279787224767,
+            "k3_model": "n",
+            "k3_model_r2": 0.9905197962449702,
+            "r2": 0.9990082900080784,
+            "sizes": [
+              256,
+              512,
+              1024,
+              2048,
+              4096,
+              8192,
+              16384,
+              32768,
+              65536,
+              131072,
+              262144,
+              524288,
+              1048576
+            ],
+            "slope": 1.101538424878448,
+            "times_ms": [
+              0.0028569999983574235,
+              0.00455899998996756,
+              0.00941599998327547,
+              0.021231999994597572,
+              0.04892100000120081,
+              0.09881299999392468,
+              0.2120270000034452,
+              0.471637000003966,
+              1.0078299999918272,
+              1.9985769999948388,
+              4.956774999982372,
+              9.63833599996633,
+              24.614933000009387
+            ]
+          },
           "complexity": {
+            "benchmark_model": "n",
             "hash_dependent": false,
-            "notes": "The approach is not robust: if any input string contains the delimiter substring, decoding is incorrect. A length-prefix scheme (e.g., 'len#string') is the standard safe encoding. Also, 'output.pop(-1)' could be written as 'output.pop()', and the encode/decode edge cases (empty list, empty strings) should be handled symmetrically.",
+            "notes": "Correctness is fragile: any input string containing the literal delimiter breaks decode, so this is not a robust encoding scheme (a length-prefix format would be). Also, decode(\"\") returns [] only incidentally via pop, and the delimiter constant is repeated rather than defined once.",
             "space": "O(n)",
-            "summary": "Encodes by joining the strings with a long fixed delimiter (and appending it at the end), and decodes by splitting on that delimiter. Both operations are linear scans over the total character count n.",
+            "summary": "Encodes by joining all strings with a fixed hardcoded delimiter (and appending it at the end), and decodes by splitting on that delimiter and dropping the trailing empty piece. Both operations are linear in the total character volume, which scales linearly with n.",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },
@@ -217,12 +671,52 @@
           "solved_at": "2026-08-12T18:40:56-07:00"
         },
         {
-          "analyzed_at": "2026-08-13T20:36:46.415565+00:00",
+          "analyzed_at": "2026-08-13T21:54:36.631384+00:00",
+          "benchmarks": {
+            "adversarial": null,
+            "best_fit": "n",
+            "best_fit_r2": 0.9996486394044117,
+            "k3_model": "n^2",
+            "k3_model_r2": 0.04303495441590621,
+            "r2": 0.9997669777835804,
+            "sizes": [
+              256,
+              512,
+              1024,
+              2048,
+              4096,
+              8192,
+              16384,
+              32768,
+              65536,
+              131072,
+              262144,
+              524288,
+              1048576
+            ],
+            "slope": 1.0109992800759124,
+            "times_ms": [
+              0.0352010000028713,
+              0.06899400000293099,
+              0.14212500002486195,
+              0.2745879999679346,
+              0.5525049999732801,
+              1.0923090000005686,
+              2.288173000010829,
+              4.476430000011078,
+              8.89222999995809,
+              17.715334000001803,
+              35.460539000041535,
+              80.4092210000249,
+              164.2921670000419
+            ]
+          },
           "complexity": {
+            "benchmark_model": "n^2",
             "hash_dependent": false,
-            "notes": "Decode is quadratic due to repeated s = s[...] slicing; using an index pointer (or StringIO/pointer walk) instead of re-slicing would make it O(n). Also int(s[0:a]) and s.index('|') re-scan the header each time; encode is fine. Consider a delimiter unlikely to confuse (current scheme is actually correct since length prefix disambiguates '|' inside content).",
+            "notes": "Encode is clean and linear. Decode would be O(n) if it used an index pointer into the original string instead of reslicing s each loop; the repeated s = s[k:] copies dominate the runtime. Also note int(s[0:a]) is computed twice per iteration and could be stored in a variable.",
             "space": "O(n)",
-            "summary": "Encodes each string as 'length|content' concatenated together; decode repeatedly finds the next '|', parses the length prefix, and slices out that many characters. Because decode re-slices the remaining string on every iteration, each of the k strings triggers an O(n) copy, giving O(n*k) = O(n^2) overall.",
+            "summary": "Encodes each string as a length-prefixed token (len|s). Decoding repeatedly finds the delimiter, slices out the string, and reassigns s to the sliced remainder, which copies the remaining characters every iteration and makes decode quadratic in the total character volume.",
             "time_average": "O(n^2)",
             "time_worst": "O(n^2)"
           },
@@ -231,7 +725,7 @@
             "bytes": 332,
             "characters": 332,
             "non_blank_lines": 10,
-            "tokens": 107
+            "tokens": 118
           },
           "model": "k3",
           "slug": "string-encode-and-decode",
@@ -242,13 +736,81 @@
     "top-k-elements-in-list": {
       "submissions": [
         {
-          "analyzed_at": "2026-08-13T20:37:18.394357+00:00",
+          "analyzed_at": "2026-08-13T21:55:06.514325+00:00",
+          "benchmarks": {
+            "adversarial": {
+              "best_fit": "n^2",
+              "best_fit_r2": 0.9988473060574325,
+              "k3_model": "n log n",
+              "k3_model_r2": 0.8339246105740022,
+              "note": "n distinct multiples of 2**61-1, all hashing to 0, so every dict insert/lookup collides",
+              "r2": 0.9994975636946407,
+              "sizes": [
+                64,
+                128,
+                256,
+                512,
+                1024,
+                2048,
+                4096,
+                8192
+              ],
+              "slope": 1.9502556896224439,
+              "times_ms": [
+                0.19040600000153063,
+                0.6196129999693767,
+                2.29615399996419,
+                9.089811000023929,
+                37.1870349999881,
+                135.490687000015,
+                594.7397250000108,
+                2229.4242660000236
+              ]
+            },
+            "best_fit": "n log n",
+            "best_fit_r2": 0.9976616757823814,
+            "k3_model": "n log n",
+            "k3_model_r2": 0.9976616757823814,
+            "r2": 0.9989596215635604,
+            "sizes": [
+              256,
+              512,
+              1024,
+              2048,
+              4096,
+              8192,
+              16384,
+              32768,
+              65536,
+              131072,
+              262144,
+              524288,
+              1048576
+            ],
+            "slope": 1.0809817972597002,
+            "times_ms": [
+              0.02207999995107457,
+              0.04108699999960663,
+              0.07716300001447962,
+              0.19667700001946287,
+              0.4171070000325017,
+              0.80195499998581,
+              1.5977699999893957,
+              3.252271999997447,
+              6.866564000006292,
+              15.330379000033645,
+              35.50089600003048,
+              79.10738799995443,
+              177.68726599996398
+            ]
+          },
           "complexity": {
+            "benchmark_model": "n log n",
             "hash_dependent": true,
-            "notes": "m = number of distinct values. The nested scan over all (key, value) pairs for each of the k top counts is O(k*m) and can degenerate to O(n^2); using collections.Counter with most_common(k) or a heap would be cleaner and O(n log k). Also, the sort-plus-match approach can return more than k elements when frequencies tie at the cutoff, and worst-case time includes adversarial dict hash collisions.",
+            "notes": "Non-idiomatic counting (use dict.get(num, 0) + 1 or collections.Counter) and the reverse lookup re-scans the dict up to k times instead of sorting items by frequency directly. Also, when multiple keys share a frequency, the set-deduped result can return more than k elements, and duplicate frequencies in the sliced list cause redundant scans.",
             "space": "O(n)",
-            "summary": "Builds a frequency map with a dict, sorts the frequency values to find the k largest, then collects all keys whose frequency matches any of those top-k counts. The final set() deduplicates keys gathered when multiple elements share the same frequency.",
-            "time_average": "O(n log n + k*m)",
+            "summary": "Builds a frequency map with a dict, sorts the frequency values and keeps the top k (k <= 5, so bounded), then for each retained frequency scans the whole dict to recover matching keys, deduplicating with a set at the end.",
+            "time_average": "O(n log n)",
             "time_worst": "O(n^2)"
           },
           "file": "Data Structures & Algorithms/top-k-elements-in-list/submission-2.py",
@@ -267,12 +829,86 @@
     "two-integer-sum": {
       "submissions": [
         {
-          "analyzed_at": "2026-08-13T20:37:30.485474+00:00",
+          "analyzed_at": "2026-08-13T21:55:14.913458+00:00",
+          "benchmarks": {
+            "adversarial": {
+              "best_fit": "n",
+              "best_fit_r2": 0.9996915989484085,
+              "k3_model": "n log n",
+              "k3_model_r2": 0.9753535307743474,
+              "note": "n distinct multiples of 2**61-1, all hashing to 0, so every dict insert/lookup collides",
+              "r2": 0.999892944370711,
+              "sizes": [
+                64,
+                128,
+                256,
+                512,
+                1024,
+                2048,
+                4096,
+                8192,
+                16384,
+                32768,
+                65536
+              ],
+              "slope": 0.986008166131114,
+              "times_ms": [
+                0.00889000000370288,
+                0.01738299999942683,
+                0.03407200000538069,
+                0.06772899996576598,
+                0.12756900002841576,
+                0.25262200000497614,
+                0.5261670000322738,
+                1.033801999994921,
+                2.0495670000286736,
+                4.108667000025434,
+                8.240205999982209
+              ]
+            },
+            "best_fit": "n log n",
+            "best_fit_r2": 0.998797721633057,
+            "k3_model": "n log n",
+            "k3_model_r2": 0.998797721633057,
+            "r2": 0.9988502681724483,
+            "sizes": [
+              256,
+              512,
+              1024,
+              2048,
+              4096,
+              8192,
+              16384,
+              32768,
+              65536,
+              131072,
+              262144,
+              524288,
+              1048576
+            ],
+            "slope": 1.1105426342373999,
+            "times_ms": [
+              0.026759999968817283,
+              0.05193000004055648,
+              0.14146999996000886,
+              0.2746569999771964,
+              0.5432020000171178,
+              1.2297310000235484,
+              2.6369309999836332,
+              7.615809000014906,
+              11.617097999987891,
+              27.244628000005378,
+              52.592648000029385,
+              132.06855300001052,
+              277.4521499999878
+            ]
+          },
           "complexity": {
+            "benchmark_model": "n log n",
             "hash_dependent": false,
-            "notes": "Works but convoluted: the duplicate-value handling with pop() and index()+1 is fragile and hard to follow. Using negative index high=-1 is valid but less readable than high=len(nums2)-1. A single-pass hash map or sorting (index, value) pairs would be clearer and avoid the O(n) index() recovery entirely.",
+            "notes": "The index()-based index recovery is O(n) per call and mutates the input via pop(); sorting (value, original_index) pairs would avoid this entirely. A hash map would give O(n) average time, and the loop lacks a termination guard if no valid pair exists (it would raise IndexError rather than exit cleanly).",
             "space": "O(n)",
-            "summary": "Sorts a copy of the array, then uses a two-pointer scan (from both ends) to find the pair summing to target, and recovers original indices via linear index() searches with a special case for duplicate values.",
+            "summary": "Sorts a copy of the array and uses a two-pointer scan from both ends to find the pair summing to target, then recovers the original indices via linear index() lookups (with a pop-and-research workaround for duplicate values).",
             "time_average": "O(n log n)",
             "time_worst": "O(n log n)"
           },
@@ -292,12 +928,86 @@
     "two-integer-sum-ii": {
       "submissions": [
         {
-          "analyzed_at": "2026-08-13T20:37:41.843398+00:00",
+          "analyzed_at": "2026-08-13T21:55:27.632309+00:00",
+          "benchmarks": {
+            "adversarial": {
+              "best_fit": "n",
+              "best_fit_r2": 0.9987778672821823,
+              "k3_model": "n log n",
+              "k3_model_r2": 0.9684868255053926,
+              "note": "n distinct multiples of 2**61-1 (already ascending), all hashing to 0, so every dict insert/lookup collides",
+              "r2": 0.9998192732795136,
+              "sizes": [
+                64,
+                128,
+                256,
+                512,
+                1024,
+                2048,
+                4096,
+                8192,
+                16384,
+                32768,
+                65536
+              ],
+              "slope": 0.9687352899102125,
+              "times_ms": [
+                0.00985999997737963,
+                0.01893200004587925,
+                0.0365000000215332,
+                0.0712130000124489,
+                0.14301499999191947,
+                0.2812260000268907,
+                0.5146980000176882,
+                1.0105889999749706,
+                2.029582999966806,
+                4.111557999976867,
+                8.335365999982969
+              ]
+            },
+            "best_fit": "n",
+            "best_fit_r2": 0.986369668277578,
+            "k3_model": "n log n",
+            "k3_model_r2": 0.9828903783133514,
+            "r2": 0.9875024898410679,
+            "sizes": [
+              256,
+              512,
+              1024,
+              2048,
+              4096,
+              8192,
+              16384,
+              32768,
+              65536,
+              131072,
+              262144,
+              524288,
+              1048576
+            ],
+            "slope": 1.0350570979367475,
+            "times_ms": [
+              0.013626999987081945,
+              0.0185349999810569,
+              0.026687000001857086,
+              0.07812799998418996,
+              0.1479489999951511,
+              0.7399579999969319,
+              1.1555000000385007,
+              1.6672140000082436,
+              2.4488619999942784,
+              8.225593000020126,
+              11.707433000026413,
+              27.491483999995125,
+              50.743918999955895
+            ]
+          },
           "complexity": {
+            "benchmark_model": "n log n",
             "hash_dependent": false,
-            "notes": "Sorting discards original positions, forcing O(n) index() lookups afterward; sorting (value, index) pairs would avoid the awkward pop-and-re-search duplicate handling. Also note Two Sum II typically assumes the input is already sorted, in which case sorting here adds an unnecessary O(n log n) factor instead of the intended O(n) two-pointer pass. The high = -1 negative-index trick is valid Python but less readable than len(nums2) - 1.",
+            "notes": "Re-sorting is unnecessary since the input is already sorted, making the solution O(n log n) instead of the optimal O(n). The multiple nums.index calls and pop-based duplicate handling are unidiomatic and fragile; tracking original indices while scanning would be cleaner.",
             "space": "O(n)",
-            "summary": "Sorts a copy of the array, then uses two pointers to find the pair summing to target, and recovers original 1-based indices via linear index() searches (with a pop workaround for duplicate values).",
+            "summary": "Copies and sorts the array, then runs a two-pointer scan to find the pair; original 1-indexed positions are recovered via list.index, with special handling for duplicate values using pop.",
             "time_average": "O(n log n)",
             "time_worst": "O(n log n)"
           },
@@ -317,12 +1027,13 @@
     "valid-sudoku": {
       "submissions": [
         {
-          "analyzed_at": "2026-08-13T20:37:51.374131+00:00",
+          "analyzed_at": "2026-08-13T21:55:35.637864+00:00",
           "complexity": {
+            "benchmark_model": "1",
             "hash_dependent": false,
-            "notes": "No early exit: 'valid *= isValidLine(...)' keeps scanning all lines even after a failure; 'valid &= ...' or 'return False' would be cleaner. The count-based duplicate check is concise but quadratic per line; a set would be more idiomatic for larger inputs. Also 'List' needs a typing import.",
+            "notes": "The `valid *= isValidLine(...)` trick works (bool-as-int multiplication) but is unidiomatic; `valid = valid and isValidLine(...)` or `all(...)` would be clearer. Also, `line.count(num)` re-scans for every element, which is fine at this size, and the `List` type hints require `from typing import List`.",
             "space": "O(1)",
-            "summary": "Checks each row, column, and 3x3 box for duplicate digits using list.count on every non-empty cell. Since the board is fixed at 9x9, all work is constant; generalized to n cells per line it would be O(n^2) per line due to repeated count scans.",
+            "summary": "Validates the fixed 9x9 Sudoku by scanning each row, column, and 3x3 box, rejecting any line where a non-'.' digit appears more than once (checked via list.count). Since the board size is constant, all work is constant.",
             "time_average": "O(1)",
             "time_worst": "O(1)"
           },

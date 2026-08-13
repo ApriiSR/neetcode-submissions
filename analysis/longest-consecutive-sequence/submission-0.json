@@ -1,10 +1,11 @@
 {
-  "analyzed_at": "2026-08-13T20:36:06.654208+00:00",
+  "analyzed_at": "2026-08-13T21:53:42.500776+00:00",
   "complexity": {
+    "benchmark_model": "n",
     "hash_dependent": true,
-    "notes": "Removing visited elements from the set is a nice touch that guarantees each number is processed once. Note the algorithm does not skip non-sequence-starts like the classic approach, but the removal strategy makes that unnecessary. Worst case degrades to O(n^2) under adversarial hash collisions since each set membership check could cost O(n).",
+    "notes": "The pop-then-expand trick avoids the usual 'only start from run beginnings' check and is elegant, though slightly less conventional than the canonical sequence-start approach; readability is still good.",
     "space": "O(n)",
-    "summary": "Builds a set of the numbers, then repeatedly pops an arbitrary element and expands outward in both directions, removing each consecutive element as it is found. Since every element is removed exactly once, total work is linear on average.",
+    "summary": "Builds a set of the values, then repeatedly pops an arbitrary element and expands outward to consume its entire consecutive run, tracking the maximum run length. Each element is removed from the set exactly once, giving linear total work on average.",
     "time_average": "O(n)",
     "time_worst": "O(n^2)"
   },
