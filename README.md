@@ -90,7 +90,25 @@ the script computes:
   chat completions API (OpenAI-compatible), asking for average/worst-case
   time, space, whether correctness depends on hash-table average-case
   behavior (worst case accounts for adversarial hash collisions when
-  dicts/sets are involved), a short summary, and optional style notes.
+  dicts/sets are involved), a `benchmark_model` (K3's own single-variable
+  reduction of the running time — see below), a short summary, and
+  optional style notes.
+
+The prompt includes a `scaling_note` from `generators.py` when the slug has
+one — a one-line description of how that problem's generated input scales
+with n (e.g. "both arrays scale together, m = n"), because several
+solutions here are naturally multi-variable (O(n+m), O(n·L)) and
+`scripts/benchmark.py` only ever varies one parameter. `benchmark_model` is
+K3's answer, restricted to a small grammar so it's machine-parseable: a
+product of `n^a` and `(log n)^b`, with `a` in `{0, 0.5, 1, 1.5, 2, 3}` and
+`b` in `{0, 1}` — written as one of `1`, `log n`, `n`, `n log n`, `n^0.5`,
+`n^0.5 log n`, `n^1.5`, `n^1.5 log n`, `n^2`, `n^2 log n`, `n^3`,
+`n^3 log n`. `scripts/benchmark.py` parses this and, when it's present and
+valid, folds it in as an extra candidate alongside its own built-in
+complexity models (see Benchmarks below) — so K3's stated complexity gets
+checked against the actual timing data, not just asserted. A record whose
+`complexity` predates this field (missing `benchmark_model`) is
+re-analyzed on the next run rather than skipped, so it backfills.
 
 ### `analysis/summary.json` contract
 
@@ -112,6 +130,7 @@ This is the one file the website should fetch. Shape:
             "time_worst": "O(n)",
             "space": "O(n)",
             "hash_dependent": false,
+            "benchmark_model": "n",
             "summary": "...",
             "notes": ""
           },
@@ -187,8 +206,16 @@ skipped), it:
    per-size caps. Fits `log(time)` vs `log(n)` by least squares to get a
    slope (the empirical Big-O exponent) and r², and separately fits
    `log(time)` against each of a handful of candidate complexity models
-   — `n`, `n log n`, `n^1.5`, `n^2`, `n^3` — picking whichever gives the
-   best r² as `best_fit` (with its own `best_fit_r2`). The slope is a
+   — `n`, `n log n`, `n^1.5`, `n^2`, `n^3`, plus (when the submission's
+   `analysis/<slug>/submission-N.json` has one) K3's own `benchmark_model`
+   from the analysis step — picking whichever gives the best r² as
+   `best_fit` (with its own `best_fit_r2`). When a K3 model was available
+   and used, its individual fit is also recorded separately as
+   `k3_model`/`k3_model_r2` regardless of whether it won, so you can see
+   directly how well K3's stated complexity (reduced to one variable via
+   `generators.py`'s `scaling_note`) matches the empirical timing — a low
+   `k3_model_r2` next to a high `best_fit_r2` for a different label is a
+   concrete "K3 was wrong about this one" signal. The slope is a
    continuous estimate that's easy to eyeball (1.0 vs 2.0 vs 3.0); the
    4-point ladder used to make the slope hard to trust between
    neighboring exponents (1.1 vs 1.0 is noise-level over a 64x range),
@@ -260,6 +287,8 @@ it's missing, so local runs don't need to remember the flag.
       "r2": 0.9998,
       "best_fit": "n",
       "best_fit_r2": 0.9997,
+      "k3_model": "n",
+      "k3_model_r2": 0.9996,
       "adversarial": {
         "note": "n distinct multiples of 2**61-1, all hashing to 0, so every dict insert/lookup collides",
         "sizes": [64, 128, 256, ..., 65536],
@@ -267,7 +296,9 @@ it's missing, so local runs don't need to remember the flag.
         "slope": 1.99,
         "r2": 0.9995,
         "best_fit": "n^2",
-        "best_fit_r2": 0.9991
+        "best_fit_r2": 0.9991,
+        "k3_model": "n",
+        "k3_model_r2": 0.41
       }
     }
   }
