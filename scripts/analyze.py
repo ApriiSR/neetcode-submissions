@@ -163,7 +163,6 @@ def call_moonshot(slug: str, source: str) -> dict:
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": user_prompt},
         ],
-        "temperature": 0.2,
     }
     request = urllib.request.Request(
         f"{MOONSHOT_BASE_URL.rstrip('/')}/chat/completions",
