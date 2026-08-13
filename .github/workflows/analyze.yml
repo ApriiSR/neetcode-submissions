@@ -25,6 +25,7 @@ jobs:
         env:
           MOONSHOT_API_KEY: ${{ secrets.MOONSHOT_API_KEY }}
           MOONSHOT_MODEL: ${{ vars.MOONSHOT_MODEL }}
+          MOONSHOT_BASE_URL: ${{ vars.MOONSHOT_BASE_URL }}
         run: python3 scripts/analyze.py
 
       - name: Commit and push analysis
