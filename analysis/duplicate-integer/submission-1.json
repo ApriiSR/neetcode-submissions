@@ -1,7 +1,7 @@
 {
-  "analyzed_at": "2026-08-13T20:32:09.587585+00:00",
+  "analyzed_at": "2026-08-13T20:33:18.822991+00:00",
   "complexity": null,
-  "error": "HTTPError: HTTP Error 400: Bad Request",
+  "error": "HTTPError: HTTP Error 401: Unauthorized \u2014 {\"error\":{\"message\":\"Your model id does not exist, recognized as other:kimi-for-coding/k3. Please set model id as `k3`.\",\"type\":\"invalid_authentication_error\"}}",
   "file": "Data Structures & Algorithms/duplicate-integer/submission-1.py",
   "golf": {
     "bytes": 263,
@@ -9,7 +9,7 @@
     "non_blank_lines": 9,
     "tokens": 61
   },
-  "model": "kimi-k3",
+  "model": "kimi-for-coding/k3",
   "slug": "duplicate-integer",
   "solved_at": "2026-08-12T18:40:56-07:00"
 }
