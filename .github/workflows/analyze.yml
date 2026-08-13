@@ -32,4 +32,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git diff --quiet -- analysis/ || (git add analysis && git commit -m "Analyze: update analysis/" && git push)
+          git add analysis
+          # --cached: new analysis files are untracked, plain `git diff` misses them
+          if ! git diff --cached --quiet -- analysis/; then
+            git commit -m "Analyze: update analysis/"
+            # a NeetCode export may have pushed while we ran
+            git push || (git pull --rebase && git push)
+          fi

@@ -26,8 +26,10 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 SUBMISSIONS_ROOT = REPO_ROOT / "Data Structures & Algorithms"
 ANALYSIS_ROOT = REPO_ROOT / "analysis"
 
-MOONSHOT_BASE_URL = os.environ.get("MOONSHOT_BASE_URL", "https://api.moonshot.ai/v1")
-MOONSHOT_MODEL = os.environ.get("MOONSHOT_MODEL", "kimi-k3")
+# `or` fallbacks: the workflow exports these from repo vars, which arrive as
+# empty strings when unset.
+MOONSHOT_BASE_URL = os.environ.get("MOONSHOT_BASE_URL") or "https://api.moonshot.ai/v1"
+MOONSHOT_MODEL = os.environ.get("MOONSHOT_MODEL") or "kimi-k3"
 MOONSHOT_API_KEY = os.environ.get("MOONSHOT_API_KEY")
 
 SUBMISSION_RE = re.compile(r"^submission-(\d+)\.py$")
