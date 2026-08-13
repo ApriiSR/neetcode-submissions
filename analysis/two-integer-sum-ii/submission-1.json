@@ -1,7 +1,7 @@
 {
-  "analyzed_at": "2026-08-13T20:33:32.788970+00:00",
+  "analyzed_at": "2026-08-13T20:34:22.520230+00:00",
   "complexity": null,
-  "error": "HTTPError: HTTP Error 401: Unauthorized \u2014 {\"error\":{\"message\":\"Your model id does not exist, recognized as other:kimi-for-coding/k3. Please set model id as `k3`.\",\"type\":\"invalid_authentication_error\"}}",
+  "error": "HTTPError: HTTP Error 400: Bad Request \u2014 {\"error\":{\"message\":\"invalid temperature: only 1 is allowed for this model\",\"type\":\"invalid_request_error\"}}",
   "file": "Data Structures & Algorithms/two-integer-sum-ii/submission-1.py",
   "golf": {
     "bytes": 585,
@@ -9,7 +9,7 @@
     "non_blank_lines": 16,
     "tokens": 159
   },
-  "model": "kimi-for-coding/k3",
+  "model": "k3",
   "slug": "two-integer-sum-ii",
   "solved_at": "2026-08-12T20:17:47-07:00"
 }

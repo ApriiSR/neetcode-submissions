@@ -1,7 +1,7 @@
 {
-  "analyzed_at": "2026-08-13T20:33:20.096561+00:00",
+  "analyzed_at": "2026-08-13T20:34:09.601423+00:00",
   "complexity": null,
-  "error": "HTTPError: HTTP Error 401: Unauthorized \u2014 {\"error\":{\"message\":\"Your model id does not exist, recognized as other:kimi-for-coding/k3. Please set model id as `k3`.\",\"type\":\"invalid_authentication_error\"}}",
+  "error": "HTTPError: HTTP Error 400: Bad Request \u2014 {\"error\":{\"message\":\"invalid temperature: only 1 is allowed for this model\",\"type\":\"invalid_request_error\"}}",
   "file": "Data Structures & Algorithms/is-anagram/submission-0.py",
   "golf": {
     "bytes": 650,
@@ -9,7 +9,7 @@
     "non_blank_lines": 19,
     "tokens": 119
   },
-  "model": "kimi-for-coding/k3",
+  "model": "k3",
   "slug": "is-anagram",
   "solved_at": "2026-08-12T18:40:56-07:00"
 }

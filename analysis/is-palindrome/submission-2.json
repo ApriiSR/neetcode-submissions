@@ -1,7 +1,7 @@
 {
-  "analyzed_at": "2026-08-13T20:33:22.713290+00:00",
+  "analyzed_at": "2026-08-13T20:34:11.870728+00:00",
   "complexity": null,
-  "error": "HTTPError: HTTP Error 401: Unauthorized \u2014 {\"error\":{\"message\":\"Your model id does not exist, recognized as other:kimi-for-coding/k3. Please set model id as `k3`.\",\"type\":\"invalid_authentication_error\"}}",
+  "error": "HTTPError: HTTP Error 400: Bad Request \u2014 {\"error\":{\"message\":\"invalid temperature: only 1 is allowed for this model\",\"type\":\"invalid_request_error\"}}",
   "file": "Data Structures & Algorithms/is-palindrome/submission-2.py",
   "golf": {
     "bytes": 153,
@@ -9,7 +9,7 @@
     "non_blank_lines": 4,
     "tokens": 47
   },
-  "model": "kimi-for-coding/k3",
+  "model": "k3",
   "slug": "is-palindrome",
   "solved_at": "2026-08-12T20:11:07-07:00"
 }

@@ -1,7 +1,7 @@
 {
-  "analyzed_at": "2026-08-13T20:33:23.862061+00:00",
+  "analyzed_at": "2026-08-13T20:34:13.009541+00:00",
   "complexity": null,
-  "error": "HTTPError: HTTP Error 401: Unauthorized \u2014 {\"error\":{\"message\":\"Your model id does not exist, recognized as other:kimi-for-coding/k3. Please set model id as `k3`.\",\"type\":\"invalid_authentication_error\"}}",
+  "error": "HTTPError: HTTP Error 400: Bad Request \u2014 {\"error\":{\"message\":\"invalid temperature: only 1 is allowed for this model\",\"type\":\"invalid_request_error\"}}",
   "file": "Data Structures & Algorithms/longest-consecutive-sequence/submission-0.py",
   "golf": {
     "bytes": 586,
@@ -9,7 +9,7 @@
     "non_blank_lines": 19,
     "tokens": 94
   },
-  "model": "kimi-for-coding/k3",
+  "model": "k3",
   "slug": "longest-consecutive-sequence",
   "solved_at": "2026-08-12T19:11:24-07:00"
 }
