@@ -36,12 +36,33 @@ import generators
 REPO_ROOT = Path(__file__).resolve().parent.parent
 BENCHMARKS_ROOT = REPO_ROOT / "analysis" / "benchmarks"
 
-DEFAULT_SIZES = (256, 1024, 4096, 16384)
-ADVERSARIAL_SIZES = (64, 256, 1024)
+DEFAULT_SIZES = tuple(2**k for k in range(8, 21))  # 256 .. 2**20, x2 each step
+ADVERSARIAL_SIZES = tuple(2**k for k in range(6, 17))  # 64 .. 65536, x2 each step
 SIZE_CAP_SECONDS = 2.0
 ADVERSARIAL_CAP_SECONDS = 1.5
 CORRECTNESS_N = 8
 SEED = 20260813
+
+# Above this size, drop from best-of-3 to best-of-2 to keep the denser,
+# wider ladder's total wall time sane.
+BEST_OF_2_THRESHOLD = 2**17
+
+# Hard ceiling on total wall time (normal ladder + adversarial ladder
+# combined) for a single submission, regardless of where the per-size
+# caps above would otherwise let it run.
+TOTAL_BUDGET_SECONDS = 30.0
+
+# Candidate complexity models for best-fit classification. Each maps a
+# short label to f(n); we fit log(t) = log(c) + log(f(n)) in log space
+# (slope fixed at 1, only the constant c is free) and pick the model
+# with the lowest residual, i.e. the highest R^2.
+CANDIDATE_MODELS = (
+    ("n", lambda n: n),
+    ("n log n", lambda n: n * math.log(n)),
+    ("n^1.5", lambda n: n**1.5),
+    ("n^2", lambda n: n**2),
+    ("n^3", lambda n: n**3),
+)
 
 
 def load_solution(path):
@@ -93,17 +114,52 @@ def fit_loglog(sizes, times_ms):
     return slope, r2
 
 
-def run_ladder(fn, args_fn, sizes, cap_seconds):
+def fit_best_model(sizes, times_ms):
+    """Pick the candidate complexity model (see CANDIDATE_MODELS) whose
+    log-space fit (slope fixed at 1, only the constant free) best
+    explains the observed times, by residual sum of squares. Returns
+    (label, r2) for the winner, or (None, None) with fewer than 2 points.
+    """
+    if len(sizes) < 2:
+        return None, None
+    log_t = [math.log(t) for t in times_ms]
+    count = len(log_t)
+    mean_log_t = sum(log_t) / count
+    ss_tot = sum((y - mean_log_t) ** 2 for y in log_t)
+
+    best_name, best_r2 = None, None
+    for name, f in CANDIDATE_MODELS:
+        residuals = [lt - math.log(f(n)) for lt, n in zip(log_t, sizes)]
+        mean_resid = sum(residuals) / count
+        ss_res = sum((r - mean_resid) ** 2 for r in residuals)
+        r2 = 1.0 if ss_tot == 0 else 1.0 - ss_res / ss_tot
+        if best_r2 is None or r2 > best_r2:
+            best_name, best_r2 = name, r2
+    return best_name, best_r2
+
+
+def run_ladder(fn, args_fn, sizes, cap_seconds, deadline):
     sizes_out, times_out = [], []
     for n in sizes:
+        if time.perf_counter() >= deadline:
+            break
+        repeats = 2 if n > BEST_OF_2_THRESHOLD else 3
         args = args_fn(n)
-        elapsed = time_call(fn, args)
+        elapsed = time_call(fn, args, repeats=repeats)
         sizes_out.append(n)
         times_out.append(elapsed * 1000.0)
         if elapsed > cap_seconds:
             break
     slope, r2 = fit_loglog(sizes_out, times_out)
-    return {"sizes": sizes_out, "times_ms": times_out, "slope": slope, "r2": r2}
+    best_fit, best_fit_r2 = fit_best_model(sizes_out, times_out)
+    return {
+        "sizes": sizes_out,
+        "times_ms": times_out,
+        "slope": slope,
+        "r2": r2,
+        "best_fit": best_fit,
+        "best_fit_r2": best_fit_r2,
+    }
 
 
 def benchmark_submission(slug, spec, path):
@@ -119,11 +175,17 @@ def benchmark_submission(slug, spec, path):
     except Exception as exc:
         return {"error": f"{type(exc).__name__}: {exc}"}
 
+    # Shared across the normal and adversarial ladders below: caps the
+    # total wall time spent on this one submission regardless of how
+    # generous the per-size caps are individually.
+    deadline = time.perf_counter() + TOTAL_BUDGET_SECONDS
+
     result = run_ladder(
         entry,
         lambda n: spec["generate"](n, rng),
         DEFAULT_SIZES,
         SIZE_CAP_SECONDS,
+        deadline,
     )
 
     if spec["adversarial"] is not None:
@@ -132,6 +194,7 @@ def benchmark_submission(slug, spec, path):
             spec["adversarial"],
             ADVERSARIAL_SIZES,
             ADVERSARIAL_CAP_SECONDS,
+            deadline,
         )
         adversarial["note"] = spec["adversarial_note"]
         result["adversarial"] = adversarial

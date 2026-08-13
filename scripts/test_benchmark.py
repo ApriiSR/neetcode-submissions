@@ -93,6 +93,42 @@ class SlopeFittingTests(unittest.TestCase):
         self.assertIsNone(r2)
 
 
+class BestFitModelTests(unittest.TestCase):
+    def test_linear_data_best_fit_is_n(self):
+        sizes = [2**k for k in range(8, 17)]  # 256 .. 65536, 9 points
+        times_ms = [0.01 * n for n in sizes]
+        name, r2 = benchmark.fit_best_model(sizes, times_ms)
+        self.assertEqual(name, "n")
+        self.assertGreater(r2, 0.999)
+
+    def test_nlogn_data_best_fit_is_n_log_n(self):
+        sizes = [2**k for k in range(8, 17)]  # 256 .. 65536, 9 points
+        times_ms = [0.01 * n * math.log(n) for n in sizes]
+        name, r2 = benchmark.fit_best_model(sizes, times_ms)
+        self.assertEqual(name, "n log n")
+        self.assertGreater(r2, 0.999)
+
+    def test_noisy_linear_data_best_fit_is_still_n(self):
+        rng = random.Random(11)
+        sizes = [2**k for k in range(8, 17)]
+        times_ms = [0.01 * n * (1 + rng.uniform(-0.05, 0.05)) for n in sizes]
+        name, r2 = benchmark.fit_best_model(sizes, times_ms)
+        self.assertEqual(name, "n")
+        self.assertGreater(r2, 0.95)
+
+    def test_quadratic_data_best_fit_is_n_squared(self):
+        sizes = [2**k for k in range(8, 17)]
+        times_ms = [0.01 * n * n for n in sizes]
+        name, r2 = benchmark.fit_best_model(sizes, times_ms)
+        self.assertEqual(name, "n^2")
+        self.assertGreater(r2, 0.999)
+
+    def test_single_point_returns_none(self):
+        name, r2 = benchmark.fit_best_model([256], [1.0])
+        self.assertIsNone(name)
+        self.assertIsNone(r2)
+
+
 class SolutionExecTests(unittest.TestCase):
     def test_loads_and_calls_a_real_submission(self):
         path = (
