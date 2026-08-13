@@ -28,6 +28,15 @@ jobs:
           MOONSHOT_BASE_URL: ${{ vars.MOONSHOT_BASE_URL }}
         run: python3 scripts/analyze.py
 
+      - name: Run benchmarks
+        env:
+          # CPython only reads PYTHONHASHSEED at interpreter startup, so it
+          # has to be set on the step's env (not e.g. os.environ inside the
+          # script) — benchmark.py also re-execs itself defensively if it
+          # detects this wasn't set.
+          PYTHONHASHSEED: "0"
+        run: python3 scripts/benchmark.py
+
       - name: Commit and push analysis
         if: always()
         run: |

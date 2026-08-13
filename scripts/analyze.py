@@ -25,6 +25,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SUBMISSIONS_ROOT = REPO_ROOT / "Data Structures & Algorithms"
 ANALYSIS_ROOT = REPO_ROOT / "analysis"
+BENCHMARKS_ROOT = ANALYSIS_ROOT / "benchmarks"
 
 # `or` fallbacks: the workflow exports these from repo vars, which arrive as
 # empty strings when unset.
@@ -248,13 +249,25 @@ def has_good_analysis(out_path: Path) -> bool:
     return isinstance(data, dict) and data.get("complexity") is not None and data.get("model") != "mock"
 
 
+def load_benchmarks(slug: str) -> dict:
+    path = BENCHMARKS_ROOT / f"{slug}.json"
+    if not path.is_file():
+        return {}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return {}
+    return data.get("submissions", {})
+
+
 def build_summary():
     problems = {}
     if ANALYSIS_ROOT.is_dir():
         for slug_dir in sorted(ANALYSIS_ROOT.iterdir()):
-            if not slug_dir.is_dir():
+            if not slug_dir.is_dir() or slug_dir == BENCHMARKS_ROOT:
                 continue
             slug = slug_dir.name
+            benchmarks = load_benchmarks(slug)
             submissions = []
             for json_path in sorted(slug_dir.glob("submission-*.json")):
                 m = re.match(r"^submission-(\d+)\.json$", json_path.name)
@@ -264,6 +277,9 @@ def build_summary():
                     data = json.loads(json_path.read_text(encoding="utf-8"))
                 except json.JSONDecodeError:
                     continue
+                bench = benchmarks.get(f"submission-{m.group(1)}.py")
+                if bench is not None:
+                    data["benchmarks"] = bench
                 submissions.append((int(m.group(1)), data))
             submissions.sort(key=lambda pair: pair[0])
             problems[slug] = {"submissions": [data for _, data in submissions]}
