@@ -1,0 +1,41 @@
+name: Analyze submissions
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "Data Structures & Algorithms/**"
+  workflow_dispatch: {}
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run analysis
+        env:
+          MOONSHOT_API_KEY: ${{ secrets.MOONSHOT_API_KEY }}
+          MOONSHOT_MODEL: ${{ vars.MOONSHOT_MODEL }}
+        run: python3 scripts/analyze.py
+
+      - name: Commit and push analysis
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add analysis
+          # --cached: new analysis files are untracked, plain `git diff` misses them
+          if ! git diff --cached --quiet -- analysis/; then
+            git commit -m "Analyze: update analysis/"
+            # a NeetCode export may have pushed while we ran
+            git push || (git pull --rebase && git push)
+          fi
