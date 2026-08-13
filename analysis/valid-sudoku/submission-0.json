@@ -1,0 +1,15 @@
+{
+  "analyzed_at": "2026-08-13T20:28:04.246920+00:00",
+  "complexity": null,
+  "error": "HTTPError: HTTP Error 401: Unauthorized",
+  "file": "Data Structures & Algorithms/valid-sudoku/submission-0.py",
+  "golf": {
+    "bytes": 830,
+    "characters": 830,
+    "non_blank_lines": 23,
+    "tokens": 231
+  },
+  "model": "kimi-k3",
+  "slug": "valid-sudoku",
+  "solved_at": "2026-08-12T18:56:58-07:00"
+}

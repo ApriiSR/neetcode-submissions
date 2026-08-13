@@ -1,0 +1,15 @@
+{
+  "analyzed_at": "2026-08-13T20:27:56.068038+00:00",
+  "complexity": null,
+  "error": "HTTPError: HTTP Error 401: Unauthorized",
+  "file": "Data Structures & Algorithms/anagram-groups/submission-1.py",
+  "golf": {
+    "bytes": 422,
+    "characters": 422,
+    "non_blank_lines": 11,
+    "tokens": 113
+  },
+  "model": "kimi-k3",
+  "slug": "anagram-groups",
+  "solved_at": "2026-08-12T18:40:56-07:00"
+}

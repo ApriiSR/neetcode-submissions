@@ -1,0 +1,15 @@
+{
+  "analyzed_at": "2026-08-13T20:27:56.719993+00:00",
+  "complexity": null,
+  "error": "HTTPError: HTTP Error 401: Unauthorized",
+  "file": "Data Structures & Algorithms/duplicate-integer/submission-1.py",
+  "golf": {
+    "bytes": 263,
+    "characters": 263,
+    "non_blank_lines": 9,
+    "tokens": 61
+  },
+  "model": "kimi-k3",
+  "slug": "duplicate-integer",
+  "solved_at": "2026-08-12T18:40:56-07:00"
+}

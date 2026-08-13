@@ -1,0 +1,15 @@
+{
+  "analyzed_at": "2026-08-13T20:27:59.273396+00:00",
+  "complexity": null,
+  "error": "HTTPError: HTTP Error 401: Unauthorized",
+  "file": "Data Structures & Algorithms/longest-consecutive-sequence/submission-0.py",
+  "golf": {
+    "bytes": 586,
+    "characters": 586,
+    "non_blank_lines": 19,
+    "tokens": 94
+  },
+  "model": "kimi-k3",
+  "slug": "longest-consecutive-sequence",
+  "solved_at": "2026-08-12T19:11:24-07:00"
+}

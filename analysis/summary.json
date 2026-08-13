@@ -1,0 +1,259 @@
+{
+  "generated_at": "2026-08-13T20:28:04.248357+00:00",
+  "problems": {
+    "anagram-groups": {
+      "submissions": [
+        {
+          "analyzed_at": "2026-08-13T20:27:56.068038+00:00",
+          "complexity": null,
+          "error": "HTTPError: HTTP Error 401: Unauthorized",
+          "file": "Data Structures & Algorithms/anagram-groups/submission-1.py",
+          "golf": {
+            "bytes": 422,
+            "characters": 422,
+            "non_blank_lines": 11,
+            "tokens": 113
+          },
+          "model": "kimi-k3",
+          "slug": "anagram-groups",
+          "solved_at": "2026-08-12T18:40:56-07:00"
+        }
+      ]
+    },
+    "duplicate-integer": {
+      "submissions": [
+        {
+          "analyzed_at": "2026-08-13T20:27:56.719993+00:00",
+          "complexity": null,
+          "error": "HTTPError: HTTP Error 401: Unauthorized",
+          "file": "Data Structures & Algorithms/duplicate-integer/submission-1.py",
+          "golf": {
+            "bytes": 263,
+            "characters": 263,
+            "non_blank_lines": 9,
+            "tokens": 61
+          },
+          "model": "kimi-k3",
+          "slug": "duplicate-integer",
+          "solved_at": "2026-08-12T18:40:56-07:00"
+        }
+      ]
+    },
+    "is-anagram": {
+      "submissions": [
+        {
+          "analyzed_at": "2026-08-13T20:27:57.348872+00:00",
+          "complexity": null,
+          "error": "HTTPError: HTTP Error 401: Unauthorized",
+          "file": "Data Structures & Algorithms/is-anagram/submission-0.py",
+          "golf": {
+            "bytes": 650,
+            "characters": 650,
+            "non_blank_lines": 19,
+            "tokens": 119
+          },
+          "model": "kimi-k3",
+          "slug": "is-anagram",
+          "solved_at": "2026-08-12T18:40:56-07:00"
+        }
+      ]
+    },
+    "is-palindrome": {
+      "submissions": [
+        {
+          "analyzed_at": "2026-08-13T20:27:58.003543+00:00",
+          "complexity": null,
+          "error": "HTTPError: HTTP Error 401: Unauthorized",
+          "file": "Data Structures & Algorithms/is-palindrome/submission-1.py",
+          "golf": {
+            "bytes": 441,
+            "characters": 441,
+            "non_blank_lines": 17,
+            "tokens": 97
+          },
+          "model": "kimi-k3",
+          "slug": "is-palindrome",
+          "solved_at": "2026-08-12T20:08:33-07:00"
+        },
+        {
+          "analyzed_at": "2026-08-13T20:27:58.643291+00:00",
+          "complexity": null,
+          "error": "HTTPError: HTTP Error 401: Unauthorized",
+          "file": "Data Structures & Algorithms/is-palindrome/submission-2.py",
+          "golf": {
+            "bytes": 153,
+            "characters": 153,
+            "non_blank_lines": 4,
+            "tokens": 47
+          },
+          "model": "kimi-k3",
+          "slug": "is-palindrome",
+          "solved_at": "2026-08-12T20:11:07-07:00"
+        }
+      ]
+    },
+    "longest-consecutive-sequence": {
+      "submissions": [
+        {
+          "analyzed_at": "2026-08-13T20:27:59.273396+00:00",
+          "complexity": null,
+          "error": "HTTPError: HTTP Error 401: Unauthorized",
+          "file": "Data Structures & Algorithms/longest-consecutive-sequence/submission-0.py",
+          "golf": {
+            "bytes": 586,
+            "characters": 586,
+            "non_blank_lines": 19,
+            "tokens": 94
+          },
+          "model": "kimi-k3",
+          "slug": "longest-consecutive-sequence",
+          "solved_at": "2026-08-12T19:11:24-07:00"
+        }
+      ]
+    },
+    "products-of-array-discluding-self": {
+      "submissions": [
+        {
+          "analyzed_at": "2026-08-13T20:27:59.904546+00:00",
+          "complexity": null,
+          "error": "HTTPError: HTTP Error 401: Unauthorized",
+          "file": "Data Structures & Algorithms/products-of-array-discluding-self/submission-0.py",
+          "golf": {
+            "bytes": 633,
+            "characters": 633,
+            "non_blank_lines": 19,
+            "tokens": 126
+          },
+          "model": "kimi-k3",
+          "slug": "products-of-array-discluding-self",
+          "solved_at": "2026-08-12T18:40:56-07:00"
+        }
+      ]
+    },
+    "string-encode-and-decode": {
+      "submissions": [
+        {
+          "analyzed_at": "2026-08-13T20:28:01.808209+00:00",
+          "complexity": null,
+          "error": "HTTPError: HTTP Error 401: Unauthorized",
+          "file": "Data Structures & Algorithms/string-encode-and-decode/submission-9.py",
+          "golf": {
+            "bytes": 284,
+            "characters": 275,
+            "non_blank_lines": 10,
+            "tokens": 66
+          },
+          "model": "kimi-k3",
+          "slug": "string-encode-and-decode",
+          "solved_at": "2026-08-12T18:40:56-07:00"
+        },
+        {
+          "analyzed_at": "2026-08-13T20:28:00.525913+00:00",
+          "complexity": null,
+          "error": "HTTPError: HTTP Error 401: Unauthorized",
+          "file": "Data Structures & Algorithms/string-encode-and-decode/submission-10.py",
+          "golf": {
+            "bytes": 365,
+            "characters": 365,
+            "non_blank_lines": 10,
+            "tokens": 66
+          },
+          "model": "kimi-k3",
+          "slug": "string-encode-and-decode",
+          "solved_at": "2026-08-12T18:40:56-07:00"
+        },
+        {
+          "analyzed_at": "2026-08-13T20:28:01.144400+00:00",
+          "complexity": null,
+          "error": "HTTPError: HTTP Error 401: Unauthorized",
+          "file": "Data Structures & Algorithms/string-encode-and-decode/submission-11.py",
+          "golf": {
+            "bytes": 332,
+            "characters": 332,
+            "non_blank_lines": 10,
+            "tokens": 107
+          },
+          "model": "kimi-k3",
+          "slug": "string-encode-and-decode",
+          "solved_at": "2026-08-12T19:37:28-07:00"
+        }
+      ]
+    },
+    "top-k-elements-in-list": {
+      "submissions": [
+        {
+          "analyzed_at": "2026-08-13T20:28:02.427072+00:00",
+          "complexity": null,
+          "error": "HTTPError: HTTP Error 401: Unauthorized",
+          "file": "Data Structures & Algorithms/top-k-elements-in-list/submission-2.py",
+          "golf": {
+            "bytes": 425,
+            "characters": 425,
+            "non_blank_lines": 10,
+            "tokens": 105
+          },
+          "model": "kimi-k3",
+          "slug": "top-k-elements-in-list",
+          "solved_at": "2026-08-12T18:40:56-07:00"
+        }
+      ]
+    },
+    "two-integer-sum": {
+      "submissions": [
+        {
+          "analyzed_at": "2026-08-13T20:28:03.035755+00:00",
+          "complexity": null,
+          "error": "HTTPError: HTTP Error 401: Unauthorized",
+          "file": "Data Structures & Algorithms/two-integer-sum/submission-4.py",
+          "golf": {
+            "bytes": 579,
+            "characters": 579,
+            "non_blank_lines": 16,
+            "tokens": 153
+          },
+          "model": "kimi-k3",
+          "slug": "two-integer-sum",
+          "solved_at": "2026-08-12T18:40:56-07:00"
+        }
+      ]
+    },
+    "two-integer-sum-ii": {
+      "submissions": [
+        {
+          "analyzed_at": "2026-08-13T20:28:03.642418+00:00",
+          "complexity": null,
+          "error": "HTTPError: HTTP Error 401: Unauthorized",
+          "file": "Data Structures & Algorithms/two-integer-sum-ii/submission-1.py",
+          "golf": {
+            "bytes": 585,
+            "characters": 585,
+            "non_blank_lines": 16,
+            "tokens": 159
+          },
+          "model": "kimi-k3",
+          "slug": "two-integer-sum-ii",
+          "solved_at": "2026-08-12T20:17:47-07:00"
+        }
+      ]
+    },
+    "valid-sudoku": {
+      "submissions": [
+        {
+          "analyzed_at": "2026-08-13T20:28:04.246920+00:00",
+          "complexity": null,
+          "error": "HTTPError: HTTP Error 401: Unauthorized",
+          "file": "Data Structures & Algorithms/valid-sudoku/submission-0.py",
+          "golf": {
+            "bytes": 830,
+            "characters": 830,
+            "non_blank_lines": 23,
+            "tokens": 231
+          },
+          "model": "kimi-k3",
+          "slug": "valid-sudoku",
+          "solved_at": "2026-08-12T18:56:58-07:00"
+        }
+      ]
+    }
+  }
+}

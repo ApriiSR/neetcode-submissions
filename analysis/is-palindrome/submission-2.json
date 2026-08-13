@@ -1,0 +1,15 @@
+{
+  "analyzed_at": "2026-08-13T20:27:58.643291+00:00",
+  "complexity": null,
+  "error": "HTTPError: HTTP Error 401: Unauthorized",
+  "file": "Data Structures & Algorithms/is-palindrome/submission-2.py",
+  "golf": {
+    "bytes": 153,
+    "characters": 153,
+    "non_blank_lines": 4,
+    "tokens": 47
+  },
+  "model": "kimi-k3",
+  "slug": "is-palindrome",
+  "solved_at": "2026-08-12T20:11:07-07:00"
+}
