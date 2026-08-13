@@ -29,10 +29,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional
 
-if os.environ.get("PYTHONHASHSEED") != "0":
-    env = dict(os.environ, PYTHONHASHSEED="0")
-    os.execvpe(sys.executable, [sys.executable, str(Path(__file__).resolve())] + sys.argv[1:], env)
-
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import analyze
 import generators
@@ -215,4 +211,14 @@ def main():
 
 
 if __name__ == "__main__":
+    # re-exec, not os.environ: CPython only reads PYTHONHASHSEED at startup.
+    # Guarded under __main__ so importing this module (e.g. from tests) never
+    # replaces the importing process.
+    if os.environ.get("PYTHONHASHSEED") != "0":
+        env = dict(os.environ, PYTHONHASHSEED="0")
+        os.execvpe(
+            sys.executable,
+            [sys.executable, str(Path(__file__).resolve())] + sys.argv[1:],
+            env,
+        )
     main()
