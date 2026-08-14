@@ -403,3 +403,81 @@ python3 scripts/benchmark.py --only two-integer-sum
 python3 scripts/benchmark.py --force
 python3 -m unittest scripts.test_benchmark -v
 ```
+
+## Discord announcements
+
+After benchmarking, `scripts/announce.py` posts a message to a Discord
+channel (via `.github/workflows/analyze.yml`'s "Announce new submissions"
+step) for each submission `scripts/analyze.py` newly analyzed this run — a
+spoilered, syntax-highlighted screenshot of the source plus a compact
+stats embed (problem name/difficulty, time/space complexity, and code
+length), linking back to
+[apriiori.com/projects/neetcode](https://apriiori.com/projects/neetcode/).
+
+`analyze.py` hands off the list of newly-analyzed submissions to
+`announce.py` via `analysis/.new-this-run.json` — a per-run scratch file
+(`analyze.new_this_run_path()`, overridable via the
+`ANALYZE_NEW_THIS_RUN_PATH` env var), rewritten every run (empty when
+nothing new) and never committed (`.gitignore`'d).
+
+The source screenshot is rendered with charmbracelet's
+[`freeze`](https://github.com/charmbracelet/freeze) — a single released
+binary, no extra Python dependencies. CI downloads and pins a specific
+Linux release tarball (version in the `FREEZE_VERSION` workflow env var,
+cached between runs via `actions/cache`); locally, point `FREEZE_BIN` at
+wherever you put a downloaded binary to enable rendering, or leave it
+unset to exercise the fallback path (see below).
+
+### Setup
+
+Announcements need a Discord **channel webhook** — this is separate from
+`MOONSHOT_API_KEY` and doesn't exist until April sets it up:
+
+1. In the target Discord channel: **Channel Settings → Integrations →
+   Webhooks → New Webhook**, and copy its URL.
+2. `gh secret set DISCORD_WEBHOOK_URL --repo ApriiSR/neetcode-submissions`
+
+### Graceful skipping
+
+Every piece of this is designed to degrade quietly rather than break the
+pipeline:
+
+- **No webhook secret set** — `announce.py` exits 0 immediately, no
+  output. This is the expected state until the webhook above is created;
+  analysis and benchmarking are unaffected either way.
+- **Nothing new this run** — an empty (or missing) `.new-this-run.json`
+  is also a quiet no-op.
+- **`freeze` missing or fails to render** — the message still posts, just
+  without the source screenshot (the embed's stats are unaffected).
+- **A single post fails** (Discord/network error) — logged to stderr,
+  the run moves on to any remaining new submissions rather than aborting;
+  the workflow step exits nonzero so the failure is still visible in the
+  Actions tab.
+- **The "Run analysis" step fails outright** — the announce step is
+  skipped entirely (see the workflow's step condition), since that step
+  is what produces both the new-submissions list and the source records
+  announce.py reads.
+
+### Spoiler behavior
+
+Discord auto-spoilers any attachment whose filename starts with
+`SPOILER_` — the image attaches as
+`SPOILER_<slug>-submission-<N>.png`, so the rendered solution is blurred
+behind a click-to-reveal in the channel, matching how solution code
+should be treated in a spoiler-averse channel (embed text — problem
+name, complexity, length — is not spoilered).
+
+### Local usage
+
+```
+DISCORD_WEBHOOK_URL=... python3 scripts/announce.py     # posts for real
+python3 scripts/announce.py --dry-run                    # prints payloads only, never posts
+FREEZE_BIN=/path/to/freeze python3 scripts/announce.py --dry-run   # also renders images
+python3 -m unittest scripts.test_announce -v
+```
+
+`--dry-run` never posts to Discord regardless of whether
+`DISCORD_WEBHOOK_URL` is set, and prints each submission's embed payload
+(plus whether an image would be attached and its size) instead — handy
+for eyeballing the embed shape against a hand-written
+`analysis/.new-this-run.json` without touching the real channel.
