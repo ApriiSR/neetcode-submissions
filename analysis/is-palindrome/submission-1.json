@@ -1,12 +1,12 @@
 {
-  "analysis_version": 4,
-  "analyzed_at": "2026-08-14T02:40:45.353313+00:00",
+  "analysis_version": 5,
+  "analyzed_at": "2026-08-14T04:30:27.486798+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": false,
-    "notes": "s.lower() creates an O(n) copy; comparing characters case-insensitively inline (e.g., via s[a].lower()) would give O(1) auxiliary space. The inner right-pointer loop could in theory be guarded against underflow for clarity, though it is safe here since the left pointer always rests on an alphanumeric character first.",
+    "notes": "s.lower() creates an O(n) copy; the algorithm itself is in-place otherwise. The inner b-skip loop lacks an explicit bounds check, but it is safe because once a==len(s) the function has already returned True.",
     "space": "O(n)",
-    "summary": "Two-pointer scan from both ends of the lowercased string, skipping non-alphanumeric characters and comparing the remaining characters pairwise.",
+    "summary": "Two-pointer scan from both ends of the lowercased string, skipping non-alphanumeric characters and comparing the rest pairwise. Each pointer moves monotonically, so total work is linear.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },

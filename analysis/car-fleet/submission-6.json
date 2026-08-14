@@ -1,14 +1,14 @@
 {
-  "analysis_version": 4,
-  "analyzed_at": "2026-08-14T04:12:25.037075+00:00",
+  "analysis_version": 5,
+  "analyzed_at": "2026-08-14T04:29:20.083678+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": false,
-    "notes": "Clever bucket trick avoids an O(n log n) sort but costs O(target) time and space regardless of n; a sort-based scan is more idiomatic and memory-friendly. Float division is safe here given the bounds, though cross-multiplication would avoid floating point entirely.",
+    "notes": "Works but is unconventional: allocating an O(target) array just to sort by position is wasteful when n << target; sorted(zip(position, speed)) would give O(n) space and O(n log n) time more idiomatically. Correctness relies on positions being unique and below target, both guaranteed by the constraints.",
     "space": "O(target)",
-    "summary": "Buckets cars by position into a target-sized array (positions are unique, so no collisions), then scans from closest to the destination outward, merging any car whose arrival time is no later than the current lead fleet's and counting a new fleet otherwise.",
-    "time_average": "O(n + target)",
-    "time_worst": "O(n + target)"
+    "summary": "Places cars into a position-indexed array of size target (which also sorts them by position), then scans from closest-to-target backward, merging any car whose arrival time is no later than the fleet ahead into that fleet and counting a new fleet otherwise.",
+    "time_average": "O(target + n)",
+    "time_worst": "O(target + n)"
   },
   "file": "Data Structures & Algorithms/car-fleet/submission-6.py",
   "golf": {

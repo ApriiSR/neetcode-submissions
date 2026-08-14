@@ -1,12 +1,12 @@
 {
-  "analysis_version": 4,
-  "analyzed_at": "2026-08-14T02:39:45.904443+00:00",
+  "analysis_version": 5,
+  "analyzed_at": "2026-08-14T04:27:33.164891+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": true,
-    "notes": "Each word's key is computed twice (once in the dict comprehension and again in the append loop); a single pass with collections.defaultdict(list) would be cleaner and avoid duplicate work. The return annotation 'tuple(int)' is not a valid type hint \u2014 use tuple[int, ...] from Python 3.9+. The keys are a bounded fixed-size signature, so lookups remain O(1) even in the worst case.",
-    "space": "O(n)",
-    "summary": "Computes a 26-element character-count tuple as a canonical key for each word, groups words by that key in a dict, then returns the grouped values.",
+    "notes": "word_tuple is computed twice per word (once in the dict comprehension and once in the append loop), doubling the counting work; a single pass with dict.setdefault or collections.defaultdict would be cleaner. The annotation tuple(int) is invalid typing syntax (meant tuple[int, ...]). Since keys are bounded 26-count signatures, hash collisions are bounded, so the worst case does not degrade despite dict usage. With the given scaling (word length bounded independent of n), L is effectively constant, giving linear time overall.",
+    "space": "O(n * L)",
+    "summary": "Each word is mapped to a 26-element character-count tuple, which serves as a hash key to group anagrams in a dictionary; the grouped values are then returned as lists.",
     "time_average": "O(n * L)",
     "time_worst": "O(n * L)"
   },

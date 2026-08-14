@@ -1,12 +1,12 @@
 {
-  "analysis_version": 4,
-  "analyzed_at": "2026-08-14T02:44:18.155880+00:00",
+  "analysis_version": 5,
+  "analyzed_at": "2026-08-14T04:33:12.746873+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": false,
-    "notes": "The dict keys come from a fixed 3-element literal, so collisions are bounded and lookups are O(1) even in the worst case. Checking membership with `bracket in \"({[\"` is fine here given the tiny alphabet; a set literal would be marginally more idiomatic but no faster asymptotically.",
+    "notes": "Clean and idiomatic; the fixed literal mapping keeps both correctness and constant-time lookups independent of hash randomness.",
     "space": "O(n)",
-    "summary": "Classic stack-based validation: push opening brackets, and on each closing bracket check that it matches the most recent unmatched opener via a fixed closing-to-opening map. Returns true only if the stack is empty at the end.",
+    "summary": "Classic stack-based validation: push opening brackets, and on each closing bracket pop and check it matches via a fixed close-to-open mapping; the string is valid iff the stack ends empty. The dict keys come from a constant 6-character alphabet, so lookups are O(1) even in the worst case.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },

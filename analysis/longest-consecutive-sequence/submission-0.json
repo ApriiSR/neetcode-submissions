@@ -1,14 +1,14 @@
 {
-  "analysis_version": 4,
-  "analyzed_at": "2026-08-14T02:41:02.988827+00:00",
+  "analysis_version": 5,
+  "analyzed_at": "2026-08-14T04:31:01.051630+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": true,
-    "notes": "The expand-and-remove strategy is correct and each element is visited once, but the more idiomatic approach only expands from sequence starts (x where x-1 not in set), which avoids mutating the set and is arguably clearer. Set membership relies on average-case hashing; adversarial hash collisions could degrade lookups to O(n), yielding O(n^2) worst case.",
+    "notes": "Per the scaling note values are a permutation of range(n), so integer keys hash without adversarial collisions and lookups remain O(1) worst case. The pop-and-expand style is slightly less readable than the canonical 'only start from run beginnings' loop, but the destructive removal guarantees linear total work.",
     "space": "O(n)",
-    "summary": "Builds a set of the numbers, then repeatedly pops an arbitrary element and expands outward in both directions, removing each visited element so every value is processed exactly once. Tracks the maximum run length found.",
+    "summary": "Builds a set, then repeatedly pops an arbitrary element and expands outward in both directions to extract its entire consecutive run, removing each element as it is consumed so every element is processed exactly once.",
     "time_average": "O(n)",
-    "time_worst": "O(n^2)"
+    "time_worst": "O(n)"
   },
   "file": "Data Structures & Algorithms/longest-consecutive-sequence/submission-0.py",
   "golf": {

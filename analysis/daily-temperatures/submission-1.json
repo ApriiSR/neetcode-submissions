@@ -1,12 +1,12 @@
 {
-  "analysis_version": 4,
-  "analyzed_at": "2026-08-14T03:18:54.973385+00:00",
+  "analysis_version": 5,
+  "analyzed_at": "2026-08-14T04:29:51.863040+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": false,
-    "notes": "Storing tuples (temp, index) works, but storing only indices and comparing temperatures[stack[-1]] would be slightly cleaner and avoid redundant data.",
+    "notes": "Storing tuples works, but pushing indices alone and comparing temperatures[stack[-1]] would be cleaner and avoid duplicate storage. The bounded temperature range (1..100) also permits an O(n * 100) next-greater-value alternative, but the stack solution is optimal.",
     "space": "O(n)",
-    "summary": "Uses a monotonic decreasing stack of (temperature, index) pairs; when a warmer temperature arrives, it pops all cooler pending days and records the day difference. Each index is pushed and popped at most once, giving linear time.",
+    "summary": "Monotonic decreasing stack of (temperature, index) pairs; each element is pushed and popped at most once, so when a warmer day arrives it resolves all cooler pending days in amortized O(1) per day.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },

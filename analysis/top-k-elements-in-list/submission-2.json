@@ -1,14 +1,14 @@
 {
-  "analysis_version": 4,
-  "analyzed_at": "2026-08-14T02:43:11.199581+00:00",
+  "analysis_version": 5,
+  "analyzed_at": "2026-08-14T04:32:19.920033+00:00",
   "complexity": {
-    "benchmark_model": "n",
+    "benchmark_model": "n log n",
     "hash_dependent": false,
-    "notes": "Counting is non-idiomatic; num_counts[num] = num_counts.get(num, 0) + 1 or collections.Counter would be cleaner. The final loop re-scans all items for each of the k thresholds (O(k*d)), which is fine only because k <= 5 and d <= 2001; a single pass selecting keys by a threshold frequency would be simpler. Relying on the stated uniqueness guarantee for correctness of the tie handling is valid, but the list(set(output)) de-dup is a code smell suggesting the tie logic is fragile.",
-    "space": "O(min(n, 2001))",
-    "summary": "Builds a frequency dict in one pass, sorts the distinct frequency values and keeps the top k, then collects every key whose count equals one of those top-k frequencies. The problem's uniqueness guarantee ensures the frequency scan yields exactly k elements, and the value bound (-1000..1000) caps distinct keys at 2001, making the sort and scans effectively constant.",
-    "time_average": "O(n)",
-    "time_worst": "O(n)"
+    "notes": "Keys are drawn from the bounded range [-1000, 1000] per the constraints, so hash collisions are bounded and dict lookups remain O(1) worst case. The counting loop does a redundant double lookup ('num in num_counts' then num_counts[num]); dict.get(num, 0) or collections.Counter would be cleaner. The final set() dedup can silently return more or fewer than k elements when frequencies tie, which works here only because the answer is guaranteed unique; a heapq.nlargest over items would be O(n + d log k) and more direct.",
+    "space": "O(n)",
+    "summary": "Counts frequencies in a dict, sorts the distinct frequency values and takes the top k, then collects all keys matching those frequencies and deduplicates with a set. Sorting the up-to-n distinct counts dominates the runtime.",
+    "time_average": "O(n log n)",
+    "time_worst": "O(n log n)"
   },
   "file": "Data Structures & Algorithms/top-k-elements-in-list/submission-2.py",
   "golf": {

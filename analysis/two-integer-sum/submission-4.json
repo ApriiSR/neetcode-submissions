@@ -1,12 +1,12 @@
 {
-  "analysis_version": 4,
-  "analyzed_at": "2026-08-14T02:43:27.373862+00:00",
+  "analysis_version": 5,
+  "analyzed_at": "2026-08-14T04:32:29.153974+00:00",
   "complexity": {
     "benchmark_model": "n log n",
     "hash_dependent": false,
-    "notes": "Correct but unidiomatic and fragile: the index()/pop() index-recovery logic is convoluted and each index() call is an O(n) scan. A one-pass hashmap (value -> index) achieves O(n) time far more cleanly, or sort (value, index) pairs to avoid the index-recovery hack entirely.",
+    "notes": "The nums.index() calls are O(n) linear scans each (still dominated by the sort), and nums.pop() mutates the caller's input list, which is poor practice. A dict-based single pass would achieve O(n) average time and avoid the index-recovery awkwardness.",
     "space": "O(n)",
-    "summary": "Sorts a copy of the array and uses a two-pointer scan to find the pair summing to target, then recovers the original indices with nums.index(), with a pop-based workaround for duplicate values.",
+    "summary": "Sorts a copy of the array and uses a two-pointer scan to find the pair summing to target, then recovers the original indices via linear nums.index() searches, with special handling when the pair is a duplicated value.",
     "time_average": "O(n log n)",
     "time_worst": "O(n log n)"
   },

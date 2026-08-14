@@ -1,12 +1,12 @@
 {
-  "analysis_version": 4,
-  "analyzed_at": "2026-08-14T02:42:02.663574+00:00",
+  "analysis_version": 5,
+  "analyzed_at": "2026-08-14T04:31:58.043435+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": false,
-    "notes": "Correct under the stated ASCII-only constraint, but the trick breaks for the follow-up (arbitrary Unicode input), where a length-prefixed encoding would be required. The decode of the empty list works incidentally: ''.split(delimiter) yields [''] and pop(-1) clears it, though this is subtle and worth a comment.",
+    "notes": "Correct under the problem's stated ASCII-only constraint, since the emoji delimiter cannot appear in the input; however, this fails the follow-up requirement of handling any possible character set, where a length-prefixed encoding would be needed. The empty-list special case is a minor wart (decode('') returns [] only because of the trailing pop).",
     "space": "O(n)",
-    "summary": "Encodes by joining the strings with an emoji delimiter (plus a trailing delimiter) and decodes by splitting on that delimiter and dropping the final empty segment. Since the delimiter is a non-ASCII character and input strings are guaranteed to be ASCII-only, it can never collide with string content.",
+    "summary": "Encode joins all strings with an emoji delimiter (plus a trailing delimiter), and decode splits on that delimiter and drops the empty trailing element.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },

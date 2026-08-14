@@ -1,12 +1,12 @@
 {
-  "analysis_version": 4,
-  "analyzed_at": "2026-08-14T02:43:41.985324+00:00",
+  "analysis_version": 5,
+  "analyzed_at": "2026-08-14T04:32:41.667519+00:00",
   "complexity": {
     "benchmark_model": "n log n",
     "hash_dependent": false,
-    "notes": "Sorting is unnecessary since the input is guaranteed sorted, and the nums2 copy makes the solution O(n) extra space, violating the problem's O(1) space requirement. The repeated O(n) index() calls and pop() add linear overhead and convoluted duplicate handling; a plain two-pointer on the original array with offset +1 indices would be simpler, O(n) time, and O(1) space.",
+    "notes": "Sorting is unnecessary since the input is guaranteed pre-sorted, and the nums2 copy plus the O(1)-space requirement in the problem statement are violated (uses O(n) extra space). The index() calls are O(n) each but remain dominated by the O(n log n) sort; correctness is fine given the exactly-one-solution guarantee.",
     "space": "O(n)",
-    "summary": "Copies and sorts the array, then runs a two-pointer scan to find the pair summing to target, and finally recovers original 1-indexed positions via linear index() searches (with a special case when both values coincide at the same first index).",
+    "summary": "Sorts a copy of the array, then runs a two-pointer scan from both ends to find the pair summing to target, and finally recovers the original 1-indexed positions via linear index() lookups (with a pop to disambiguate duplicate values).",
     "time_average": "O(n log n)",
     "time_worst": "O(n log n)"
   },

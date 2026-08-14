@@ -1,12 +1,12 @@
 {
-  "analysis_version": 4,
-  "analyzed_at": "2026-08-14T02:49:24.465366+00:00",
+  "analysis_version": 5,
+  "analyzed_at": "2026-08-14T04:31:07.783246+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": false,
-    "notes": "Correctly handles duplicate minimums by pushing on <= and popping only on equality. Initializing min_stack with float('inf') avoids an empty-check in push; all operations are cleanly O(1) with no hashing involved.",
+    "notes": "Initializing min_stack with float('inf') is a clean sentinel that avoids empty-checks in push. Space is O(n) in the worst case (monotonically decreasing pushes), which is inherent to this design.",
     "space": "O(n)",
-    "summary": "Maintains a main stack plus an auxiliary min stack that records each new running minimum (including duplicates), so getMin is just a peek at the min stack's top; pop discards the min entry only when the popped value equals the current minimum.",
+    "summary": "Auxiliary min-stack approach: a second stack stores running minima, pushing a value only when it is <= the current minimum and popping it when the popped main value equals the current minimum. All four operations are O(1) list-index operations, so a sequence of n calls costs O(n) total.",
     "time_average": "O(1) per operation",
     "time_worst": "O(1) per operation"
   },
