@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-14T04:12:25.173569+00:00",
+  "generated_at": "2026-08-14T04:23:16.683583+00:00",
   "problems": {
     "anagram-groups": {
       "submissions": [
@@ -292,6 +292,30 @@
           "model": "k3",
           "slug": "car-fleet",
           "solved_at": "2026-08-13T21:12:01-07:00",
+          "statement": "car-fleet"
+        },
+        {
+          "analysis_version": 4,
+          "analyzed_at": "2026-08-14T04:23:16.542215+00:00",
+          "complexity": {
+            "benchmark_model": "n log n",
+            "hash_dependent": false,
+            "notes": "Correct but unconventional: the bucket-array branch complicates the code for no asymptotic gain over simply sorting, and costs up to O(n log n) extra space when target is near the threshold. The inline comment about asking Claude should be removed. The fleet-counting loop itself is a clean O(n) monotonic-scan equivalent of the usual stack approach.",
+            "space": "O(n + target), bounded by O(n log n) since the bucket branch only runs when target < n log n",
+            "summary": "Sorts cars by position (using a bucket array of size target when target < n log n, otherwise a standard sort), then scans from the car closest to the destination backward, counting a new fleet whenever a trailing car's arrival time exceeds the current lead fleet's arrival time. The hybrid bucket/sort choice keeps the runtime at O(n log n) regardless of the branch taken.",
+            "time_average": "O(n log n)",
+            "time_worst": "O(n log n)"
+          },
+          "file": "Data Structures & Algorithms/car-fleet/submission-7.py",
+          "golf": {
+            "bytes": 788,
+            "characters": 788,
+            "non_blank_lines": 19,
+            "tokens": 196
+          },
+          "model": "k3",
+          "slug": "car-fleet",
+          "solved_at": "2026-08-13T21:22:28-07:00",
           "statement": "car-fleet"
         }
       ]
