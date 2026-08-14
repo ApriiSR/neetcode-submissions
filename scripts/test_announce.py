@@ -86,6 +86,10 @@ class BuildEmbedTests(unittest.TestCase):
         self.assertEqual(embed["title"], "Two Sum (Easy)")
         self.assertEqual(embed["url"], announce.PROJECT_URL + "#two-integer-sum")
         self.assertEqual(embed["color"], 0x57F287)
+        self.assertEqual(
+            embed["description"],
+            "[problem on NeetCode](https://neetcode.io/problems/two-integer-sum)",
+        )
 
     def test_embed_carries_no_spoilers(self):
         # April's rule: nothing that hints at the approach may be visible

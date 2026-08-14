@@ -189,6 +189,7 @@ def build_embed(meta: dict, slug: str) -> dict:
         "title": title,
         "url": f"{PROJECT_URL}#{slug}",
         "color": difficulty_color(difficulty),
+        "description": f"[problem on NeetCode](https://neetcode.io/problems/{slug})",
     }
 
 
