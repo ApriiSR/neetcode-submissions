@@ -349,6 +349,61 @@ class RepoIntegrationTests(unittest.TestCase):
         self.assertIsNone(record["statement"])
         self.assertEqual(record["analysis_version"], analyze.ANALYSIS_VERSION)
 
+    def test_new_this_run_lists_newly_analyzed_submission(self):
+        sys.argv = ["analyze.py", "--mock"]
+        with self.assertRaises(SystemExit):
+            analyze.main()
+
+        new_this_run_path = self.tmp / "analysis" / ".new-this-run.json"
+        self.assertTrue(new_this_run_path.is_file())
+        records = json.loads(new_this_run_path.read_text())
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0]["slug"], "sample-problem")
+        self.assertEqual(records[0]["number"], 0)
+        self.assertEqual(
+            records[0]["file"], "Data Structures & Algorithms/sample-problem/submission-0.py"
+        )
+        self.assertEqual(
+            records[0]["analysis_file"], "analysis/sample-problem/submission-0.json"
+        )
+
+    def test_new_this_run_is_empty_and_overwritten_when_nothing_analyzed(self):
+        out_dir = self.tmp / "analysis" / "sample-problem"
+        out_dir.mkdir(parents=True)
+        (out_dir / "submission-0.json").write_text(json.dumps(self._existing_record()))
+
+        # A stale list from a previous run should not survive an empty run.
+        new_this_run_path = self.tmp / "analysis" / ".new-this-run.json"
+        new_this_run_path.parent.mkdir(parents=True, exist_ok=True)
+        new_this_run_path.write_text(json.dumps([{"slug": "stale"}]))
+
+        sys.argv = ["analyze.py", "--mock"]
+        with self.assertRaises(SystemExit):
+            analyze.main()
+
+        records = json.loads(new_this_run_path.read_text())
+        self.assertEqual(records, [])
+
+    def test_new_this_run_excludes_errored_submissions(self):
+        with mock.patch.object(analyze, "get_complexity", return_value=(None, "boom")):
+            sys.argv = ["analyze.py", "--mock"]
+            with self.assertRaises(SystemExit):
+                analyze.main()
+
+        new_this_run_path = self.tmp / "analysis" / ".new-this-run.json"
+        records = json.loads(new_this_run_path.read_text())
+        self.assertEqual(records, [])
+
+    def test_new_this_run_path_env_override(self):
+        override = self.tmp / "elsewhere.json"
+        with mock.patch.dict("os.environ", {analyze.NEW_THIS_RUN_ENV: str(override)}):
+            sys.argv = ["analyze.py", "--mock"]
+            with self.assertRaises(SystemExit):
+                analyze.main()
+
+        self.assertTrue(override.is_file())
+        self.assertFalse((self.tmp / "analysis" / ".new-this-run.json").exists())
+
     def test_only_flag_filters_slug(self):
         other_dir = self.tmp / "Data Structures & Algorithms" / "other-problem"
         other_dir.mkdir(parents=True)
