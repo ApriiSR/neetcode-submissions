@@ -81,27 +81,27 @@ class BuildEmbedTests(unittest.TestCase):
         analysis.update(overrides)
         return analysis
 
-    def test_embed_shape_with_image(self):
-        embed = announce.build_embed(
-            self._analysis(), {"name": "Two Sum", "difficulty": "Easy"}, "SPOILER_x.png"
-        )
+    def test_embed_shape(self):
+        embed = announce.build_embed(self._analysis(), {"name": "Two Sum", "difficulty": "Easy"})
         self.assertEqual(embed["title"], "Two Sum (Easy)")
         self.assertEqual(embed["url"], announce.PROJECT_URL)
         self.assertEqual(embed["color"], 0x57F287)
-        self.assertEqual(embed["image"], {"url": "attachment://SPOILER_x.png"})
         field_names = [f["name"] for f in embed["fields"]]
         self.assertEqual(field_names, ["Time", "Space", "Length"])
         self.assertIn("O(n)", embed["fields"][0]["value"])
         self.assertIn("O(n^2)", embed["fields"][0]["value"])
         self.assertIn("12 tokens", embed["fields"][2]["value"])
 
-    def test_embed_omits_image_key_when_no_image(self):
-        embed = announce.build_embed(self._analysis(), {"name": "Two Sum", "difficulty": None}, None)
+    def test_embed_never_references_attachment(self):
+        # A SPOILER_ attachment referenced inside an embed loses its spoiler
+        # blur (discord-api-docs #1235); the image must stay a plain
+        # attachment, so the embed must never carry an image key.
+        embed = announce.build_embed(self._analysis(), {"name": "Two Sum", "difficulty": None})
         self.assertNotIn("image", embed)
         self.assertEqual(embed["title"], "Two Sum")
 
     def test_embed_tolerates_missing_complexity_and_golf(self):
-        embed = announce.build_embed({}, {"name": "X", "difficulty": None}, None)
+        embed = announce.build_embed({}, {"name": "X", "difficulty": None})
         self.assertIn("?", embed["fields"][0]["value"])
 
 

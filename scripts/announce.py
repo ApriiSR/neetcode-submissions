@@ -121,7 +121,11 @@ def render_source_image(source_path: Path) -> bytes | None:
         return out_path.read_bytes()
 
 
-def build_embed(analysis: dict, meta: dict, image_filename: str | None) -> dict:
+# The image is deliberately NOT referenced as embed["image"]: a SPOILER_
+# attachment rendered inside an embed loses its spoiler blur (discord-api-docs
+# issue #1235). Left as a plain attachment, Discord shows it below the embed,
+# blurred until clicked.
+def build_embed(analysis: dict, meta: dict) -> dict:
     complexity = analysis.get("complexity") or {}
     golf = analysis.get("golf") or {}
 
@@ -146,8 +150,6 @@ def build_embed(analysis: dict, meta: dict, image_filename: str | None) -> dict:
             {"name": "Length", "value": f"{tokens} tokens · {lines} lines · {chars} chars", "inline": True},
         ],
     }
-    if image_filename:
-        embed["image"] = {"url": f"attachment://{image_filename}"}
     return embed
 
 
@@ -165,7 +167,7 @@ def build_announcement(record: dict) -> tuple[dict, bytes | None, str]:
     meta = fetch_problem_meta(slug)
     image_bytes = render_source_image(source_path)
 
-    embed = build_embed(analysis, meta, filename if image_bytes else None)
+    embed = build_embed(analysis, meta)
     payload = {"embeds": [embed]}
     return payload, image_bytes, filename
 
