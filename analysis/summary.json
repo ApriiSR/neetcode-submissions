@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-14T02:09:25.979226+00:00",
+  "generated_at": "2026-08-14T02:26:57.215639+00:00",
   "problems": {
     "anagram-groups": {
       "submissions": [
@@ -1259,6 +1259,69 @@
           "model": "k3",
           "slug": "validate-parentheses",
           "solved_at": "2026-08-13T17:01:27-07:00",
+          "statement": "validate-parentheses"
+        },
+        {
+          "analysis_version": 3,
+          "analyzed_at": "2026-08-14T02:26:56.622903+00:00",
+          "benchmarks": {
+            "adversarial": null,
+            "best_fit": "n",
+            "best_fit_r2": 0.9999033161370341,
+            "k3_model": "n",
+            "k3_model_r2": 0.9999033161370341,
+            "r2": 0.9999093882231125,
+            "sizes": [
+              256,
+              512,
+              1024,
+              2048,
+              4096,
+              8192,
+              16384,
+              32768,
+              65536,
+              131072,
+              262144,
+              524288,
+              1048576
+            ],
+            "slope": 0.9975417857407938,
+            "times_ms": [
+              0.009669000007761497,
+              0.018369000002849134,
+              0.03569800000491341,
+              0.07174899999995432,
+              0.14835999999718297,
+              0.3025400000069567,
+              0.6015600000068844,
+              1.2165899999985186,
+              2.3840460000030816,
+              4.807999999997037,
+              9.3984970000065,
+              18.127962000008324,
+              37.114917000010905
+            ]
+          },
+          "complexity": {
+            "benchmark_model": "n",
+            "hash_dependent": true,
+            "notes": "Clean and idiomatic. Worst case is theoretical: the map has only 3 keys, so adversarial hash collisions degrading lookups to O(n) per lookup are not realistically reachable, but per the dict-based analysis the worst case is O(n^2).",
+            "space": "O(n)",
+            "summary": "Classic stack-based validation: push opening brackets, and on each closing bracket pop and check that it matches via a closing-to-opening map. Returns true only if the stack is empty at the end and no mismatch occurred.",
+            "time_average": "O(n)",
+            "time_worst": "O(n^2)"
+          },
+          "file": "Data Structures & Algorithms/validate-parentheses/submission-2.py",
+          "golf": {
+            "bytes": 358,
+            "characters": 358,
+            "non_blank_lines": 11,
+            "tokens": 72
+          },
+          "model": "k3",
+          "slug": "validate-parentheses",
+          "solved_at": "2026-08-13T19:26:35-07:00",
           "statement": "validate-parentheses"
         }
       ]
