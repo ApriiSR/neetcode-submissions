@@ -38,9 +38,21 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 BENCHMARKS_ROOT = REPO_ROOT / "analysis" / "benchmarks"
 
 DEFAULT_SIZES = tuple(2**k for k in range(8, 21))  # 256 .. 2**20, x2 each step
-ADVERSARIAL_SIZES = tuple(2**k for k in range(6, 17))  # 64 .. 65536, x2 each step
 SIZE_CAP_SECONDS = 2.0
+# The adversarial run uses the same ladder, so the two series are directly
+# comparable point-for-point (and the progress page can plot them against the
+# same x). It just gets a tighter per-size cap, since that's what decides
+# where a genuinely quadratic case stops: an adversarial run that stays linear
+# now walks the full ladder to 2**20 like the normal one, and one that blows
+# up truncates itself, which is the "when possible" part.
 ADVERSARIAL_CAP_SECONDS = 1.5
+
+# Bumped when the measurement itself changes (ladder, caps, repeat counts) so
+# stored records taken under the old regime are re-measured instead of sitting
+# alongside new ones — the same role ANALYSIS_VERSION plays in analyze.py.
+# Records predating this stamp have no "benchmark_version" and are stale by
+# definition.
+BENCHMARK_VERSION = 2
 CORRECTNESS_N = 8
 SEED = 20260813
 
@@ -276,7 +288,7 @@ def benchmark_submission(slug, spec, path):
         adversarial = run_ladder(
             entry,
             spec["adversarial"],
-            ADVERSARIAL_SIZES,
+            DEFAULT_SIZES,
             ADVERSARIAL_CAP_SECONDS,
             deadline,
             k3_model_name,
@@ -287,11 +299,16 @@ def benchmark_submission(slug, spec, path):
     else:
         result["adversarial"] = None
 
+    result["benchmark_version"] = BENCHMARK_VERSION
     return result
 
 
 def has_good_benchmark(record):
-    return isinstance(record, dict) and "error" not in record
+    return (
+        isinstance(record, dict)
+        and "error" not in record
+        and record.get("benchmark_version") == BENCHMARK_VERSION
+    )
 
 
 def main():

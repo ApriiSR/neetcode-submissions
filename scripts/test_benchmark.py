@@ -368,12 +368,31 @@ class HasGoodBenchmarkTests(unittest.TestCase):
     def test_normal_record_is_good(self):
         self.assertTrue(
             benchmark.has_good_benchmark(
-                {"sizes": [1], "times_ms": [1.0], "slope": None, "r2": None, "adversarial": None}
+                {
+                    "sizes": [1],
+                    "times_ms": [1.0],
+                    "slope": None,
+                    "r2": None,
+                    "adversarial": None,
+                    "benchmark_version": benchmark.BENCHMARK_VERSION,
+                }
             )
         )
 
     def test_missing_record_is_not_good(self):
         self.assertFalse(benchmark.has_good_benchmark(None))
+
+    def test_record_from_an_older_measurement_regime_is_not_good(self):
+        # Ladder/cap changes have to re-measure rather than leave old and new
+        # numbers side by side.
+        self.assertFalse(
+            benchmark.has_good_benchmark(
+                {"sizes": [1], "times_ms": [1.0], "benchmark_version": benchmark.BENCHMARK_VERSION - 1}
+            )
+        )
+
+    def test_record_predating_versioning_is_not_good(self):
+        self.assertFalse(benchmark.has_good_benchmark({"sizes": [1], "times_ms": [1.0]}))
 
 
 if __name__ == "__main__":

@@ -295,10 +295,14 @@ skipped), it:
    answer that names an actual complexity class instead of leaving you
    to eyeball the slope.
 3. Where `generators.py` defines an `adversarial(n)` input for the
-   problem, repeats the same procedure (including `best_fit`) on a
-   smaller doubling ladder (`64, 128, 256, ..., 65536`, capped at
-   ~1.5s per size, same shared 30s total budget) built to trigger
-   worst-case dict/set behavior.
+   problem, repeats the same procedure (including `best_fit`) on an
+   input built to trigger worst-case dict/set behavior — over the *same*
+   ladder, so the two series are comparable point-for-point, with a
+   tighter ~1.5s per-size cap and the same shared 30s total budget. The
+   cap is what makes the ladders diverge only where they have to: an
+   adversarial run that stays linear walks all the way to `2**20` like
+   the normal one, while a genuinely quadratic one truncates itself
+   partway (`duplicate-integer` stops around `2**14`).
 4. Writes `analysis/benchmarks/<slug>.json`, then regenerates
    `analysis/summary.json` (via `analyze.build_summary`, the same
    function `analyze.py` uses — there's one summary-building code path,
@@ -307,8 +311,14 @@ skipped), it:
    `"benchmarks"` key; existing consumers of `summary.json` don't need
    to change.
 
-Already-benchmarked submissions (any record without `"error"`) are
-skipped on subsequent runs; pass `--force` to redo everything.
+Already-benchmarked submissions are skipped on subsequent runs; pass
+`--force` to redo everything. "Already benchmarked" means a record with
+no `"error"` *and* a `"benchmark_version"` matching `BENCHMARK_VERSION`
+in `benchmark.py` — bump that constant whenever the measurement itself
+changes (ladder, caps, repeat counts) and the next run re-measures
+everything on its own, rather than leaving numbers taken under two
+different regimes side by side in the same summary. It plays the same
+role `ANALYSIS_VERSION` does in `analyze.py`.
 
 ### Adversarial inputs
 
@@ -363,8 +373,8 @@ it's missing, so local runs don't need to remember the flag.
       "k3_model_r2": 0.9996,
       "adversarial": {
         "note": "n distinct multiples of 2**61-1, all hashing to 0, so every dict insert/lookup collides",
-        "sizes": [64, 128, 256, ..., 65536],
-        "times_ms": [0.05, 0.19, 0.83, ..., 5820.0],
+        "sizes": [256, 512, 1024, ..., 16384],
+        "times_ms": [0.83, 3.2, 12.9, ..., 2869.2],
         "slope": 1.99,
         "r2": 0.9995,
         "best_fit": "n^2",
