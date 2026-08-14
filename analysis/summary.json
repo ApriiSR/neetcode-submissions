@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-14T18:31:51.781397+00:00",
+  "generated_at": "2026-08-14T18:46:25.110550+00:00",
   "problems": {
     "anagram-groups": {
       "submissions": [
@@ -99,6 +99,34 @@
           "slug": "anagram-groups",
           "solved_at": "2026-08-12T18:40:56-07:00",
           "statement": "anagram-groups"
+        }
+      ]
+    },
+    "binary-search": {
+      "submissions": [
+        {
+          "analysis_version": 5,
+          "analyzed_at": "2026-08-14T18:46:24.928231+00:00",
+          "complexity": {
+            "benchmark_model": "log n",
+            "hash_dependent": false,
+            "notes": "Recursion adds O(log n) call-stack space; an iterative loop would achieve O(1) space. The half-open interval handling with the separate end - start == 1 and == 0 base cases is correct but more verbose than needed; note the recursive helper is defined at module level rather than as a method, which works but is slightly unusual for the NeetCode class-based template.",
+            "space": "O(log n)",
+            "summary": "Classic recursive binary search: halve the search interval [start, end) each call by comparing the midpoint against the target, with explicit base cases for empty and single-element ranges.",
+            "time_average": "O(log n)",
+            "time_worst": "O(log n)"
+          },
+          "file": "Data Structures & Algorithms/binary-search/submission-1.py",
+          "golf": {
+            "bytes": 582,
+            "characters": 582,
+            "non_blank_lines": 16,
+            "tokens": 145
+          },
+          "model": "k3",
+          "slug": "binary-search",
+          "solved_at": "2026-08-14T11:46:09-07:00",
+          "statement": "binary-search"
         }
       ]
     },
