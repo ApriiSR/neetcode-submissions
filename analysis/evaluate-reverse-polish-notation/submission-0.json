@@ -1,0 +1,24 @@
+{
+  "analysis_version": 4,
+  "analyzed_at": "2026-08-14T03:02:01.940045+00:00",
+  "complexity": {
+    "benchmark_model": "n",
+    "hash_dependent": false,
+    "notes": "int(a/b) converts through a float, which can lose precision or raise OverflowError for very large intermediate products (possible in theory given the constraints); a pure-integer truncating division such as (abs(a)//abs(b)) * (1 if (a<0)==(b<0) else -1) would be safer. Minor style point: chained if/elif on operator strings is fine, but a dict mapping operators to lambdas would be more idiomatic.",
+    "space": "O(n)",
+    "summary": "Classic stack-based RPN evaluation: push operands, and on each operator pop two values, apply the operation, and push the result. Handles subtraction/division operand order explicitly and truncates division toward zero.",
+    "time_average": "O(n)",
+    "time_worst": "O(n)"
+  },
+  "file": "Data Structures & Algorithms/evaluate-reverse-polish-notation/submission-0.py",
+  "golf": {
+    "bytes": 560,
+    "characters": 560,
+    "non_blank_lines": 17,
+    "tokens": 138
+  },
+  "model": "k3",
+  "slug": "evaluate-reverse-polish-notation",
+  "solved_at": "2026-08-13T20:01:28-07:00",
+  "statement": "evaluate-reverse-polish-notation"
+}
