@@ -60,8 +60,9 @@ SUBMISSION_RE = re.compile(r"^submission-(\d+)\.py$")
 # correct one. Bumped to 4 when the always-assume-hash-collisions prompt rule
 # was scoped to unbounded input-controlled key spaces — constant key sets
 # (fixed dict literals, small alphabets) were being wrongly rated O(n^2)
-# worst case.
-ANALYSIS_VERSION = 4
+# worst case. Bumped to 5 when the prompt gained the tightest-bound rule for
+# strategy-branching hybrids (report O(min(...)) instead of collapsing).
+ANALYSIS_VERSION = 5
 
 # Defensive cap on how much of a fetched problem statement goes into the
 # prompt. NeetCode statements observed so far top out well under this; it
@@ -93,6 +94,11 @@ SYSTEM_PROMPT = (
     'symbols, variables, or constants), "summary" (string, 1-2 sentences '
     'describing the approach), "notes" (string, optional remarks on '
     "idiomatic style or readability; empty string if none). "
+    "When a solution branches between strategies (e.g. picks an algorithm "
+    "based on input sizes), report the TIGHTEST correct bound, using min(...) "
+    "or multi-variable forms if needed, rather than collapsing to a weaker "
+    "single form — O(min(n + k, n log n)) is a stronger and better answer "
+    "than O(n log n) for a guarded hybrid. "
     "When a problem statement is provided, treat every constraint it states "
     "(bounds on input size, value ranges, uniqueness guarantees, etc.) as a "
     "guaranteed precondition of the input, not an assumption made by the "
