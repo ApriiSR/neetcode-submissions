@@ -82,9 +82,9 @@ class BuildEmbedTests(unittest.TestCase):
         return analysis
 
     def test_embed_shape(self):
-        embed = announce.build_embed({"name": "Two Sum", "difficulty": "Easy"})
+        embed = announce.build_embed({"name": "Two Sum", "difficulty": "Easy"}, "two-integer-sum")
         self.assertEqual(embed["title"], "Two Sum (Easy)")
-        self.assertEqual(embed["url"], announce.PROJECT_URL)
+        self.assertEqual(embed["url"], announce.PROJECT_URL + "#two-integer-sum")
         self.assertEqual(embed["color"], 0x57F287)
 
     def test_embed_carries_no_spoilers(self):
@@ -92,7 +92,7 @@ class BuildEmbedTests(unittest.TestCase):
         # outside the spoilered image — no complexity, no length stats, and
         # (per discord-api-docs #1235) no attachment reference, which would
         # render the image unblurred inside the embed.
-        embed = announce.build_embed({"name": "Two Sum", "difficulty": None})
+        embed = announce.build_embed({"name": "Two Sum", "difficulty": None}, "two-integer-sum")
         self.assertNotIn("image", embed)
         self.assertNotIn("fields", embed)
         self.assertEqual(embed["title"], "Two Sum")
@@ -125,7 +125,7 @@ class RenderSourceImageTests(unittest.TestCase):
         self.assertIsNone(result)
 
     def test_returns_bytes_when_freeze_succeeds(self):
-        def fake_run(cmd, check, capture_output, timeout):
+        def fake_run(cmd, check, capture_output, timeout, stdin=None):
             out_path = Path(cmd[cmd.index("-o") + 1])
             out_path.write_bytes(b"\x89PNG-fake-bytes")
             return mock.Mock(returncode=0)

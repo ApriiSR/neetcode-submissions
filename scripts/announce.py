@@ -140,7 +140,12 @@ def render_source_image(source_path: Path, header: str = "") -> bytes | None:
             "--window",
         ]
         try:
-            subprocess.run(cmd, check=True, capture_output=True, timeout=30)
+            # stdin must be detached: freeze silently prefers a piped stdin
+            # over the file argument, and CI steps run with an empty pipe on
+            # stdin — which reads as "No input" and kills the render.
+            subprocess.run(
+                cmd, check=True, capture_output=True, timeout=30, stdin=subprocess.DEVNULL
+            )
         except subprocess.CalledProcessError as exc:
             stderr = (exc.stderr or b"").decode("utf-8", "replace")[:500]
             stdout = (exc.stdout or b"").decode("utf-8", "replace")[:500]
@@ -162,7 +167,7 @@ def render_source_image(source_path: Path, header: str = "") -> bytes | None:
 # attachment rendered inside an embed loses its spoiler blur (discord-api-docs
 # issue #1235). Left as a plain attachment, Discord shows it below the embed,
 # blurred until clicked.
-def build_embed(meta: dict) -> dict:
+def build_embed(meta: dict, slug: str) -> dict:
     # Only spoiler-safe facts here: the problem's name/difficulty and the
     # progress-page link. Complexity and length stats can hint at the
     # approach, so they live inside the SPOILER_ image (stats_header), not
@@ -173,7 +178,7 @@ def build_embed(meta: dict) -> dict:
 
     return {
         "title": title,
-        "url": PROJECT_URL,
+        "url": f"{PROJECT_URL}#{slug}",
         "color": difficulty_color(difficulty),
     }
 
@@ -192,7 +197,7 @@ def build_announcement(record: dict) -> tuple[dict, bytes | None, str]:
     meta = fetch_problem_meta(slug)
     image_bytes = render_source_image(source_path, stats_header(analysis, meta))
 
-    embed = build_embed(meta)
+    embed = build_embed(meta, slug)
     payload = {"embeds": [embed]}
     return payload, image_bytes, filename
 

@@ -69,17 +69,6 @@ jobs:
           mv "/tmp/freeze_${FREEZE_VERSION}_Linux_x86_64/freeze" ~/.local/bin/freeze
           chmod +x ~/.local/bin/freeze
 
-      - name: Debug freeze (temporary)
-        if: always() && steps.analysis.outcome == 'success'
-        run: |
-          set -x
-          ~/.local/bin/freeze --version || true
-          file ~/.local/bin/freeze
-          ~/.local/bin/freeze "Data Structures & Algorithms/is-palindrome/submission-1.py" -o /tmp/direct.png -l python; echo "direct exit=$?"
-          T=$(mktemp -d); cp "Data Structures & Algorithms/is-palindrome/submission-1.py" "$T/annotated.py"; wc -c "$T/annotated.py"
-          ~/.local/bin/freeze "$T/annotated.py" -o /tmp/tempdir.png -l python -t dracula --window; echo "tempdir exit=$?"
-          ls -la /tmp/*.png || true
-
       - name: Add freeze to PATH
         if: always() && steps.analysis.outcome == 'success'
         run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
