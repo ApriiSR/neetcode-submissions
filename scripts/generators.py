@@ -142,7 +142,7 @@ def _gen_is_palindrome(n, rng):
 
 
 def _gen_largest_rectangle_in_histogram(n, rng):
-    return ([rng.randint(1, 100) for _ in range(n)],)
+    return ([rng.randint(0, 10000) for _ in range(n)],)
 
 
 def _gen_longest_consecutive_sequence(n, rng):
@@ -325,7 +325,7 @@ PROBLEMS = {
         "generate": _gen_largest_rectangle_in_histogram,
         "adversarial": None,
         "adversarial_note": None,
-        "scaling_note": "n = number of bars; each height is drawn uniformly from the fixed range 1..100, independent of n -- so a submission that sweeps over every height value from 0 to max(heights) does a constant (<=101) number of linear passes and stays O(n), rather than the O(n * max height) it would show if heights grew with n",
+        "scaling_note": "n = number of bars; each height is drawn uniformly from 0..10000, NeetCode's full stated range for heights[i], independent of n -- so a submission that sweeps every height value from 0 to max(heights) does a bounded (<=10001) number of linear passes: still O(n) in n, but with a constant large enough that the size ladder hits its per-size time cap around n = 2**14",
     },
     "longest-consecutive-sequence": {
         "entry": "longestConsecutive",
