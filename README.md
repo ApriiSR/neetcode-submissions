@@ -423,10 +423,28 @@ nothing new) and never committed (`.gitignore`'d).
 The source screenshot is rendered with charmbracelet's
 [`freeze`](https://github.com/charmbracelet/freeze) — a single released
 binary, no extra Python dependencies. CI downloads and pins a specific
-Linux release tarball (version in the `FREEZE_VERSION` workflow env var,
-cached between runs via `actions/cache`); locally, point `FREEZE_BIN` at
-wherever you put a downloaded binary to enable rendering, or leave it
-unset to exercise the fallback path (see below).
+Linux release tarball (version in `.github/actions/setup-render`'s
+`freeze-version` input, cached between runs via `actions/cache`);
+locally, point `FREEZE_BIN` at wherever you put a downloaded binary to
+enable rendering, or leave it unset to exercise the fallback path (see
+below).
+
+That same action installs `rsvg-convert` and JetBrains Mono, which is
+load-bearing rather than cosmetic. freeze rasterizes its SVG with
+`rsvg-convert` when that's on PATH and otherwise with resvg compiled to
+WebAssembly, and the wasm path segfaults intermittently — the module runs
+on its own stack and Go's GC crashes walking it, which is what both
+"split stack overflow" and `SIGSEGV in runtime.scanstack` were. The two
+paths produce identical pixel dimensions; the font matters because
+`rsvg-convert` resolves the SVG's `font-family` through fontconfig, where
+the wasm path carries JetBrains Mono inside the freeze binary, so without
+it the text would render in a substitute with metrics freeze didn't lay
+out for.
+
+`.github/workflows/render-check.yml` (run it manually from the Actions
+tab) renders a submission through `announce.py`'s own code path N times
+and uploads the PNGs, so this can be checked without waiting for a
+submission or posting to Discord.
 
 ### Setup
 
@@ -448,7 +466,11 @@ pipeline:
 - **Nothing new this run** — an empty (or missing) `.new-this-run.json`
   is also a quiet no-op.
 - **`freeze` missing or fails to render** — the message still posts, just
-  without the source screenshot (the embed's stats are unaffected).
+  without the source screenshot (the embed's stats are unaffected). This
+  one is the exception to "quietly": the screenshot *is* the
+  announcement, so `announce.py` also emits a CI warning and exits
+  nonzero, rather than leaving Discord as the only place the failure
+  shows.
 - **A single post fails** (Discord/network error) — logged to stderr,
   the run moves on to any remaining new submissions rather than aborting;
   the workflow step exits nonzero so the failure is still visible in the
