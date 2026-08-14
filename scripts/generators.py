@@ -131,6 +131,22 @@ def _adv_two_integer_sum_ii(n):
     return (nums, target)
 
 
+def _gen_validate_parentheses(n, rng):
+    pairs = [("(", ")"), ("[", "]"), ("{", "}")]
+    out = []
+    stack = []
+    remaining = n // 2
+    while remaining or stack:
+        if remaining and (not stack or rng.random() < 0.5):
+            op, cl = rng.choice(pairs)
+            out.append(op)
+            stack.append(cl)
+            remaining -= 1
+        else:
+            out.append(stack.pop())
+    return ("".join(out),)
+
+
 def _gen_valid_sudoku(n, rng):
     board = [["." for _ in range(9)] for _ in range(9)]
     for box_r in range(3):
@@ -225,6 +241,14 @@ PROBLEMS = {
         "adversarial": _adv_two_integer_sum_ii,
         "adversarial_note": "n distinct multiples of 2**61-1 (already ascending), all hashing to 0, so every dict insert/lookup collides",
         "scaling_note": "n = array length (input is pre-sorted); values are sampled from a range that scales with n (-10n..10n)",
+    },
+    "validate-parentheses": {
+        "entry": "isValid",
+        "scalable": True,
+        "generate": _gen_validate_parentheses,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = string length; a uniformly random balanced bracket sequence over ()[]{}",
     },
     "valid-sudoku": {
         "entry": "isValidSudoku",
