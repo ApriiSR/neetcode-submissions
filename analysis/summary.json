@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-14T03:49:02.400201+00:00",
+  "generated_at": "2026-08-14T03:52:16.035725+00:00",
   "problems": {
     "anagram-groups": {
       "submissions": [
@@ -244,6 +244,30 @@
           "model": "k3",
           "slug": "car-fleet",
           "solved_at": "2026-08-13T20:48:38-07:00",
+          "statement": "car-fleet"
+        },
+        {
+          "analysis_version": 4,
+          "analyzed_at": "2026-08-14T03:52:15.888146+00:00",
+          "complexity": {
+            "benchmark_model": "n log n",
+            "hash_dependent": false,
+            "notes": "result is initialized to 1, which is correct because the constraints guarantee n >= 1; an empty input would incorrectly return 1. Division produces floats, but given the constraint bounds (positions/times up to 10^6) this is safe from precision issues here, though Fraction or cross-multiplication would be more robust. No hashing is used, so worst case matches average case.",
+            "space": "O(n)",
+            "summary": "Sort cars by position, then scan from closest to the target backward, tracking the lead car's arrival time; a car forms a new fleet only if its arrival time is strictly later than the current lead's, otherwise it merges. Counts fleets via pop-based iteration over the sorted list.",
+            "time_average": "O(n log n)",
+            "time_worst": "O(n log n)"
+          },
+          "file": "Data Structures & Algorithms/car-fleet/submission-5.py",
+          "golf": {
+            "bytes": 461,
+            "characters": 461,
+            "non_blank_lines": 13,
+            "tokens": 128
+          },
+          "model": "k3",
+          "slug": "car-fleet",
+          "solved_at": "2026-08-13T20:48:54-07:00",
           "statement": "car-fleet"
         }
       ]
