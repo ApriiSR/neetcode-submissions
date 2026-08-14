@@ -1,12 +1,12 @@
 {
-  "analysis_version": 3,
-  "analyzed_at": "2026-08-14T01:16:13.144591+00:00",
+  "analysis_version": 4,
+  "analyzed_at": "2026-08-14T02:40:51.471572+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": false,
-    "notes": "Clean and idiomatic one-liner style. Uses O(n) extra space for the filtered and reversed strings; a two-pointer scan over the original string would achieve O(1) auxiliary space, but at n <= 1000 this is irrelevant. Calling lower() before filtering lowercases non-alphanumeric characters unnecessarily, which is harmless but slightly wasteful.",
+    "notes": "Clean and idiomatic; a two-pointer approach would reduce extra space to O(1) but the O(n) auxiliary string is acceptable given n <= 1000.",
     "space": "O(n)",
-    "summary": "Filters the lowercased string down to alphanumeric characters, then checks whether the cleaned string equals its reverse.",
+    "summary": "Filters the lowercased string to alphanumeric characters, then checks whether the cleaned string equals its reverse.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },

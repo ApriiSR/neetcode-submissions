@@ -1,12 +1,12 @@
 {
-  "analysis_version": 3,
-  "analyzed_at": "2026-08-14T01:17:34.366707+00:00",
+  "analysis_version": 4,
+  "analyzed_at": "2026-08-14T02:41:47.623213+00:00",
   "complexity": {
     "benchmark_model": "n^2",
     "hash_dependent": false,
-    "notes": "Decode is quadratic: each iteration re-slices the remaining string (s = s[...:]), copying O(remaining) characters per string, so total work is O(total_chars * num_strings). Using an index pointer instead of re-slicing would make it O(n) overall. Minor style point: the length prefix is parsed twice (int(s[0:a])); computing it once would be cleaner.",
+    "notes": "Decode would be O(n) if it tracked an integer offset into the original string instead of reassigning `s` to a sliced copy each iteration. `s.index('|')` also scans from position 0 each time, though with bounded per-string lengths this is secondary to the slicing cost.",
     "space": "O(n)",
-    "summary": "Encodes each string as '<length>|<content>' concatenated together; decode repeatedly reads the length prefix up to the '|' delimiter, extracts that many characters, and slices off the consumed prefix.",
+    "summary": "Encodes each string as `length|content` concatenated together; decode repeatedly finds the next `|`, parses the length prefix, extracts that many characters, and re-slices the remainder. Encoding is linear in total characters, but decoding is quadratic because each iteration copies the remaining string with `s = s[...:]`.",
     "time_average": "O(n^2)",
     "time_worst": "O(n^2)"
   },

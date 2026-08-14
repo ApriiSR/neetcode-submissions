@@ -1,14 +1,14 @@
 {
-  "analysis_version": 3,
-  "analyzed_at": "2026-08-14T01:18:15.196580+00:00",
+  "analysis_version": 4,
+  "analyzed_at": "2026-08-14T02:43:11.199581+00:00",
   "complexity": {
     "benchmark_model": "n",
-    "hash_dependent": true,
-    "notes": "Convoluted and non-idiomatic: re-scanning num_counts.items() for every selected frequency is O(k*m) (mitigated here only because k <= 5 and the value range bounds distinct elements to 2001). The list(set(output)) dedup is a red flag for the tie-handling weakness. Prefer collections.Counter with most_common(k) or heapq.nlargest for a clean O(n) solution given bounded k.",
-    "space": "O(n)",
-    "summary": "Builds a frequency map with a dict, sorts the frequency values to find the top-k thresholds, then for each selected frequency scans the whole map to collect matching keys. The problem's uniqueness guarantee is what prevents ties from inflating the result beyond k elements.",
+    "hash_dependent": false,
+    "notes": "Counting is non-idiomatic; num_counts[num] = num_counts.get(num, 0) + 1 or collections.Counter would be cleaner. The final loop re-scans all items for each of the k thresholds (O(k*d)), which is fine only because k <= 5 and d <= 2001; a single pass selecting keys by a threshold frequency would be simpler. Relying on the stated uniqueness guarantee for correctness of the tie handling is valid, but the list(set(output)) de-dup is a code smell suggesting the tie logic is fragile.",
+    "space": "O(min(n, 2001))",
+    "summary": "Builds a frequency dict in one pass, sorts the distinct frequency values and keeps the top k, then collects every key whose count equals one of those top-k frequencies. The problem's uniqueness guarantee ensures the frequency scan yields exactly k elements, and the value bound (-1000..1000) caps distinct keys at 2001, making the sort and scans effectively constant.",
     "time_average": "O(n)",
-    "time_worst": "O(n^2)"
+    "time_worst": "O(n)"
   },
   "file": "Data Structures & Algorithms/top-k-elements-in-list/submission-2.py",
   "golf": {

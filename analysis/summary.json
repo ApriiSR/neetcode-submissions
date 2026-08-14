@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-08-14T02:32:06.816148+00:00",
+  "generated_at": "2026-08-14T02:44:18.240583+00:00",
   "problems": {
     "anagram-groups": {
       "submissions": [
         {
-          "analysis_version": 3,
-          "analyzed_at": "2026-08-14T01:15:00.302463+00:00",
+          "analysis_version": 4,
+          "analyzed_at": "2026-08-14T02:39:45.904443+00:00",
           "benchmarks": {
             "adversarial": {
               "best_fit": "n",
@@ -82,11 +82,11 @@
           "complexity": {
             "benchmark_model": "n",
             "hash_dependent": true,
-            "notes": "Each word's key is computed twice (once when building the dict, once when appending); using defaultdict(list) in a single loop would avoid the redundant work and the double pass. The return annotation tuple(int) is invalid type-hint syntax (should be tuple[int, ...]), and ord(letter)-97 is less readable than ord(letter)-ord('a'). [d[group] for group in d] could be written as list(d.values()).",
+            "notes": "Each word's key is computed twice (once in the dict comprehension and again in the append loop); a single pass with collections.defaultdict(list) would be cleaner and avoid duplicate work. The return annotation 'tuple(int)' is not a valid type hint \u2014 use tuple[int, ...] from Python 3.9+. The keys are a bounded fixed-size signature, so lookups remain O(1) even in the worst case.",
             "space": "O(n)",
-            "summary": "Maps each word to a 26-element character-count tuple and uses that tuple as a dict key to bucket anagrams together. With word lengths bounded (3-8 chars), building each key is O(1), so grouping is linear in the number of words.",
-            "time_average": "O(n)",
-            "time_worst": "O(n^2)"
+            "summary": "Computes a 26-element character-count tuple as a canonical key for each word, groups words by that key in a dict, then returns the grouped values.",
+            "time_average": "O(n * L)",
+            "time_worst": "O(n * L)"
           },
           "file": "Data Structures & Algorithms/anagram-groups/submission-1.py",
           "golf": {
@@ -105,8 +105,8 @@
     "buy-and-sell-crypto": {
       "submissions": [
         {
-          "analysis_version": 3,
-          "analyzed_at": "2026-08-14T01:15:10.330600+00:00",
+          "analysis_version": 4,
+          "analyzed_at": "2026-08-14T02:39:59.514234+00:00",
           "benchmarks": {
             "adversarial": null,
             "best_fit": "n^2",
@@ -137,9 +137,9 @@
           "complexity": {
             "benchmark_model": "n^2",
             "hash_dependent": false,
-            "notes": "The best_buy variable is dead code: it is updated but never used, since the inner loop compares against prices[i] rather than the running minimum. A single pass tracking min price so far would achieve O(n) time; as written this is correct but quadratic.",
+            "notes": "The best_buy variable (and its initialization to 100) is computed but never used \u2014 dead code left over from an intended single-pass O(n) approach. The solution is correct but could be reduced to one pass by tracking the minimum price seen so far and maximizing prices[i] - best_buy. Consider range(len(prices)) vs. range(len(prices)-1) \u2014 the -1 is fine but the unused best_buy update should be removed.",
             "space": "O(1)",
-            "summary": "Brute-force check of every (buy, sell) pair with i < j, tracking the maximum profit; initializes the answer to 0 so unprofitable inputs correctly return 0.",
+            "summary": "Brute force: for each index i as a buy day, iterates over all later indices j as sell days, tracking the maximum profit seen.",
             "time_average": "O(n^2)",
             "time_worst": "O(n^2)"
           },
@@ -156,8 +156,8 @@
           "statement": "buy-and-sell-crypto"
         },
         {
-          "analysis_version": 3,
-          "analyzed_at": "2026-08-14T01:15:18.353245+00:00",
+          "analysis_version": 4,
+          "analyzed_at": "2026-08-14T02:40:08.244078+00:00",
           "benchmarks": {
             "adversarial": null,
             "best_fit": "n",
@@ -200,9 +200,9 @@
           "complexity": {
             "benchmark_model": "n",
             "hash_dependent": false,
-            "notes": "Initializing best_buy to 100 relies on the stated constraint prices[i] <= 100, which is guaranteed here; using prices[0] or float('inf') would be more robust and idiomatic. Iterating directly over the list (for p in prices) would be cleaner than range(len(prices)).",
+            "notes": "Initializing best_buy to 100 relies on the stated constraint prices[i] <= 100; using float('inf') (or prices[0]) would be more robust and idiomatic. Iterating with 'for price in prices' would be cleaner than indexing via range(len(prices)).",
             "space": "O(1)",
-            "summary": "Single pass tracking the minimum price seen so far (best_buy) and the maximum profit achievable by selling at each day, returning the best profit found.",
+            "summary": "Single-pass scan tracking the minimum price seen so far (best_buy) and the maximum profit achievable by selling at the current day. Returns the best profit found, defaulting to 0 if no profitable transaction exists.",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },
@@ -223,8 +223,8 @@
     "duplicate-integer": {
       "submissions": [
         {
-          "analysis_version": 3,
-          "analyzed_at": "2026-08-14T01:15:27.660245+00:00",
+          "analysis_version": 4,
+          "analyzed_at": "2026-08-14T02:40:16.662428+00:00",
           "benchmarks": {
             "adversarial": {
               "best_fit": "n^2",
@@ -297,9 +297,9 @@
           "complexity": {
             "benchmark_model": "n",
             "hash_dependent": true,
-            "notes": "Shadowing the builtin 'dict' name is poor style; a set with early return (or len(set(nums)) != len(nums)) would be simpler and idiomatic, though the same hash worst case applies.",
+            "notes": "The variable name `dict` shadows the built-in; a set with early exit (return True on first repeat) or `len(set(nums)) != len(nums)` would be simpler and avoid the second pass.",
             "space": "O(n)",
-            "summary": "Counts occurrences of each value in a dict, then scans again to return True if any count exceeds 1.",
+            "summary": "Counts occurrences of each value in a dictionary over one pass, then makes a second pass to check whether any value has a count greater than 1.",
             "time_average": "O(n)",
             "time_worst": "O(n^2)"
           },
@@ -320,8 +320,8 @@
     "is-anagram": {
       "submissions": [
         {
-          "analysis_version": 3,
-          "analyzed_at": "2026-08-14T01:15:56.465216+00:00",
+          "analysis_version": 4,
+          "analyzed_at": "2026-08-14T02:40:33.948738+00:00",
           "benchmarks": {
             "adversarial": null,
             "best_fit": "n",
@@ -363,10 +363,10 @@
           },
           "complexity": {
             "benchmark_model": "n",
-            "hash_dependent": true,
-            "notes": "Because the constraints guarantee lowercase English letters, each dict holds at most 26 keys, so adversarial hash collisions cannot degrade lookups beyond a constant factor and space is O(1). Non-idiomatic: a bare except is poor style, and collections.Counter(s) == collections.Counter(t) would express this in one line; the second comparison loop is only needed to catch keys present in t but absent in s.",
+            "hash_dependent": false,
+            "notes": "The try/except around the comparison loops is unidiomatic and masks potential bugs; a plain length check plus one comparison loop (or simply multiset_s == multiset_t) would be cleaner. The redundant second loop is unnecessary since equal-sized multisets with matching counts for s's keys already match t's. Consider collections.Counter for the multiset logic.",
             "space": "O(1)",
-            "summary": "Builds frequency-count dictionaries for both strings, then compares counts for every key in each dictionary (using a bare try/except to treat missing keys as mismatches).",
+            "summary": "Builds character-frequency multisets for both strings via dicts, then compares the two multisets key-by-key (in both directions) to verify equality. Because keys are lowercase English letters, each dict holds at most 26 entries, so all lookups are O(1) even in the worst case.",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },
@@ -387,8 +387,8 @@
     "is-palindrome": {
       "submissions": [
         {
-          "analysis_version": 3,
-          "analyzed_at": "2026-08-14T01:16:03.904418+00:00",
+          "analysis_version": 4,
+          "analyzed_at": "2026-08-14T02:40:45.353313+00:00",
           "benchmarks": {
             "adversarial": null,
             "best_fit": "n",
@@ -431,9 +431,9 @@
           "complexity": {
             "benchmark_model": "n",
             "hash_dependent": false,
-            "notes": "s.lower() creates an O(n) copy; this could be avoided by lowercasing individual characters on comparison for O(1) extra space. The left-pointer skip loop correctly guards against running off the end (all-non-alphanumeric input), while the right-pointer loop needs no guard since it can never cross below the left pointer's position.",
+            "notes": "s.lower() creates an O(n) copy; comparing characters case-insensitively inline (e.g., via s[a].lower()) would give O(1) auxiliary space. The inner right-pointer loop could in theory be guarded against underflow for clarity, though it is safe here since the left pointer always rests on an alphanumeric character first.",
             "space": "O(n)",
-            "summary": "Lowercases the string, then uses two pointers from both ends, skipping non-alphanumeric characters and comparing matching characters until the pointers meet.",
+            "summary": "Two-pointer scan from both ends of the lowercased string, skipping non-alphanumeric characters and comparing the remaining characters pairwise.",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },
@@ -450,8 +450,8 @@
           "statement": "is-palindrome"
         },
         {
-          "analysis_version": 3,
-          "analyzed_at": "2026-08-14T01:16:13.144591+00:00",
+          "analysis_version": 4,
+          "analyzed_at": "2026-08-14T02:40:51.471572+00:00",
           "benchmarks": {
             "adversarial": null,
             "best_fit": "n",
@@ -494,9 +494,9 @@
           "complexity": {
             "benchmark_model": "n",
             "hash_dependent": false,
-            "notes": "Clean and idiomatic one-liner style. Uses O(n) extra space for the filtered and reversed strings; a two-pointer scan over the original string would achieve O(1) auxiliary space, but at n <= 1000 this is irrelevant. Calling lower() before filtering lowercases non-alphanumeric characters unnecessarily, which is harmless but slightly wasteful.",
+            "notes": "Clean and idiomatic; a two-pointer approach would reduce extra space to O(1) but the O(n) auxiliary string is acceptable given n <= 1000.",
             "space": "O(n)",
-            "summary": "Filters the lowercased string down to alphanumeric characters, then checks whether the cleaned string equals its reverse.",
+            "summary": "Filters the lowercased string to alphanumeric characters, then checks whether the cleaned string equals its reverse.",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },
@@ -517,8 +517,8 @@
     "longest-consecutive-sequence": {
       "submissions": [
         {
-          "analysis_version": 3,
-          "analyzed_at": "2026-08-14T01:16:48.866936+00:00",
+          "analysis_version": 4,
+          "analyzed_at": "2026-08-14T02:41:02.988827+00:00",
           "benchmarks": {
             "adversarial": {
               "best_fit": "n^2",
@@ -591,9 +591,9 @@
           "complexity": {
             "benchmark_model": "n",
             "hash_dependent": true,
-            "notes": "Each element is removed from the set upon first visit, guaranteeing linear total work in the average case. A more idiomatic variant only expands from sequence starts (x-1 not in set), which avoids mutation during iteration and is arguably cleaner, though this version is equally efficient.",
+            "notes": "The expand-and-remove strategy is correct and each element is visited once, but the more idiomatic approach only expands from sequence starts (x where x-1 not in set), which avoids mutating the set and is arguably clearer. Set membership relies on average-case hashing; adversarial hash collisions could degrade lookups to O(n), yielding O(n^2) worst case.",
             "space": "O(n)",
-            "summary": "Builds a set of the numbers, then repeatedly pops an element and expands outward in both directions, removing each visited element so every value is processed exactly once. Tracks the maximum run length found.",
+            "summary": "Builds a set of the numbers, then repeatedly pops an arbitrary element and expands outward in both directions, removing each visited element so every value is processed exactly once. Tracks the maximum run length found.",
             "time_average": "O(n)",
             "time_worst": "O(n^2)"
           },
@@ -614,8 +614,8 @@
     "products-of-array-discluding-self": {
       "submissions": [
         {
-          "analysis_version": 3,
-          "analyzed_at": "2026-08-14T01:17:03.948400+00:00",
+          "analysis_version": 4,
+          "analyzed_at": "2026-08-14T02:41:12.571280+00:00",
           "benchmarks": {
             "adversarial": null,
             "best_fit": "n",
@@ -658,9 +658,9 @@
           "complexity": {
             "benchmark_model": "n",
             "hash_dependent": false,
-            "notes": "Uses the division operation, contrary to the follow-up constraint; a prefix/suffix product approach would avoid it. The zero-case branch creates O(n) slice copies that could be avoided by iterating over the original list with index checks, and `nums.count(0)` plus `nums.index(0)` make extra passes that could be fused into one. Division is exact here (floor division of an even multiple is exact), so the guaranteed 32-bit/product constraints keep it correct.",
+            "notes": "Uses division (prod // num), which the follow-up explicitly asks to avoid \u2014 the standard prefix/suffix product approach would be preferable. Slicing nums[:zero] and nums[zero+1:] creates unnecessary O(n) copies, and the match statement with a guarded first case is more verbose than simple if/elif. Correctness is fine given the constraints.",
             "space": "O(n)",
-            "summary": "Branches on the number of zeros: with more than one zero every output is 0; with exactly one zero it computes the product of the nonzero elements via two loops over slices; otherwise it computes the total product and divides by each element.",
+            "summary": "Handles zeros as special cases: if there are multiple zeros the answer is all zeros; with one zero, only the zero position gets the product of the rest; otherwise it computes the total product and divides by each element.",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },
@@ -681,8 +681,8 @@
     "string-encode-and-decode": {
       "submissions": [
         {
-          "analysis_version": 3,
-          "analyzed_at": "2026-08-14T01:17:44.716107+00:00",
+          "analysis_version": 4,
+          "analyzed_at": "2026-08-14T02:42:02.663574+00:00",
           "benchmarks": {
             "adversarial": null,
             "best_fit": "n log n",
@@ -725,9 +725,9 @@
           "complexity": {
             "benchmark_model": "n",
             "hash_dependent": false,
-            "notes": "Correctness relies on the problem's guarantee that strings contain only ASCII characters, so the emoji delimiter can never collide with content; this does not satisfy the follow-up asking for a character-set-agnostic algorithm (a length-prefixed encoding would). Also, decode() depends on encode() always appending a trailing delimiter, which happens to make the empty-list case work, but the coupling is implicit and a bit fragile.",
+            "notes": "Correct under the stated ASCII-only constraint, but the trick breaks for the follow-up (arbitrary Unicode input), where a length-prefixed encoding would be required. The decode of the empty list works incidentally: ''.split(delimiter) yields [''] and pop(-1) clears it, though this is subtle and worth a comment.",
             "space": "O(n)",
-            "summary": "Encodes by joining the strings with a non-ASCII emoji delimiter (plus a trailing delimiter) and decodes by splitting on that delimiter and dropping the trailing empty segment. Both operations are linear in the total character volume.",
+            "summary": "Encodes by joining the strings with an emoji delimiter (plus a trailing delimiter) and decodes by splitting on that delimiter and dropping the final empty segment. Since the delimiter is a non-ASCII character and input strings are guaranteed to be ASCII-only, it can never collide with string content.",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },
@@ -744,8 +744,8 @@
           "statement": "string-encode-and-decode"
         },
         {
-          "analysis_version": 3,
-          "analyzed_at": "2026-08-14T01:17:21.980288+00:00",
+          "analysis_version": 4,
+          "analyzed_at": "2026-08-14T02:41:31.511515+00:00",
           "benchmarks": {
             "adversarial": null,
             "best_fit": "n log n",
@@ -788,9 +788,9 @@
           "complexity": {
             "benchmark_model": "n",
             "hash_dependent": false,
-            "notes": "Correctness bug: since strs[i] may contain any of the 256 ASCII characters, the delimiter could appear inside an input string, corrupting the round-trip; a length-prefix scheme (e.g., 'len#string') is the standard robust fix. Also decode(encode([''])) returns ['', ''] instead of [''] because the trailing delimiter plus empty content produces an extra empty segment. Stylistically, 'if strs:' is unnecessary since join handles empty lists, but the empty-list case must still be distinguished from a list of one empty string.",
+            "notes": "Correctness is fragile: since strings may contain any ASCII characters, a string containing the literal delimiter would break decoding; a length-prefixed encoding (e.g., 'len#string') is the robust standard approach. Also decode('') incidentally returns [] only via the pop(-1) trick, which is non-obvious.",
             "space": "O(n)",
-            "summary": "Encodes by joining all strings with a fixed delimiter (with a trailing delimiter appended) and decodes by splitting on that delimiter. Both operations are linear in the total character volume, which is O(n) given bounded string lengths.",
+            "summary": "Encodes by joining the strings with a fixed sentinel delimiter (plus a trailing sentinel), and decodes by splitting on that delimiter and dropping the empty trailing piece. Both join and split scan the total character volume once, which scales linearly with n.",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },
@@ -807,8 +807,8 @@
           "statement": "string-encode-and-decode"
         },
         {
-          "analysis_version": 3,
-          "analyzed_at": "2026-08-14T01:17:34.366707+00:00",
+          "analysis_version": 4,
+          "analyzed_at": "2026-08-14T02:41:47.623213+00:00",
           "benchmarks": {
             "adversarial": null,
             "best_fit": "n",
@@ -851,9 +851,9 @@
           "complexity": {
             "benchmark_model": "n^2",
             "hash_dependent": false,
-            "notes": "Decode is quadratic: each iteration re-slices the remaining string (s = s[...:]), copying O(remaining) characters per string, so total work is O(total_chars * num_strings). Using an index pointer instead of re-slicing would make it O(n) overall. Minor style point: the length prefix is parsed twice (int(s[0:a])); computing it once would be cleaner.",
+            "notes": "Decode would be O(n) if it tracked an integer offset into the original string instead of reassigning `s` to a sliced copy each iteration. `s.index('|')` also scans from position 0 each time, though with bounded per-string lengths this is secondary to the slicing cost.",
             "space": "O(n)",
-            "summary": "Encodes each string as '<length>|<content>' concatenated together; decode repeatedly reads the length prefix up to the '|' delimiter, extracts that many characters, and slices off the consumed prefix.",
+            "summary": "Encodes each string as `length|content` concatenated together; decode repeatedly finds the next `|`, parses the length prefix, extracts that many characters, and re-slices the remainder. Encoding is linear in total characters, but decoding is quadratic because each iteration copies the remaining string with `s = s[...:]`.",
             "time_average": "O(n^2)",
             "time_worst": "O(n^2)"
           },
@@ -874,8 +874,8 @@
     "top-k-elements-in-list": {
       "submissions": [
         {
-          "analysis_version": 3,
-          "analyzed_at": "2026-08-14T01:18:15.196580+00:00",
+          "analysis_version": 4,
+          "analyzed_at": "2026-08-14T02:43:11.199581+00:00",
           "benchmarks": {
             "adversarial": {
               "best_fit": "n^2",
@@ -945,12 +945,12 @@
           },
           "complexity": {
             "benchmark_model": "n",
-            "hash_dependent": true,
-            "notes": "Convoluted and non-idiomatic: re-scanning num_counts.items() for every selected frequency is O(k*m) (mitigated here only because k <= 5 and the value range bounds distinct elements to 2001). The list(set(output)) dedup is a red flag for the tie-handling weakness. Prefer collections.Counter with most_common(k) or heapq.nlargest for a clean O(n) solution given bounded k.",
-            "space": "O(n)",
-            "summary": "Builds a frequency map with a dict, sorts the frequency values to find the top-k thresholds, then for each selected frequency scans the whole map to collect matching keys. The problem's uniqueness guarantee is what prevents ties from inflating the result beyond k elements.",
+            "hash_dependent": false,
+            "notes": "Counting is non-idiomatic; num_counts[num] = num_counts.get(num, 0) + 1 or collections.Counter would be cleaner. The final loop re-scans all items for each of the k thresholds (O(k*d)), which is fine only because k <= 5 and d <= 2001; a single pass selecting keys by a threshold frequency would be simpler. Relying on the stated uniqueness guarantee for correctness of the tie handling is valid, but the list(set(output)) de-dup is a code smell suggesting the tie logic is fragile.",
+            "space": "O(min(n, 2001))",
+            "summary": "Builds a frequency dict in one pass, sorts the distinct frequency values and keeps the top k, then collects every key whose count equals one of those top-k frequencies. The problem's uniqueness guarantee ensures the frequency scan yields exactly k elements, and the value bound (-1000..1000) caps distinct keys at 2001, making the sort and scans effectively constant.",
             "time_average": "O(n)",
-            "time_worst": "O(n^2)"
+            "time_worst": "O(n)"
           },
           "file": "Data Structures & Algorithms/top-k-elements-in-list/submission-2.py",
           "golf": {
@@ -969,8 +969,8 @@
     "two-integer-sum": {
       "submissions": [
         {
-          "analysis_version": 3,
-          "analyzed_at": "2026-08-14T01:18:30.761782+00:00",
+          "analysis_version": 4,
+          "analyzed_at": "2026-08-14T02:43:27.373862+00:00",
           "benchmarks": {
             "adversarial": {
               "best_fit": "n",
@@ -1047,9 +1047,9 @@
           "complexity": {
             "benchmark_model": "n log n",
             "hash_dependent": false,
-            "notes": "No hash structures, so worst case is genuinely O(n log n). The index recovery via repeated nums.index() calls is O(n) each (still dominated by the sort) and the pop/shift logic for duplicates is convoluted; a single pass with a value-to-index dict would give O(n) average time and be far more idiomatic.",
+            "notes": "Correct but unidiomatic and fragile: the index()/pop() index-recovery logic is convoluted and each index() call is an O(n) scan. A one-pass hashmap (value -> index) achieves O(n) time far more cleanly, or sort (value, index) pairs to avoid the index-recovery hack entirely.",
             "space": "O(n)",
-            "summary": "Sorts a copy of the array, uses a two-pointer scan to find the pair summing to target, then recovers the original indices via linear index() searches, with a pop-and-shift workaround when both elements share the same value.",
+            "summary": "Sorts a copy of the array and uses a two-pointer scan to find the pair summing to target, then recovers the original indices with nums.index(), with a pop-based workaround for duplicate values.",
             "time_average": "O(n log n)",
             "time_worst": "O(n log n)"
           },
@@ -1070,8 +1070,8 @@
     "two-integer-sum-ii": {
       "submissions": [
         {
-          "analysis_version": 3,
-          "analyzed_at": "2026-08-14T01:19:36.434903+00:00",
+          "analysis_version": 4,
+          "analyzed_at": "2026-08-14T02:43:41.985324+00:00",
           "benchmarks": {
             "adversarial": {
               "best_fit": "n",
@@ -1148,9 +1148,9 @@
           "complexity": {
             "benchmark_model": "n log n",
             "hash_dependent": false,
-            "notes": "Unnecessarily re-sorts an input that is already sorted, adding an O(n log n) factor and O(n) extra space, which also violates the problem's O(1) space requirement. The nums.index() fallback scans are each O(n) and the pop-based duplicate handling is convoluted; a plain two-pointer sweep on the original array would be O(n) time and O(1) space.",
+            "notes": "Sorting is unnecessary since the input is guaranteed sorted, and the nums2 copy makes the solution O(n) extra space, violating the problem's O(1) space requirement. The repeated O(n) index() calls and pop() add linear overhead and convoluted duplicate handling; a plain two-pointer on the original array with offset +1 indices would be simpler, O(n) time, and O(1) space.",
             "space": "O(n)",
-            "summary": "Sorts a copy of the array, then uses a two-pointer sweep to find the pair summing to target, and finally recovers the original 1-indexed positions via linear index() searches.",
+            "summary": "Copies and sorts the array, then runs a two-pointer scan to find the pair summing to target, and finally recovers original 1-indexed positions via linear index() searches (with a special case when both values coincide at the same first index).",
             "time_average": "O(n log n)",
             "time_worst": "O(n log n)"
           },
@@ -1171,14 +1171,14 @@
     "valid-sudoku": {
       "submissions": [
         {
-          "analysis_version": 3,
-          "analyzed_at": "2026-08-14T01:19:45.350228+00:00",
+          "analysis_version": 4,
+          "analyzed_at": "2026-08-14T02:43:54.792597+00:00",
           "complexity": {
             "benchmark_model": "1",
             "hash_dependent": false,
-            "notes": "Using valid *= isValidLine(...) relies on bool/int coercion and is less readable than valid = valid and isValidLine(...) or valid &= .... The count-based duplicate check is O(L^2) per line (still constant here); a set-based check would be cleaner. Also, the eager evaluation means all 27 lines are checked even after a failure is found.",
+            "notes": "The validity check is O(k^2) per line (line.count inside a loop over k elements), which is fine for fixed k=9 but would scale poorly if generalized; a set-based check would be O(k). Using 'valid *= isValidLine(...)' with booleans is terse but unconventional; 'valid = valid and isValidLine(...)' or all() would be more idiomatic. Note the solution checks every line fully rather than short-circuiting on the first invalid line (list.count and the loop over all lines always run), so even the average case does constant work.",
             "space": "O(1)",
-            "summary": "Checks every row, column, and 3x3 box for duplicate digits by calling list.count for each cell, treating each unit as a 'line' to validate. The board is fixed at 9x9, so all work is constant time.",
+            "summary": "Extracts all 9 rows, 9 columns (via list comprehension), and 9 sub-boxes (via slicing arithmetic), then validates each line by scanning it and using list.count to detect duplicate digits. Since the board is always a fixed 9x9 grid, all work is constant time and constant space.",
             "time_average": "O(1)",
             "time_worst": "O(1)"
           },
@@ -1199,8 +1199,8 @@
     "validate-parentheses": {
       "submissions": [
         {
-          "analysis_version": 3,
-          "analyzed_at": "2026-08-14T02:09:25.856384+00:00",
+          "analysis_version": 4,
+          "analyzed_at": "2026-08-14T02:44:09.605784+00:00",
           "benchmarks": {
             "adversarial": null,
             "best_fit": "n",
@@ -1243,9 +1243,9 @@
           "complexity": {
             "benchmark_model": "n",
             "hash_dependent": false,
-            "notes": "No hash structures are used, so worst case equals average case. Minor style point: membership test against a list literal works but a set or string like '({[' would be more idiomatic; also the elif chain pops eagerly, which is correct here but a dict mapping closers to openers would be cleaner.",
+            "notes": "Correct but slightly clunky: the elif chain pops the stack during condition evaluation via short-circuiting, which works here but is easy to misread; a constant dict mapping closers to openers (e.g. {')':'(', '}':'{', ']':'['}) plus a single pop/compare would be cleaner. Also, membership testing against the list ['(', '{', '['] is fine (fixed size 3), but a set literal or string would be more idiomatic.",
             "space": "O(n)",
-            "summary": "Classic stack-based validation: push opening brackets, and on each closing bracket pop and verify it matches the corresponding opener; the string is valid iff the stack ends empty.",
+            "summary": "Classic stack-based validation: push each opening bracket, and on each closing bracket pop and verify it matches the corresponding opener; the string is valid iff the stack ends empty with no mismatch or early pop on an empty stack.",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },
@@ -1262,8 +1262,8 @@
           "statement": "validate-parentheses"
         },
         {
-          "analysis_version": 3,
-          "analyzed_at": "2026-08-14T02:32:06.688641+00:00",
+          "analysis_version": 4,
+          "analyzed_at": "2026-08-14T02:44:18.155880+00:00",
           "benchmarks": {
             "adversarial": null,
             "best_fit": "n",
@@ -1305,12 +1305,12 @@
           },
           "complexity": {
             "benchmark_model": "n",
-            "hash_dependent": true,
-            "notes": "Clean and idiomatic; the `bracket in \"({[\"` membership check on a short string is fine and readable. The dict lookups are the only hash-dependent part; worst case reflects adversarial hash collisions, though the tiny fixed key set makes this purely theoretical.",
+            "hash_dependent": false,
+            "notes": "The dict keys come from a fixed 3-element literal, so collisions are bounded and lookups are O(1) even in the worst case. Checking membership with `bracket in \"({[\"` is fine here given the tiny alphabet; a set literal would be marginally more idiomatic but no faster asymptotically.",
             "space": "O(n)",
-            "summary": "Classic stack-based validation: push opening brackets, and on each closing bracket check that the stack's top is the matching opener via a lookup dict. Returns false early on any mismatch or empty-stack pop, and requires an empty stack at the end.",
+            "summary": "Classic stack-based validation: push opening brackets, and on each closing bracket check that it matches the most recent unmatched opener via a fixed closing-to-opening map. Returns true only if the stack is empty at the end.",
             "time_average": "O(n)",
-            "time_worst": "O(n^2)"
+            "time_worst": "O(n)"
           },
           "file": "Data Structures & Algorithms/validate-parentheses/submission-2.py",
           "golf": {

@@ -1,12 +1,12 @@
 {
-  "analysis_version": 3,
-  "analyzed_at": "2026-08-14T01:16:48.866936+00:00",
+  "analysis_version": 4,
+  "analyzed_at": "2026-08-14T02:41:02.988827+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": true,
-    "notes": "Each element is removed from the set upon first visit, guaranteeing linear total work in the average case. A more idiomatic variant only expands from sequence starts (x-1 not in set), which avoids mutation during iteration and is arguably cleaner, though this version is equally efficient.",
+    "notes": "The expand-and-remove strategy is correct and each element is visited once, but the more idiomatic approach only expands from sequence starts (x where x-1 not in set), which avoids mutating the set and is arguably clearer. Set membership relies on average-case hashing; adversarial hash collisions could degrade lookups to O(n), yielding O(n^2) worst case.",
     "space": "O(n)",
-    "summary": "Builds a set of the numbers, then repeatedly pops an element and expands outward in both directions, removing each visited element so every value is processed exactly once. Tracks the maximum run length found.",
+    "summary": "Builds a set of the numbers, then repeatedly pops an arbitrary element and expands outward in both directions, removing each visited element so every value is processed exactly once. Tracks the maximum run length found.",
     "time_average": "O(n)",
     "time_worst": "O(n^2)"
   },

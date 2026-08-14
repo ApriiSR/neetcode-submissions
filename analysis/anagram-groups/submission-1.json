@@ -1,14 +1,14 @@
 {
-  "analysis_version": 3,
-  "analyzed_at": "2026-08-14T01:15:00.302463+00:00",
+  "analysis_version": 4,
+  "analyzed_at": "2026-08-14T02:39:45.904443+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": true,
-    "notes": "Each word's key is computed twice (once when building the dict, once when appending); using defaultdict(list) in a single loop would avoid the redundant work and the double pass. The return annotation tuple(int) is invalid type-hint syntax (should be tuple[int, ...]), and ord(letter)-97 is less readable than ord(letter)-ord('a'). [d[group] for group in d] could be written as list(d.values()).",
+    "notes": "Each word's key is computed twice (once in the dict comprehension and again in the append loop); a single pass with collections.defaultdict(list) would be cleaner and avoid duplicate work. The return annotation 'tuple(int)' is not a valid type hint \u2014 use tuple[int, ...] from Python 3.9+. The keys are a bounded fixed-size signature, so lookups remain O(1) even in the worst case.",
     "space": "O(n)",
-    "summary": "Maps each word to a 26-element character-count tuple and uses that tuple as a dict key to bucket anagrams together. With word lengths bounded (3-8 chars), building each key is O(1), so grouping is linear in the number of words.",
-    "time_average": "O(n)",
-    "time_worst": "O(n^2)"
+    "summary": "Computes a 26-element character-count tuple as a canonical key for each word, groups words by that key in a dict, then returns the grouped values.",
+    "time_average": "O(n * L)",
+    "time_worst": "O(n * L)"
   },
   "file": "Data Structures & Algorithms/anagram-groups/submission-1.py",
   "golf": {

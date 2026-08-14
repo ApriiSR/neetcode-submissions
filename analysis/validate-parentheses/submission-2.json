@@ -1,14 +1,14 @@
 {
-  "analysis_version": 3,
-  "analyzed_at": "2026-08-14T02:32:06.688641+00:00",
+  "analysis_version": 4,
+  "analyzed_at": "2026-08-14T02:44:18.155880+00:00",
   "complexity": {
     "benchmark_model": "n",
-    "hash_dependent": true,
-    "notes": "Clean and idiomatic; the `bracket in \"({[\"` membership check on a short string is fine and readable. The dict lookups are the only hash-dependent part; worst case reflects adversarial hash collisions, though the tiny fixed key set makes this purely theoretical.",
+    "hash_dependent": false,
+    "notes": "The dict keys come from a fixed 3-element literal, so collisions are bounded and lookups are O(1) even in the worst case. Checking membership with `bracket in \"({[\"` is fine here given the tiny alphabet; a set literal would be marginally more idiomatic but no faster asymptotically.",
     "space": "O(n)",
-    "summary": "Classic stack-based validation: push opening brackets, and on each closing bracket check that the stack's top is the matching opener via a lookup dict. Returns false early on any mismatch or empty-stack pop, and requires an empty stack at the end.",
+    "summary": "Classic stack-based validation: push opening brackets, and on each closing bracket check that it matches the most recent unmatched opener via a fixed closing-to-opening map. Returns true only if the stack is empty at the end.",
     "time_average": "O(n)",
-    "time_worst": "O(n^2)"
+    "time_worst": "O(n)"
   },
   "file": "Data Structures & Algorithms/validate-parentheses/submission-2.py",
   "golf": {
