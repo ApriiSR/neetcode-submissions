@@ -1,0 +1,24 @@
+{
+  "analysis_version": 4,
+  "analyzed_at": "2026-08-14T03:18:54.973385+00:00",
+  "complexity": {
+    "benchmark_model": "n",
+    "hash_dependent": false,
+    "notes": "Storing tuples (temp, index) works, but storing only indices and comparing temperatures[stack[-1]] would be slightly cleaner and avoid redundant data.",
+    "space": "O(n)",
+    "summary": "Uses a monotonic decreasing stack of (temperature, index) pairs; when a warmer temperature arrives, it pops all cooler pending days and records the day difference. Each index is pushed and popped at most once, giving linear time.",
+    "time_average": "O(n)",
+    "time_worst": "O(n)"
+  },
+  "file": "Data Structures & Algorithms/daily-temperatures/submission-1.py",
+  "golf": {
+    "bytes": 391,
+    "characters": 391,
+    "non_blank_lines": 10,
+    "tokens": 99
+  },
+  "model": "k3",
+  "slug": "daily-temperatures",
+  "solved_at": "2026-08-13T20:18:35-07:00",
+  "statement": "daily-temperatures"
+}
