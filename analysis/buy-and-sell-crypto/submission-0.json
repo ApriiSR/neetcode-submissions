@@ -1,0 +1,22 @@
+{
+  "analyzed_at": "2026-08-14T00:30:34.268724+00:00",
+  "complexity": {
+    "benchmark_model": "n^2",
+    "hash_dependent": false,
+    "notes": "best_buy is dead code as written; the intended O(n) single-pass optimization would use best_buy (min price so far) instead of the inner loop. Minor style: iterating range(len(prices)) is cleaner, and prices[i] should be best_buy if the inner loop is removed.",
+    "space": "O(1)",
+    "summary": "Brute-force enumeration of every buy index i and sell index j>i, keeping the maximum prices[j]-prices[i]. It tracks best_buy but never actually uses it in the profit update, so the result is still correct for all pairs.",
+    "time_average": "O(n^2)",
+    "time_worst": "O(n^2)"
+  },
+  "file": "Data Structures & Algorithms/buy-and-sell-crypto/submission-0.py",
+  "golf": {
+    "bytes": 343,
+    "characters": 343,
+    "non_blank_lines": 9,
+    "tokens": 81
+  },
+  "model": "k3",
+  "slug": "buy-and-sell-crypto",
+  "solved_at": "2026-08-13T17:30:11-07:00"
+}
