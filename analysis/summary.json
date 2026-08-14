@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-14T18:46:25.110550+00:00",
+  "generated_at": "2026-08-14T19:02:06.433367+00:00",
   "problems": {
     "anagram-groups": {
       "submissions": [
@@ -126,6 +126,30 @@
           "model": "k3",
           "slug": "binary-search",
           "solved_at": "2026-08-14T11:46:09-07:00",
+          "statement": "binary-search"
+        },
+        {
+          "analysis_version": 5,
+          "analyzed_at": "2026-08-14T19:02:06.287104+00:00",
+          "complexity": {
+            "benchmark_model": "log n",
+            "hash_dependent": false,
+            "notes": "The half-open interval invariant is handled correctly, including the length-1 case via the final nums[start] check; the final conditional return is slightly convoluted and could be simplified for readability.",
+            "space": "O(1)",
+            "summary": "Classic iterative binary search over the sorted array, halving the [start, end) window each iteration and returning the index on equality or -1 after the window collapses.",
+            "time_average": "O(log n)",
+            "time_worst": "O(log n)"
+          },
+          "file": "Data Structures & Algorithms/binary-search/submission-3.py",
+          "golf": {
+            "bytes": 435,
+            "characters": 435,
+            "non_blank_lines": 13,
+            "tokens": 93
+          },
+          "model": "k3",
+          "slug": "binary-search",
+          "solved_at": "2026-08-14T12:01:02-07:00",
           "statement": "binary-search"
         }
       ]
