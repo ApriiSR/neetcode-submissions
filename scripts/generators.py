@@ -18,7 +18,7 @@ P = 2**61 - 1. Every multiple of P hashes to 0 — verified empirically:
 hash(0) == hash(P) == hash(2 * P) == 0. `_int_collisions(n)` returns n
 such (distinct, ascending) values.
 
-None of the 11 problems here have a dict/set keyed on raw, unbounded
+None of the problems here have a dict/set keyed on raw, unbounded
 input strings (is-anagram keys on single characters — a 26-symbol
 alphabet, too small to stress; anagram-groups keys on a computed
 26-int signature tuple, not the input strings; string-encode-and-decode
@@ -34,6 +34,7 @@ import random
 import string
 
 MERSENNE61 = 2**61 - 1
+RPN_VALUE_LIMIT = 10**6
 
 
 def _int_collisions(n):
@@ -59,12 +60,62 @@ def _gen_buy_and_sell_crypto(n, rng):
     return ([rng.randint(1, 1000) for _ in range(n)],)
 
 
+def _gen_car_fleet(n, rng):
+    target = 2 * n + 1
+    position = rng.sample(range(target), n)
+    speed = [rng.randint(1, 100) for _ in range(n)]
+    return (target, position, speed)
+
+
+def _gen_daily_temperatures(n, rng):
+    return ([rng.randint(30, 100) for _ in range(n)],)
+
+
 def _gen_duplicate_integer(n, rng):
     return (rng.sample(range(n * 4 + 1), n),)
 
 
 def _adv_duplicate_integer(n):
     return (_int_collisions(n),)
+
+
+def _gen_evaluate_reverse_polish_notation(n, rng):
+    # Builds a valid postfix expression by evaluating it as it goes, so "/"
+    # is only emitted when the divisor is nonzero and "*" only when the
+    # product stays under RPN_VALUE_LIMIT -- otherwise repeated squaring
+    # would leave the benchmark timing bignum arithmetic, and int(a / b)
+    # would eventually overflow the float conversion.
+    operands = max(2, (n + 1) // 2)
+    first = rng.randint(1, 100)
+    tokens = [str(first)]
+    values = [first]
+    remaining, ops = operands - 1, operands - 1
+    while remaining or ops:
+        if ops == 0 or (remaining and (len(values) < 2 or rng.random() < 0.5)):
+            value = rng.randint(1, 100)
+            tokens.append(str(value))
+            values.append(value)
+            remaining -= 1
+            continue
+        b = values.pop()
+        a = values.pop()
+        choices = ["+", "-"]
+        if abs(a) * abs(b) <= RPN_VALUE_LIMIT:
+            choices.append("*")
+        if b != 0:
+            choices.append("/")
+        op = rng.choice(choices)
+        if op == "+":
+            values.append(a + b)
+        elif op == "-":
+            values.append(a - b)
+        elif op == "*":
+            values.append(a * b)
+        else:
+            values.append(int(a / b))
+        tokens.append(op)
+        ops -= 1
+    return (tokens,)
 
 
 def _gen_is_anagram(n, rng):
@@ -182,6 +233,22 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "n = array length; each price is drawn uniformly from the fixed range 1..1000, independent of n",
     },
+    "car-fleet": {
+        "entry": "carFleet",
+        "scalable": True,
+        "generate": _gen_car_fleet,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of cars; target (the finish line) is set to 2n+1 and the n distinct positions are sampled without replacement from range(target), so both the target and the position range scale linearly with n -- meaning the counting-array submissions, which allocate a list of length target, stay O(n) rather than being dominated by a fixed target; speeds are drawn from the fixed range 1..100, independent of n",
+    },
+    "daily-temperatures": {
+        "entry": "dailyTemperatures",
+        "scalable": True,
+        "generate": _gen_daily_temperatures,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = array length; each temperature is drawn uniformly from the fixed range 30..100, independent of n, so long monotonic runs (the monotonic stack's worst case) do not grow with n",
+    },
     "duplicate-integer": {
         "entry": "hasDuplicate",
         "scalable": True,
@@ -189,6 +256,14 @@ PROBLEMS = {
         "adversarial": _adv_duplicate_integer,
         "adversarial_note": "n distinct multiples of 2**61-1, all hashing to 0, so every dict insert/lookup collides",
         "scaling_note": "n = array length; values are sampled without replacement from range(4n+1), so the value range scales with n too",
+    },
+    "evaluate-reverse-polish-notation": {
+        "entry": "evalRPN",
+        "scalable": True,
+        "generate": _gen_evaluate_reverse_polish_notation,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of tokens; the expression is a valid postfix expression with (n+1)//2 operands and one fewer operator, so token count scales linearly with n; operands are drawn from the fixed range 1..100 and operators are picked so intermediate values stay bounded by ~10**6 (no bignum growth), meaning per-token arithmetic cost is constant and independent of n",
     },
     "is-anagram": {
         "entry": "isAnagram",
