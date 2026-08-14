@@ -1,0 +1,74 @@
+name: Render check
+
+# Manual smoke test for the announcement screenshot: renders a submission the
+# same way scripts/announce.py does, several times over (the failure being
+# guarded against is intermittent), and uploads the PNGs as an artifact so the
+# result can actually be looked at without posting anything to Discord.
+
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: Submission file to render
+        default: Data Structures & Algorithms/largest-rectangle-in-histogram/submission-0.py
+      repeat:
+        description: How many renders to attempt
+        default: "5"
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - uses: ./.github/actions/setup-render
+
+      - name: Show renderer freeze will pick
+        run: |
+          echo "rsvg-convert: $(command -v rsvg-convert || echo MISSING)"
+          fc-list | grep -ci jetbrains | xargs echo "JetBrains Mono faces:"
+
+      - name: Render
+        env:
+          SOURCE: ${{ inputs.source }}
+          REPEAT: ${{ inputs.repeat }}
+        run: |
+          python3 - <<'PY'
+          import os, sys
+          from pathlib import Path
+
+          sys.path.insert(0, "scripts")
+          import announce
+
+          source = Path(os.environ["SOURCE"])
+          header = announce.stats_header(
+              {"complexity": {"time_average": "O(n)", "time_worst": "O(n)", "space": "O(1)"},
+               "golf": {"tokens": 42, "non_blank_lines": 7, "characters": 123}},
+              {"name": "Render Check", "difficulty": "Hard"},
+          )
+
+          failures = 0
+          for i in range(int(os.environ["REPEAT"])):
+              image = announce.render_source_image(source, header)
+              if image is None:
+                  failures += 1
+                  print(f"render {i}: FAILED")
+                  continue
+              out = Path(f"render-check-{i}.png")
+              out.write_bytes(image)
+              print(f"render {i}: {len(image)} bytes -> {out}")
+
+          print(f"{failures} failure(s)")
+          sys.exit(1 if failures else 0)
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: render-check
+          path: render-check-*.png
+          if-no-files-found: error
