@@ -141,9 +141,15 @@ def render_source_image(source_path: Path, header: str = "") -> bytes | None:
         ]
         try:
             subprocess.run(cmd, check=True, capture_output=True, timeout=30)
-        except (subprocess.CalledProcessError, FileNotFoundError, OSError, subprocess.TimeoutExpired):
+        except subprocess.CalledProcessError as exc:
+            stderr = (exc.stderr or b"").decode("utf-8", "replace")[:500]
+            print(f"[announce] freeze exited {exc.returncode}: {stderr}", file=sys.stderr)
+            return None
+        except (FileNotFoundError, OSError, subprocess.TimeoutExpired) as exc:
+            print(f"[announce] freeze failed to run: {exc}", file=sys.stderr)
             return None
         if not out_path.is_file():
+            print("[announce] freeze produced no output file", file=sys.stderr)
             return None
         return out_path.read_bytes()
 
