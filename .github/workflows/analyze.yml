@@ -81,6 +81,9 @@ jobs:
           printf 'if bracket in "({[":\n    pass\n' > /tmp/instr.py; try instr /tmp/instr.py
           head -4 "$D/submission-2.py" > /tmp/head4.py; try head4 /tmp/head4.py
           tail -7 "$D/submission-2.py" > /tmp/tail7.py; try tail7 /tmp/tail7.py
+          printf '# Valid Parentheses (Easy)\n# time: O(n) avg · O(n^2) worst | space: O(n)\n# length: 72 tokens · 11 lines · 358 chars\n\n' > /tmp/annotated.py
+          cat "$D/submission-2.py" >> /tmp/annotated.py
+          for i in 1 2 3 4 5; do try "annotated-$i" /tmp/annotated.py; done
 
       - name: Add freeze to PATH
         if: always() && steps.analysis.outcome == 'success'

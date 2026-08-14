@@ -121,7 +121,16 @@ def render_source_image(source_path: Path, header: str = "") -> bytes | None:
     """Render `source_path` (with `header` prepended) to a PNG via freeze.
     Returns the PNG bytes, or None on any failure (freeze missing, non-zero
     exit, timeout, or no output produced) — the caller falls back to posting
-    without an image."""
+    without an image. Retries once: freeze has been seen dying to a flaky Go
+    "split stack overflow" on inputs that render fine moments later."""
+    for attempt in range(2):
+        result = _render_once(source_path, header)
+        if result is not None:
+            return result
+    return None
+
+
+def _render_once(source_path: Path, header: str) -> bytes | None:
     with tempfile.TemporaryDirectory() as tmp_dir:
         annotated_path = Path(tmp_dir) / source_path.name
         annotated_path.write_text(
