@@ -357,7 +357,7 @@ PROBLEMS = {
         "generate": _gen_reverse_a_linked_list,
         "adversarial": None,
         "adversarial_note": None,
-        "scaling_note": "not benchmarked: the entry takes a linked-list head, and benchmark.py's loader defines only List and Optional in the submission's namespace, so the `Optional[ListNode]` annotation raises NameError before anything can be timed; the generator returns the n node values the list would be built from, where n = number of nodes",
+        "scaling_note": "not benchmarked: n = number of nodes, and the generator returns the n values the list would be built from, but the entry takes a linked-list head -- passing the list straight through raises AttributeError on `.next`. Building real nodes here wouldn't be enough either: both submissions reverse in place, and benchmark.py's _copy_args only deep-copies lists, so best-of-3 would re-time an already-reversed chain (O(1) from the old head) on repeats 2 and 3",
     },
     "string-encode-and-decode": {
         "entry": "encode",
