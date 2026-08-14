@@ -225,7 +225,11 @@ def post_webhook(webhook_url: str, payload: dict, image_bytes: bytes | None, fil
     request = urllib.request.Request(
         webhook_url,
         data=body,
-        headers={"Content-Type": content_type},
+        headers={
+            "Content-Type": content_type,
+            # Discord's edge 403s Python's default urllib User-Agent
+            "User-Agent": "neetcode-submissions announcer (github.com/ApriiSR/neetcode-submissions)",
+        },
         method="POST",
     )
     try:
@@ -233,7 +237,13 @@ def post_webhook(webhook_url: str, payload: dict, image_bytes: bytes | None, fil
             resp.read()
         return True
     except (urllib.error.URLError, urllib.error.HTTPError) as exc:
-        print(f"[announce] failed to post {filename}: {exc}", file=sys.stderr)
+        detail = ""
+        if isinstance(exc, urllib.error.HTTPError):
+            try:
+                detail = f" — {exc.read().decode('utf-8', 'replace')[:300]}"
+            except OSError:
+                pass
+        print(f"[announce] failed to post {filename}: {exc}{detail}", file=sys.stderr)
         return False
 
 
