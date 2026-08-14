@@ -1,0 +1,22 @@
+{
+  "analyzed_at": "2026-08-14T00:45:23.616468+00:00",
+  "complexity": {
+    "benchmark_model": "n",
+    "hash_dependent": false,
+    "notes": "Initializing best_buy to 100 is a latent correctness bug: since prices range 1..1000, prices below 100 (or entirely above 100) produce wrong results, e.g. prices=[150,160] yields 50 instead of 10. Use float('inf') or prices[0] instead. Iterating with 'for p in prices:' would also be more idiomatic than indexing.",
+    "space": "O(1)",
+    "summary": "Single pass tracking the minimum buy price seen so far and the maximum profit achievable by selling at the current price.",
+    "time_average": "O(n)",
+    "time_worst": "O(n)"
+  },
+  "file": "Data Structures & Algorithms/buy-and-sell-crypto/submission-1.py",
+  "golf": {
+    "bytes": 290,
+    "characters": 290,
+    "non_blank_lines": 8,
+    "tokens": 61
+  },
+  "model": "k3",
+  "slug": "buy-and-sell-crypto",
+  "solved_at": "2026-08-13T17:45:07-07:00"
+}
