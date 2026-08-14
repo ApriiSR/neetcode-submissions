@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-14T22:28:13.093830+00:00",
+  "generated_at": "2026-08-14T23:41:44.428278+00:00",
   "problems": {
     "anagram-groups": {
       "submissions": [
@@ -1366,6 +1366,34 @@
           "slug": "products-of-array-discluding-self",
           "solved_at": "2026-08-12T18:40:56-07:00",
           "statement": "products-of-array-discluding-self"
+        }
+      ]
+    },
+    "reorder-linked-list": {
+      "submissions": [
+        {
+          "analysis_version": 6,
+          "analyzed_at": "2026-08-14T23:41:44.345577+00:00",
+          "complexity": {
+            "benchmark_model": "n",
+            "hash_dependent": false,
+            "notes": "Correct but uses O(n) extra space for the node array; the classic O(1)-space approach finds the middle with slow/fast pointers, reverses the second half in place, and merges the two halves. Pointer bookkeeping in the inner loop is a bit convoluted and could be simplified.",
+            "space": "O(n)",
+            "summary": "Collects all nodes into an array, then uses two pointers from both ends to rewire next pointers in the interleaved order [0, n-1, 1, n-2, ...], terminating the list at the middle.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
+          "file": "Data Structures & Algorithms/reorder-linked-list/submission-0.py",
+          "golf": {
+            "bytes": 707,
+            "characters": 707,
+            "non_blank_lines": 25,
+            "tokens": 127
+          },
+          "model": "k3",
+          "slug": "reorder-linked-list",
+          "solved_at": "2026-08-14T16:41:28-07:00",
+          "statement": "reorder-linked-list"
         }
       ]
     },
