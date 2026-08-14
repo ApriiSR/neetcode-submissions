@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-13T21:56:50.005293+00:00",
+  "generated_at": "2026-08-14T00:01:46.848901+00:00",
   "problems": {
     "anagram-groups": {
       "submissions": [
@@ -1047,6 +1047,32 @@
           "model": "k3",
           "slug": "valid-sudoku",
           "solved_at": "2026-08-12T18:56:58-07:00"
+        }
+      ]
+    },
+    "validate-parentheses": {
+      "submissions": [
+        {
+          "analyzed_at": "2026-08-14T00:01:46.714024+00:00",
+          "complexity": {
+            "benchmark_model": "n",
+            "hash_dependent": false,
+            "notes": "Membership test against a 3-element list is O(1) but a set or a mapping dict (e.g. {')': '(', ...}) would be more idiomatic and avoid the repeated pop() calls; the current structure calls stack.pop() up to three times per closing bracket, which is awkward though still correct. Worst case is genuinely O(n) since no hash-based structures are used.",
+            "space": "O(n)",
+            "summary": "Single pass over the string pushing opening brackets onto a stack; on each closing bracket it pops and verifies the match, returning False on mismatch or empty stack, and finally checks the stack is empty.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
+          "file": "Data Structures & Algorithms/validate-parentheses/submission-1.py",
+          "golf": {
+            "bytes": 586,
+            "characters": 586,
+            "non_blank_lines": 16,
+            "tokens": 97
+          },
+          "model": "k3",
+          "slug": "validate-parentheses",
+          "solved_at": "2026-08-13T17:01:27-07:00"
         }
       ]
     }
