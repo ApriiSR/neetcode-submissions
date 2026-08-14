@@ -69,6 +69,19 @@ jobs:
           mv "/tmp/freeze_${FREEZE_VERSION}_Linux_x86_64/freeze" ~/.local/bin/freeze
           chmod +x ~/.local/bin/freeze
 
+      - name: Debug freeze crash (temporary)
+        if: always() && steps.analysis.outcome == 'success'
+        run: |
+          F=~/.local/bin/freeze
+          D="Data Structures & Algorithms/validate-parentheses"
+          try() { name="$1"; shift; "$F" "$@" -o /tmp/dbg.png -l python -t dracula --window </dev/null >/dev/null 2>&1 && echo "OK   $name" || echo "FAIL $name"; }
+          try sub1 "$D/submission-1.py"
+          try sub2 "$D/submission-2.py"
+          printf 'toOpen = {")": "(", "}": "{", "]": "["}\n' > /tmp/dict.py; try dictline /tmp/dict.py
+          printf 'if bracket in "({[":\n    pass\n' > /tmp/instr.py; try instr /tmp/instr.py
+          head -4 "$D/submission-2.py" > /tmp/head4.py; try head4 /tmp/head4.py
+          tail -7 "$D/submission-2.py" > /tmp/tail7.py; try tail7 /tmp/tail7.py
+
       - name: Add freeze to PATH
         if: always() && steps.analysis.outcome == 'success'
         run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
