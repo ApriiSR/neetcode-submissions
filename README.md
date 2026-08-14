@@ -113,52 +113,68 @@ re-analyzed on the next run rather than skipped, so it backfills.
 ### Problem statements in the prompt
 
 Analyzing solution code alone has a failure mode: K3 can't tell a stated
-problem constraint (e.g. "1 <= prices.length <= 10^5") from an
+problem constraint (e.g. "1 <= prices.length <= 100") from an
 assumption the solution made up, so it sometimes dinged correct code for
 "unjustified assumptions" that the problem statement actually
 guarantees (real case: the `buy-and-sell-crypto` solution). `scripts/statements.py`
 fixes this by fetching the problem's text and including it in the
-prompt, labeled `Problem statement (from LeetCode): ...`, ahead of the
+prompt, labeled `Problem statement (from NeetCode): ...`, ahead of the
 solution — and the system prompt now tells K3 explicitly that stated
 constraints are guaranteed preconditions, not assumptions worth
 flagging in notes.
 
-NeetCode itself doesn't expose a usable public data source for problem
-text — its problem pages are an Angular SPA; the HTML/API responses
-investigated while building this carried no problem content, only the
-app shell. Instead, `scripts/statements.py` resolves each NeetCode slug
-to a LeetCode `titleSlug` (a small override dict for the slugs that
-diverge, e.g. `two-integer-sum` -> `two-sum`, falling back to trying the
-NeetCode slug as-is for the ones that already match) and fetches the
-statement from LeetCode's GraphQL endpoint
-(`https://leetcode.com/graphql`), converting the returned HTML to plain
-text with the stdlib's `html.parser` (tags stripped, paragraph/list
-structure kept as line breaks, so multi-paragraph sections like
-*Constraints* stay intact and readable rather than running together).
+The statement source is **NeetCode's own problem-metadata endpoint**,
+found on 2026-08-13 by watching the network traffic of the neetcode.io
+SPA while browsing a problem page: it `POST`s to
+`https://neetcode.io/api/getProblemMetadataFunctionHttp` with
+`{"data": {"problemId": "<slug>"}}` and gets back the full problem JSON,
+anonymously, no auth needed. The `problemId` it wants is exactly the
+NeetCode slug — this repo's problem-directory name — so there's no slug
+mapping to maintain. (An earlier version of this module sourced
+statements from LeetCode via a NeetCode-slug -> LeetCode-titleSlug
+override map, on the assumption that NeetCode had no usable public
+source of its own. That assumption was wrong in a way that mattered:
+NeetCode's stated constraints can *differ* from LeetCode's — e.g.
+`buy-and-sell-crypto` caps `prices[i]` at 100 on NeetCode vs. 10^4 on
+LeetCode — so a LeetCode-sourced statement could itself cause the exact
+mismatch this module exists to prevent; K3 flagged NeetCode-constrained
+code as buggy against LeetCode's spec.)
 
-This repo is public, and republishing LeetCode's problem text into it
+The `description` field is NeetCode's own markdown: statement, examples,
+a `**Constraints:**` list, then a series of `<details>` accordion blocks
+— Topics, "Recommended Time & Space Complexity", Hint 1..N, Company
+Tags. `scripts/statements.py` truncates at the **first** `<details`
+occurrence, so none of that reaches K3 — the "Recommended Time & Space
+Complexity" block in particular states the expected answer outright,
+which would make the complexity analysis worthless. What's left gets
+light cleanup (stray `<br>` tags stripped, excess blank lines
+collapsed) but is otherwise left as NeetCode wrote it, backticks and
+`**Constraints:**` list included.
+
+This endpoint is undocumented and internal to the SPA — it could change
+shape or go away without notice. Degradation is graceful and silent
+either way: an unknown slug (`{"data": null}`), a network error, or an
+unexpected response shape all just mean no statement is available, and
+analysis proceeds without one — exactly as it did before this module
+existed. Each submission's output record gets a `"statement"` field:
+the NeetCode slug (as a string) when a statement was actually fetched
+and included in the prompt, or `null` when it wasn't — so the field
+doubles as both "was a statement provided" and "which one", rather than
+a plain boolean.
+
+This repo is public, and republishing NeetCode's problem text into it
 wouldn't be appropriate, so statements are **fetched at analysis time
 only and never written to disk or committed** — `scripts/statements.py`
 keeps an in-process cache (a plain dict, cleared when the process
 exits) purely to avoid re-fetching the same slug twice in one run.
 
-Degradation is graceful and silent: an unresolvable slug, a network
-error, or a LeetCode-premium problem (GraphQL returns `content: null`)
-all just mean no statement is available, and analysis proceeds without
-one — exactly as it did before this module existed. `string-encode-and-decode`
-(LeetCode's `encode-and-decode-strings`) is premium and always analyzes
-this way. Each submission's output record gets a `"statement"` field:
-the resolved LeetCode `titleSlug` (as a string) when a statement was
-actually fetched and included in the prompt, or `null` when it wasn't
-— so the field doubles as both "was a statement provided" and "which
-one", rather than a plain boolean.
-
-Because this changes what the prompt looks like, `"analysis_version": 2`
-is stamped on every new record, and `has_good_analysis` now requires
-`analysis_version >= 2` to skip re-analysis — so every existing record
-(all of which predate this field) gets re-analyzed once on the next CI
-run under the new, statement-aware prompt. That's a deliberate one-time
-cost, not a bug.
+`"analysis_version"` is now `3` — bumped once when the statement was
+added to the prompt (2), then again when the source switched from
+LeetCode to NeetCode (3), since every record analyzed against a
+LeetCode-sourced statement needs redoing against the correct one.
+`has_good_analysis` requires `analysis_version >= 3` to skip
+re-analysis, so every existing record gets re-analyzed once on the next
+CI run. That's a deliberate one-time cost, not a bug.
 
 ### `analysis/summary.json` contract
 
@@ -184,8 +200,8 @@ This is the one file the website should fetch. Shape:
             "summary": "...",
             "notes": ""
           },
-          "statement": "best-time-to-buy-and-sell-stock",
-          "analysis_version": 2,
+          "statement": "buy-and-sell-crypto",
+          "analysis_version": 3,
           "model": "k3",
           "analyzed_at": "2026-08-13T20:20:49Z"
         }

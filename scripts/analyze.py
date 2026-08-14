@@ -45,12 +45,16 @@ SUBMISSION_RE = re.compile(r"^submission-(\d+)\.py$")
 
 # Analysis records below this version are re-analyzed rather than skipped —
 # see has_good_analysis(). Bumped to 2 when the problem statement was added
-# to the prompt, to force every existing record through the new prompt at
-# least once.
-ANALYSIS_VERSION = 2
+# to the prompt, then to 3 when the statement source switched from
+# LeetCode (via a slug mapping) to NeetCode's own endpoint — NeetCode's
+# stated constraints can differ from LeetCode's (e.g. buy-and-sell-crypto
+# caps prices at 100 on NeetCode vs. 10^4 on LeetCode), so every record
+# analyzed against a LeetCode-sourced statement needs redoing against the
+# correct one.
+ANALYSIS_VERSION = 3
 
 # Defensive cap on how much of a fetched problem statement goes into the
-# prompt. LeetCode statements observed so far top out well under this; it
+# prompt. NeetCode statements observed so far top out well under this; it
 # exists to bound prompt size/cost if a future fetch returns something huge.
 STATEMENT_MAX_CHARS = 8000
 
@@ -194,7 +198,7 @@ def build_user_prompt(
     statement_line = ""
     if statement:
         truncated = statement[:STATEMENT_MAX_CHARS]
-        statement_line = f"Problem statement (from LeetCode):\n{truncated}\n\n"
+        statement_line = f"Problem statement (from NeetCode):\n{truncated}\n\n"
     scaling_line = f"Scaling: {scaling_note}\n\n" if scaling_note else ""
     return (
         f"Problem slug: {slug}\n\n{statement_line}{scaling_line}"
@@ -285,9 +289,9 @@ def analyze_submission(slug: str, number: int, path: Path, mock: bool) -> tuple[
     # statement fetch, which is otherwise best-effort and cached
     # in-process only (see scripts/statements.py; never written to disk).
     if mock:
-        title_slug, statement_text = None, None
+        statement_slug, statement_text = None, None
     else:
-        title_slug, statement_text = statements.get_statement(slug)
+        statement_slug, statement_text = statements.get_statement(slug)
 
     complexity, error = get_complexity(slug, source, mock, scaling_note, statement_text)
 
@@ -297,10 +301,11 @@ def analyze_submission(slug: str, number: int, path: Path, mock: bool) -> tuple[
         "solved_at": git_added_date(path),
         "golf": golf_stats(source),
         "complexity": complexity,
-        # The resolved LeetCode titleSlug when a statement was actually
-        # fetched and included in the prompt, else null — covers both
-        # "was a statement provided" and "which one" in one field.
-        "statement": title_slug if statement_text else None,
+        # The NeetCode slug (== this problem's directory name) when a
+        # statement was actually fetched and included in the prompt, else
+        # null — covers both "was a statement provided" and "which one"
+        # in one field.
+        "statement": statement_slug if statement_text else None,
         "analysis_version": ANALYSIS_VERSION,
         "model": MOONSHOT_MODEL if not mock else "mock",
         "analyzed_at": datetime.now(timezone.utc).isoformat(),

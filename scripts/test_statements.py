@@ -9,88 +9,85 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import statements
 
 
-class ResolveTitleSlugTests(unittest.TestCase):
-    def test_known_overrides(self):
-        self.assertEqual(statements.resolve_title_slug("two-integer-sum"), "two-sum")
-        self.assertEqual(
-            statements.resolve_title_slug("buy-and-sell-crypto"),
-            "best-time-to-buy-and-sell-stock",
+def _response(data):
+    class _FakeResp:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def read(self):
+            import json
+
+            return json.dumps(data).encode("utf-8")
+
+    return _FakeResp()
+
+
+class TruncateBeforeDetailsTests(unittest.TestCase):
+    def test_cuts_at_first_details_block(self):
+        description = (
+            "Statement text.\n\n**Constraints:**\n* `1 <= n <= 100`\n\n"
+            '<br>\n<details class="hint-accordion">\n'
+            "    <summary>Topics</summary>\n</details>\n"
+            '<details class="hint-accordion">\n'
+            "    <summary>Recommended Time & Space Complexity</summary>\n"
+            "    <p>You should aim for O(n) time.</p>\n</details>\n"
         )
-        self.assertEqual(statements.resolve_title_slug("is-anagram"), "valid-anagram")
+        result = statements.truncate_before_details(description)
+        self.assertNotIn("Recommended Time & Space Complexity", result)
+        self.assertNotIn("<details", result)
+        self.assertIn("Constraints:", result)
+        self.assertIn("1 <= n <= 100", result)
 
-    def test_fallback_uses_slug_as_is(self):
-        self.assertEqual(
-            statements.resolve_title_slug("longest-consecutive-sequence"),
-            "longest-consecutive-sequence",
-        )
-        self.assertEqual(statements.resolve_title_slug("valid-sudoku"), "valid-sudoku")
-        self.assertEqual(statements.resolve_title_slug("some-unmapped-slug"), "some-unmapped-slug")
+    def test_no_details_block_returns_unchanged(self):
+        description = "Just a statement with no accordions."
+        self.assertEqual(statements.truncate_before_details(description), description)
 
 
-class HtmlToTextTests(unittest.TestCase):
-    def test_strips_tags(self):
-        text = statements.html_to_text("<p>Hello <strong>world</strong></p>")
-        self.assertEqual(text, "Hello world")
+class CleanMarkdownTests(unittest.TestCase):
+    def test_strips_br_tags(self):
+        text = statements.clean_markdown("Line one.\n<br>\n<br/>\nLine two.")
+        self.assertNotIn("<br", text)
+        self.assertIn("Line one.", text)
+        self.assertIn("Line two.", text)
 
-    def test_unescapes_entities(self):
-        text = statements.html_to_text("<p>a &amp; b &lt; c</p>")
-        self.assertEqual(text, "a & b < c")
-
-    def test_preserves_paragraph_breaks(self):
-        text = statements.html_to_text("<p>First.</p><p>Second.</p>")
+    def test_collapses_excess_blank_lines(self):
+        text = statements.clean_markdown("First.\n\n\n\n\nSecond.")
+        self.assertNotIn("\n\n\n", text)
         self.assertIn("First.\n\nSecond.", text)
 
-    def test_keeps_constraints_section_intact(self):
-        html_content = (
-            "<p>Do the thing.</p>"
-            "<p><strong>Constraints:</strong></p>"
-            "<ul><li>1 &lt;= n &lt;= 10^5</li><li>-10^9 &lt;= nums[i] &lt;= 10^9</li></ul>"
+    def test_preserves_markdown_and_constraints(self):
+        description = (
+            "Given `nums`, do the thing.\n\n**Constraints:**\n"
+            "* `1 <= nums.length <= 1000`\n* `-10000 <= nums[i] <= 10000`\n"
         )
-        text = statements.html_to_text(html_content)
-        self.assertIn("Constraints:", text)
-        self.assertIn("1 <= n <= 10^5", text)
-        self.assertIn("-10^9 <= nums[i] <= 10^9", text)
+        text = statements.clean_markdown(description)
+        self.assertIn("**Constraints:**", text)
+        self.assertIn("`1 <= nums.length <= 1000`", text)
+        self.assertIn("`-10000 <= nums[i] <= 10000`", text)
 
 
-class GetStatementTests(unittest.TestCase):
-    def setUp(self):
-        statements._CACHE.clear()
-        self.addCleanup(statements._CACHE.clear)
-
-    def test_successful_fetch_returns_title_slug_and_text(self):
-        with mock.patch.object(
-            statements,
-            "fetch_question",
-            return_value={"title": "Two Sum", "content": "<p>Body.</p>"},
-        ) as mock_fetch:
-            title_slug, text = statements.get_statement("two-integer-sum")
-        mock_fetch.assert_called_once_with("two-sum")
-        self.assertEqual(title_slug, "two-sum")
-        self.assertEqual(text, "Body.")
-
-    def test_premium_null_content_returns_none_text(self):
-        with mock.patch.object(
-            statements,
-            "fetch_question",
-            return_value={"title": "Encode and Decode Strings", "content": None},
+class FetchProblemTests(unittest.TestCase):
+    def test_returns_data_dict_on_success(self):
+        with mock.patch(
+            "urllib.request.urlopen",
+            return_value=_response({"data": {"id": "two-integer-sum", "description": "x"}}),
         ):
-            title_slug, text = statements.get_statement("string-encode-and-decode")
-        self.assertEqual(title_slug, "encode-and-decode-strings")
-        self.assertIsNone(text)
+            data = statements.fetch_problem("two-integer-sum")
+        self.assertEqual(data["id"], "two-integer-sum")
 
-    def test_unresolvable_slug_returns_none_text(self):
-        with mock.patch.object(statements, "fetch_question", return_value=None):
-            title_slug, text = statements.get_statement("totally-unknown-slug")
-        self.assertEqual(title_slug, "totally-unknown-slug")
-        self.assertIsNone(text)
+    def test_unknown_slug_returns_none(self):
+        with mock.patch("urllib.request.urlopen", return_value=_response({"data": None})):
+            self.assertIsNone(statements.fetch_problem("totally-bogus-slug"))
 
-    def test_fetch_question_swallows_url_errors(self):
+    def test_network_error_returns_none(self):
         with mock.patch("urllib.request.urlopen", side_effect=urllib.error.URLError("boom")):
-            result = statements.fetch_question("two-sum")
-        self.assertIsNone(result)
+            self.assertIsNone(statements.fetch_problem("two-integer-sum"))
 
-    def test_fetch_question_swallows_bad_json(self):
-        class _FakeResp:
+    def test_bad_json_returns_none(self):
+        class _BadResp:
             def __enter__(self):
                 return self
 
@@ -100,24 +97,88 @@ class GetStatementTests(unittest.TestCase):
             def read(self):
                 return b"not json"
 
-        with mock.patch("urllib.request.urlopen", return_value=_FakeResp()):
-            result = statements.fetch_question("two-sum")
-        self.assertIsNone(result)
+        with mock.patch("urllib.request.urlopen", return_value=_BadResp()):
+            self.assertIsNone(statements.fetch_problem("two-integer-sum"))
+
+    def test_unexpected_top_level_shape_returns_none(self):
+        with mock.patch("urllib.request.urlopen", return_value=_response(["not", "a", "dict"])):
+            self.assertIsNone(statements.fetch_problem("two-integer-sum"))
+
+    def test_request_uses_exact_slug_as_problem_id(self):
+        captured = {}
+
+        def _fake_urlopen(request, timeout=None):
+            import json
+
+            captured["body"] = json.loads(request.data.decode("utf-8"))
+            return _response({"data": {"id": "two-integer-sum-ii", "description": "x"}})
+
+        with mock.patch("urllib.request.urlopen", side_effect=_fake_urlopen):
+            statements.fetch_problem("two-integer-sum-ii")
+        self.assertEqual(captured["body"], {"data": {"problemId": "two-integer-sum-ii"}})
+
+
+class GetStatementTests(unittest.TestCase):
+    def setUp(self):
+        statements._CACHE.clear()
+        self.addCleanup(statements._CACHE.clear)
+
+    def test_successful_fetch_returns_slug_and_cleaned_text(self):
+        description = (
+            "Do the thing.\n\n**Constraints:**\n* `1 <= n <= 100`\n\n"
+            '<br>\n<details class="hint-accordion">\n'
+            "    <summary>Recommended Time & Space Complexity</summary>\n"
+            "    <p>O(n) time expected.</p>\n</details>\n"
+        )
+        with mock.patch.object(
+            statements, "fetch_problem", return_value={"description": description}
+        ) as mock_fetch:
+            slug, text = statements.get_statement("some-problem")
+        mock_fetch.assert_called_once_with("some-problem")
+        self.assertEqual(slug, "some-problem")
+        self.assertIn("Constraints:", text)
+        self.assertIn("1 <= n <= 100", text)
+        self.assertNotIn("Recommended Time & Space Complexity", text)
+        self.assertNotIn("O(n) time expected", text)
+
+    def test_missing_slug_returns_none_text(self):
+        with mock.patch.object(statements, "fetch_problem", return_value=None):
+            slug, text = statements.get_statement("totally-bogus-slug")
+        self.assertEqual(slug, "totally-bogus-slug")
+        self.assertIsNone(text)
+
+    def test_missing_description_field_returns_none_text(self):
+        with mock.patch.object(statements, "fetch_problem", return_value={"id": "x"}):
+            _, text = statements.get_statement("some-problem")
+        self.assertIsNone(text)
+
+    def test_empty_description_returns_none_text(self):
+        with mock.patch.object(
+            statements, "fetch_problem", return_value={"description": "   "}
+        ):
+            _, text = statements.get_statement("some-problem")
+        self.assertIsNone(text)
+
+    def test_description_that_is_only_a_details_block_returns_none_text(self):
+        # Truncating before the first <details block can leave nothing —
+        # that should degrade to None, not an empty-string "statement".
+        with mock.patch.object(
+            statements,
+            "fetch_problem",
+            return_value={"description": '<details class="hint-accordion">stuff</details>'},
+        ):
+            _, text = statements.get_statement("some-problem")
+        self.assertIsNone(text)
 
     def test_result_is_cached_in_process(self):
         with mock.patch.object(
-            statements,
-            "fetch_question",
-            return_value={"title": "Two Sum", "content": "<p>Body.</p>"},
+            statements, "fetch_problem", return_value={"description": "Body text."}
         ) as mock_fetch:
-            statements.get_statement("two-integer-sum")
-            statements.get_statement("two-integer-sum")
+            statements.get_statement("some-problem")
+            statements.get_statement("some-problem")
         mock_fetch.assert_called_once()
 
     def test_cache_is_in_memory_only_not_on_disk(self):
-        # The module has no file-writing code path at all — this test
-        # documents that constraint so a future change tripping it is
-        # caught here.
         source = Path(statements.__file__).read_text(encoding="utf-8")
         for token in ("write_text", "import pathlib", "from pathlib", ".write("):
             self.assertNotIn(token, source)
