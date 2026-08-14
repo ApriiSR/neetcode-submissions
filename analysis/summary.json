@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-14T20:53:42.789398+00:00",
+  "generated_at": "2026-08-14T21:59:26.314215+00:00",
   "problems": {
     "anagram-groups": {
       "submissions": [
@@ -1096,6 +1096,34 @@
           "slug": "largest-rectangle-in-histogram",
           "solved_at": "2026-08-14T11:18:17-07:00",
           "statement": "largest-rectangle-in-histogram"
+        }
+      ]
+    },
+    "linked-list-cycle-detection": {
+      "submissions": [
+        {
+          "analysis_version": 5,
+          "analyzed_at": "2026-08-14T21:59:26.191347+00:00",
+          "complexity": {
+            "benchmark_model": "1",
+            "hash_dependent": false,
+            "notes": "Correct only because the problem guarantees length <= 1000; the classic, constraint-free approach is Floyd's tortoise-and-hare in O(n) time and O(1) space. The for/else-free structure is readable, though the magic constant 1005 would be clearer as a named bound.",
+            "space": "O(1)",
+            "summary": "Exploits the stated length cap (<= 1000): it follows next pointers at most 1005 times; if null is reached the list terminates (no cycle), otherwise the list must contain a cycle.",
+            "time_average": "O(min(n, 1005)) = O(1)",
+            "time_worst": "O(min(n, 1005)) = O(1)"
+          },
+          "file": "Data Structures & Algorithms/linked-list-cycle-detection/submission-1.py",
+          "golf": {
+            "bytes": 404,
+            "characters": 404,
+            "non_blank_lines": 14,
+            "tokens": 45
+          },
+          "model": "k3",
+          "slug": "linked-list-cycle-detection",
+          "solved_at": "2026-08-14T14:59:04-07:00",
+          "statement": "linked-list-cycle-detection"
         }
       ]
     },
