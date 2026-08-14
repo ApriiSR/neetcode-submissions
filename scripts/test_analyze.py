@@ -118,7 +118,7 @@ class BuildUserPromptTests(unittest.TestCase):
         prompt = analyze.build_user_prompt(
             "some-slug", "code", None, statement="1 <= nums.length <= 10^5"
         )
-        self.assertIn("Problem statement (from LeetCode):", prompt)
+        self.assertIn("Problem statement (from NeetCode):", prompt)
         self.assertIn("1 <= nums.length <= 10^5", prompt)
         # statement comes before the solution
         self.assertLess(prompt.index("Problem statement"), prompt.index("Solution:"))
