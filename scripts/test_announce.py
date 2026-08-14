@@ -82,27 +82,32 @@ class BuildEmbedTests(unittest.TestCase):
         return analysis
 
     def test_embed_shape(self):
-        embed = announce.build_embed(self._analysis(), {"name": "Two Sum", "difficulty": "Easy"})
+        embed = announce.build_embed({"name": "Two Sum", "difficulty": "Easy"})
         self.assertEqual(embed["title"], "Two Sum (Easy)")
         self.assertEqual(embed["url"], announce.PROJECT_URL)
         self.assertEqual(embed["color"], 0x57F287)
-        field_names = [f["name"] for f in embed["fields"]]
-        self.assertEqual(field_names, ["Time", "Space", "Length"])
-        self.assertIn("O(n)", embed["fields"][0]["value"])
-        self.assertIn("O(n^2)", embed["fields"][0]["value"])
-        self.assertIn("12 tokens", embed["fields"][2]["value"])
 
-    def test_embed_never_references_attachment(self):
-        # A SPOILER_ attachment referenced inside an embed loses its spoiler
-        # blur (discord-api-docs #1235); the image must stay a plain
-        # attachment, so the embed must never carry an image key.
-        embed = announce.build_embed(self._analysis(), {"name": "Two Sum", "difficulty": None})
+    def test_embed_carries_no_spoilers(self):
+        # April's rule: nothing that hints at the approach may be visible
+        # outside the spoilered image — no complexity, no length stats, and
+        # (per discord-api-docs #1235) no attachment reference, which would
+        # render the image unblurred inside the embed.
+        embed = announce.build_embed({"name": "Two Sum", "difficulty": None})
         self.assertNotIn("image", embed)
+        self.assertNotIn("fields", embed)
         self.assertEqual(embed["title"], "Two Sum")
 
-    def test_embed_tolerates_missing_complexity_and_golf(self):
-        embed = announce.build_embed({}, {"name": "X", "difficulty": None})
-        self.assertIn("?", embed["fields"][0]["value"])
+    def test_stats_header_contents(self):
+        header = announce.stats_header(self._analysis(), {"name": "Two Sum", "difficulty": "Easy"})
+        self.assertIn("# Two Sum (Easy)", header)
+        self.assertIn("O(n)", header)
+        self.assertIn("O(n^2)", header)
+        self.assertIn("12 tokens", header)
+        self.assertTrue(all(l.startswith("#") or not l for l in header.splitlines()))
+
+    def test_stats_header_tolerates_missing_complexity_and_golf(self):
+        header = announce.stats_header({}, {"name": "X", "difficulty": None})
+        self.assertIn("?", header)
 
 
 class RenderSourceImageTests(unittest.TestCase):

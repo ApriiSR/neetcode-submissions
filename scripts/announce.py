@@ -95,15 +95,42 @@ def spoiler_filename(slug: str, number: int) -> str:
     return f"SPOILER_{slug}-submission-{number}.png"
 
 
-def render_source_image(source_path: Path) -> bytes | None:
-    """Render `source_path` to a PNG via freeze. Returns the PNG bytes, or
-    None on any failure (freeze missing, non-zero exit, timeout, or no
-    output produced) — the caller falls back to posting without an image."""
+def stats_header(analysis: dict, meta: dict) -> str:
+    """Comment block prepended to the source before rendering, so the stats
+    live inside the (spoilered) image itself."""
+    complexity = analysis.get("complexity") or {}
+    golf = analysis.get("golf") or {}
+    name = meta.get("name") or "Untitled problem"
+    difficulty = meta.get("difficulty")
+    title = f"{name} ({difficulty})" if difficulty else name
+    time_average = complexity.get("time_average", "?")
+    time_worst = complexity.get("time_worst", "?")
+    space = complexity.get("space", "?")
+    tokens = golf.get("tokens", "?")
+    lines = golf.get("non_blank_lines", "?")
+    chars = golf.get("characters", "?")
+    return (
+        f"# {title}\n"
+        f"# time: {time_average} avg · {time_worst} worst | space: {space}\n"
+        f"# length: {tokens} tokens · {lines} lines · {chars} chars\n"
+        "\n"
+    )
+
+
+def render_source_image(source_path: Path, header: str = "") -> bytes | None:
+    """Render `source_path` (with `header` prepended) to a PNG via freeze.
+    Returns the PNG bytes, or None on any failure (freeze missing, non-zero
+    exit, timeout, or no output produced) — the caller falls back to posting
+    without an image."""
     with tempfile.TemporaryDirectory() as tmp_dir:
+        annotated_path = Path(tmp_dir) / source_path.name
+        annotated_path.write_text(
+            header + source_path.read_text(encoding="utf-8"), encoding="utf-8"
+        )
         out_path = Path(tmp_dir) / "out.png"
         cmd = [
             FREEZE_BIN,
-            str(source_path),
+            str(annotated_path),
             "-o",
             str(out_path),
             "-l",
@@ -125,32 +152,20 @@ def render_source_image(source_path: Path) -> bytes | None:
 # attachment rendered inside an embed loses its spoiler blur (discord-api-docs
 # issue #1235). Left as a plain attachment, Discord shows it below the embed,
 # blurred until clicked.
-def build_embed(analysis: dict, meta: dict) -> dict:
-    complexity = analysis.get("complexity") or {}
-    golf = analysis.get("golf") or {}
-
+def build_embed(meta: dict) -> dict:
+    # Only spoiler-safe facts here: the problem's name/difficulty and the
+    # progress-page link. Complexity and length stats can hint at the
+    # approach, so they live inside the SPOILER_ image (stats_header), not
+    # in the visible embed.
     name = meta.get("name") or "Untitled problem"
     difficulty = meta.get("difficulty")
     title = f"{name} ({difficulty})" if difficulty else name
 
-    time_average = complexity.get("time_average", "?")
-    time_worst = complexity.get("time_worst", "?")
-    space = complexity.get("space", "?")
-    tokens = golf.get("tokens", "?")
-    lines = golf.get("non_blank_lines", "?")
-    chars = golf.get("characters", "?")
-
-    embed = {
+    return {
         "title": title,
         "url": PROJECT_URL,
         "color": difficulty_color(difficulty),
-        "fields": [
-            {"name": "Time", "value": f"avg `{time_average}` · worst `{time_worst}`", "inline": True},
-            {"name": "Space", "value": f"`{space}`", "inline": True},
-            {"name": "Length", "value": f"{tokens} tokens · {lines} lines · {chars} chars", "inline": True},
-        ],
     }
-    return embed
 
 
 def build_announcement(record: dict) -> tuple[dict, bytes | None, str]:
@@ -165,9 +180,9 @@ def build_announcement(record: dict) -> tuple[dict, bytes | None, str]:
     filename = spoiler_filename(slug, number)
 
     meta = fetch_problem_meta(slug)
-    image_bytes = render_source_image(source_path)
+    image_bytes = render_source_image(source_path, stats_header(analysis, meta))
 
-    embed = build_embed(analysis, meta)
+    embed = build_embed(meta)
     payload = {"embeds": [embed]}
     return payload, image_bytes, filename
 
