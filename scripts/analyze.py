@@ -24,6 +24,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import generators
+import statements
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SUBMISSIONS_ROOT = REPO_ROOT / "Data Structures & Algorithms"
@@ -42,11 +43,22 @@ MOONSHOT_API_KEY = os.environ.get("MOONSHOT_API_KEY")
 
 SUBMISSION_RE = re.compile(r"^submission-(\d+)\.py$")
 
+# Analysis records below this version are re-analyzed rather than skipped —
+# see has_good_analysis(). Bumped to 2 when the problem statement was added
+# to the prompt, to force every existing record through the new prompt at
+# least once.
+ANALYSIS_VERSION = 2
+
+# Defensive cap on how much of a fetched problem statement goes into the
+# prompt. LeetCode statements observed so far top out well under this; it
+# exists to bound prompt size/cost if a future fetch returns something huge.
+STATEMENT_MAX_CHARS = 8000
+
 SYSTEM_PROMPT = (
-    "You are a precise algorithms reviewer. Given a problem slug, a note on "
-    "how that problem's input scales with n, and a Python solution, respond "
-    "with STRICT JSON only (no markdown fences, no prose outside the JSON "
-    "object) with exactly these fields: "
+    "You are a precise algorithms reviewer. Given a problem slug, optionally "
+    "its problem statement, a note on how that problem's input scales with "
+    "n, and a Python solution, respond with STRICT JSON only (no markdown "
+    "fences, no prose outside the JSON object) with exactly these fields: "
     '"time_average" (string, Big-O), "time_worst" (string, Big-O; if the '
     "solution uses a dict or set, the worst case must account for adversarial "
     "hash collisions degrading lookups to O(n)), \"space\" (string, Big-O), "
@@ -62,7 +74,12 @@ SYSTEM_PROMPT = (
     '"n^1.5 log n", "n^2", "n^2 log n", "n^3", "n^3 log n" — no other '
     'symbols, variables, or constants), "summary" (string, 1-2 sentences '
     'describing the approach), "notes" (string, optional remarks on '
-    "idiomatic style or readability; empty string if none)."
+    "idiomatic style or readability; empty string if none). "
+    "When a problem statement is provided, treat every constraint it states "
+    "(bounds on input size, value ranges, uniqueness guarantees, etc.) as a "
+    "guaranteed precondition of the input, not an assumption made by the "
+    "solution — relying on a stated constraint is correct and should not be "
+    "flagged in notes as an unjustified assumption."
 )
 
 
@@ -171,16 +188,27 @@ def parse_complexity_response(raw_text: str) -> dict:
     return data
 
 
-def build_user_prompt(slug: str, source: str, scaling_note: str | None) -> str:
+def build_user_prompt(
+    slug: str, source: str, scaling_note: str | None, statement: str | None = None
+) -> str:
+    statement_line = ""
+    if statement:
+        truncated = statement[:STATEMENT_MAX_CHARS]
+        statement_line = f"Problem statement (from LeetCode):\n{truncated}\n\n"
     scaling_line = f"Scaling: {scaling_note}\n\n" if scaling_note else ""
-    return f"Problem slug: {slug}\n\n{scaling_line}Solution:\n```python\n{source}\n```"
+    return (
+        f"Problem slug: {slug}\n\n{statement_line}{scaling_line}"
+        f"Solution:\n```python\n{source}\n```"
+    )
 
 
-def call_moonshot(slug: str, source: str, scaling_note: str | None = None) -> dict:
+def call_moonshot(
+    slug: str, source: str, scaling_note: str | None = None, statement: str | None = None
+) -> dict:
     if not MOONSHOT_API_KEY:
         raise RuntimeError("MOONSHOT_API_KEY is not set")
 
-    user_prompt = build_user_prompt(slug, source, scaling_note)
+    user_prompt = build_user_prompt(slug, source, scaling_note, statement)
     payload = {
         "model": MOONSHOT_MODEL,
         "messages": [
@@ -203,7 +231,11 @@ def call_moonshot(slug: str, source: str, scaling_note: str | None = None) -> di
 
 
 def get_complexity(
-    slug: str, source: str, mock: bool, scaling_note: str | None = None
+    slug: str,
+    source: str,
+    mock: bool,
+    scaling_note: str | None = None,
+    statement: str | None = None,
 ) -> tuple[dict | None, str | None]:
     if mock:
         return (
@@ -222,7 +254,7 @@ def get_complexity(
     last_error = None
     for attempt in range(2):
         try:
-            raw_text = call_moonshot(slug, source, scaling_note)
+            raw_text = call_moonshot(slug, source, scaling_note, statement)
             return parse_complexity_response(raw_text), None
         except (
             urllib.error.URLError,
@@ -248,7 +280,16 @@ def analyze_submission(slug: str, number: int, path: Path, mock: bool) -> tuple[
     # without a benchmark generator yet); tolerate that and fall back to
     # no scaling note rather than raising.
     scaling_note = generators.PROBLEMS.get(slug, {}).get("scaling_note")
-    complexity, error = get_complexity(slug, source, mock, scaling_note)
+
+    # Mock mode never touches the network — including for the problem
+    # statement fetch, which is otherwise best-effort and cached
+    # in-process only (see scripts/statements.py; never written to disk).
+    if mock:
+        title_slug, statement_text = None, None
+    else:
+        title_slug, statement_text = statements.get_statement(slug)
+
+    complexity, error = get_complexity(slug, source, mock, scaling_note, statement_text)
 
     record = {
         "file": str(path.relative_to(REPO_ROOT)),
@@ -256,6 +297,11 @@ def analyze_submission(slug: str, number: int, path: Path, mock: bool) -> tuple[
         "solved_at": git_added_date(path),
         "golf": golf_stats(source),
         "complexity": complexity,
+        # The resolved LeetCode titleSlug when a statement was actually
+        # fetched and included in the prompt, else null — covers both
+        # "was a statement provided" and "which one" in one field.
+        "statement": title_slug if statement_text else None,
+        "analysis_version": ANALYSIS_VERSION,
         "model": MOONSHOT_MODEL if not mock else "mock",
         "analyzed_at": datetime.now(timezone.utc).isoformat(),
     }
@@ -273,6 +319,11 @@ def has_good_analysis(out_path: Path) -> bool:
         return False
     if not isinstance(data, dict) or data.get("model") == "mock":
         # errored (null) and mock records are retried on later runs
+        return False
+    # records predating analysis_version (or below the current one) are
+    # retried too — this is what forces every existing record through a
+    # new prompt shape (e.g. the statement-inclusion change) at least once.
+    if data.get("analysis_version", 1) < ANALYSIS_VERSION:
         return False
     complexity = data.get("complexity")
     if not isinstance(complexity, dict):

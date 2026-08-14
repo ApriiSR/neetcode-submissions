@@ -110,6 +110,56 @@ checked against the actual timing data, not just asserted. A record whose
 `complexity` predates this field (missing `benchmark_model`) is
 re-analyzed on the next run rather than skipped, so it backfills.
 
+### Problem statements in the prompt
+
+Analyzing solution code alone has a failure mode: K3 can't tell a stated
+problem constraint (e.g. "1 <= prices.length <= 10^5") from an
+assumption the solution made up, so it sometimes dinged correct code for
+"unjustified assumptions" that the problem statement actually
+guarantees (real case: the `buy-and-sell-crypto` solution). `scripts/statements.py`
+fixes this by fetching the problem's text and including it in the
+prompt, labeled `Problem statement (from LeetCode): ...`, ahead of the
+solution — and the system prompt now tells K3 explicitly that stated
+constraints are guaranteed preconditions, not assumptions worth
+flagging in notes.
+
+NeetCode itself doesn't expose a usable public data source for problem
+text — its problem pages are an Angular SPA; the HTML/API responses
+investigated while building this carried no problem content, only the
+app shell. Instead, `scripts/statements.py` resolves each NeetCode slug
+to a LeetCode `titleSlug` (a small override dict for the slugs that
+diverge, e.g. `two-integer-sum` -> `two-sum`, falling back to trying the
+NeetCode slug as-is for the ones that already match) and fetches the
+statement from LeetCode's GraphQL endpoint
+(`https://leetcode.com/graphql`), converting the returned HTML to plain
+text with the stdlib's `html.parser` (tags stripped, paragraph/list
+structure kept as line breaks, so multi-paragraph sections like
+*Constraints* stay intact and readable rather than running together).
+
+This repo is public, and republishing LeetCode's problem text into it
+wouldn't be appropriate, so statements are **fetched at analysis time
+only and never written to disk or committed** — `scripts/statements.py`
+keeps an in-process cache (a plain dict, cleared when the process
+exits) purely to avoid re-fetching the same slug twice in one run.
+
+Degradation is graceful and silent: an unresolvable slug, a network
+error, or a LeetCode-premium problem (GraphQL returns `content: null`)
+all just mean no statement is available, and analysis proceeds without
+one — exactly as it did before this module existed. `string-encode-and-decode`
+(LeetCode's `encode-and-decode-strings`) is premium and always analyzes
+this way. Each submission's output record gets a `"statement"` field:
+the resolved LeetCode `titleSlug` (as a string) when a statement was
+actually fetched and included in the prompt, or `null` when it wasn't
+— so the field doubles as both "was a statement provided" and "which
+one", rather than a plain boolean.
+
+Because this changes what the prompt looks like, `"analysis_version": 2`
+is stamped on every new record, and `has_good_analysis` now requires
+`analysis_version >= 2` to skip re-analysis — so every existing record
+(all of which predate this field) gets re-analyzed once on the next CI
+run under the new, statement-aware prompt. That's a deliberate one-time
+cost, not a bug.
+
 ### `analysis/summary.json` contract
 
 This is the one file the website should fetch. Shape:
@@ -134,6 +184,8 @@ This is the one file the website should fetch. Shape:
             "summary": "...",
             "notes": ""
           },
+          "statement": "best-time-to-buy-and-sell-stock",
+          "analysis_version": 2,
           "model": "k3",
           "analyzed_at": "2026-08-13T20:20:49Z"
         }
@@ -177,11 +229,15 @@ environment variables for local runs.
 ### Local usage
 
 ```
-python3 scripts/analyze.py --mock          # dry run, no API calls, placeholder complexity
+python3 scripts/analyze.py --mock          # dry run, no API/statement calls, placeholder complexity
 python3 scripts/analyze.py --only is-palindrome
 MOONSHOT_API_KEY=... python3 scripts/analyze.py
 python3 -m unittest scripts.test_analyze -v
+python3 -m unittest scripts.test_statements -v
 ```
+
+`--mock` never fetches a problem statement either — it's a pure offline
+dry run, so mocked records always have `"statement": null`.
 
 ---
 

@@ -10,6 +10,7 @@ from unittest import mock
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import analyze
+import statements
 
 
 class GolfStatsTests(unittest.TestCase):
@@ -113,6 +114,31 @@ class BuildUserPromptTests(unittest.TestCase):
         prompt = analyze.build_user_prompt("some-slug", "code", None)
         self.assertNotIn("Scaling:", prompt)
 
+    def test_includes_statement_when_given(self):
+        prompt = analyze.build_user_prompt(
+            "some-slug", "code", None, statement="1 <= nums.length <= 10^5"
+        )
+        self.assertIn("Problem statement (from LeetCode):", prompt)
+        self.assertIn("1 <= nums.length <= 10^5", prompt)
+        # statement comes before the solution
+        self.assertLess(prompt.index("Problem statement"), prompt.index("Solution:"))
+
+    def test_omits_statement_line_when_none(self):
+        prompt = analyze.build_user_prompt("some-slug", "code", None, statement=None)
+        self.assertNotIn("Problem statement", prompt)
+
+    def test_omits_statement_line_when_empty_string(self):
+        prompt = analyze.build_user_prompt("some-slug", "code", None, statement="")
+        self.assertNotIn("Problem statement", prompt)
+
+    def test_statement_truncated_defensively(self):
+        huge = "x" * 20000
+        prompt = analyze.build_user_prompt("some-slug", "code", None, statement=huge)
+        self.assertLessEqual(
+            prompt.count("x"), analyze.STATEMENT_MAX_CHARS + 10  # slack for other x's, there are none
+        )
+        self.assertNotIn("x" * (analyze.STATEMENT_MAX_CHARS + 1), prompt)
+
 
 class HasGoodAnalysisTests(unittest.TestCase):
     def setUp(self):
@@ -135,7 +161,11 @@ class HasGoodAnalysisTests(unittest.TestCase):
             "notes": "",
         }
         complexity.update(complexity_overrides)
-        return {"complexity": complexity, "model": "kimi-k3"}
+        return {
+            "complexity": complexity,
+            "model": "kimi-k3",
+            "analysis_version": analyze.ANALYSIS_VERSION,
+        }
 
     def test_missing_file_is_not_good(self):
         self.assertFalse(analyze.has_good_analysis(self.tmp / "nope.json"))
@@ -161,7 +191,25 @@ class HasGoodAnalysisTests(unittest.TestCase):
         self.assertFalse(analyze.has_good_analysis(path))
 
     def test_null_complexity_is_not_good(self):
-        path = self._write("errored.json", {"complexity": None, "model": "kimi-k3"})
+        path = self._write(
+            "errored.json",
+            {"complexity": None, "model": "kimi-k3", "analysis_version": analyze.ANALYSIS_VERSION},
+        )
+        self.assertFalse(analyze.has_good_analysis(path))
+
+    def test_missing_analysis_version_is_not_good(self):
+        # records written before this field existed (analysis_version 1,
+        # implicit) — must be retried so the statement-inclusion prompt
+        # change reaches them.
+        record = self._record()
+        del record["analysis_version"]
+        path = self._write("no-version.json", record)
+        self.assertFalse(analyze.has_good_analysis(path))
+
+    def test_old_analysis_version_is_not_good(self):
+        record = self._record()
+        record["analysis_version"] = 1
+        path = self._write("old-version.json", record)
         self.assertFalse(analyze.has_good_analysis(path))
 
 
@@ -235,6 +283,8 @@ class RepoIntegrationTests(unittest.TestCase):
             "solved_at": "2020-01-01T00:00:00-00:00",
             "golf": {"characters": 1, "bytes": 1, "non_blank_lines": 1, "tokens": 1},
             "complexity": complexity,
+            "statement": None,
+            "analysis_version": analyze.ANALYSIS_VERSION,
             "model": "kimi-k3",
             "analyzed_at": "2020-01-01T00:00:00+00:00",
         }
@@ -269,6 +319,35 @@ class RepoIntegrationTests(unittest.TestCase):
         record = json.loads((out_dir / "submission-0.json").read_text())
         self.assertEqual(record["model"], "mock")
         self.assertEqual(record["complexity"]["benchmark_model"], "n")
+
+    def test_old_analysis_version_triggers_reanalysis(self):
+        out_dir = self.tmp / "analysis" / "sample-problem"
+        out_dir.mkdir(parents=True)
+        existing = self._existing_record()
+        del existing["analysis_version"]  # simulates a pre-version-2 record
+        (out_dir / "submission-0.json").write_text(json.dumps(existing))
+
+        sys.argv = ["analyze.py", "--mock"]
+        with self.assertRaises(SystemExit):
+            analyze.main()
+
+        record = json.loads((out_dir / "submission-0.json").read_text())
+        self.assertEqual(record["model"], "mock")
+        self.assertEqual(record["analysis_version"], analyze.ANALYSIS_VERSION)
+        self.assertEqual(record["complexity"]["summary"], "Mock analysis placeholder (no LLM call was made).")
+
+    def test_mock_run_includes_new_fields_without_network_fetch(self):
+        sys.argv = ["analyze.py", "--mock"]
+        with mock.patch.object(statements, "get_statement") as mock_get_statement:
+            with self.assertRaises(SystemExit):
+                analyze.main()
+        mock_get_statement.assert_not_called()
+
+        out_path = self.tmp / "analysis" / "sample-problem" / "submission-0.json"
+        record = json.loads(out_path.read_text())
+        self.assertIn("statement", record)
+        self.assertIsNone(record["statement"])
+        self.assertEqual(record["analysis_version"], analyze.ANALYSIS_VERSION)
 
     def test_only_flag_filters_slug(self):
         other_dir = self.tmp / "Data Structures & Algorithms" / "other-problem"
