@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-14T02:31:07.943863+00:00",
+  "generated_at": "2026-08-14T02:32:06.816148+00:00",
   "problems": {
     "anagram-groups": {
       "submissions": [
@@ -1263,7 +1263,7 @@
         },
         {
           "analysis_version": 3,
-          "analyzed_at": "2026-08-14T02:26:56.622903+00:00",
+          "analyzed_at": "2026-08-14T02:32:06.688641+00:00",
           "benchmarks": {
             "adversarial": null,
             "best_fit": "n",
@@ -1306,9 +1306,9 @@
           "complexity": {
             "benchmark_model": "n",
             "hash_dependent": true,
-            "notes": "Clean and idiomatic. Worst case is theoretical: the map has only 3 keys, so adversarial hash collisions degrading lookups to O(n) per lookup are not realistically reachable, but per the dict-based analysis the worst case is O(n^2).",
+            "notes": "Clean and idiomatic; the `bracket in \"({[\"` membership check on a short string is fine and readable. The dict lookups are the only hash-dependent part; worst case reflects adversarial hash collisions, though the tiny fixed key set makes this purely theoretical.",
             "space": "O(n)",
-            "summary": "Classic stack-based validation: push opening brackets, and on each closing bracket pop and check that it matches via a closing-to-opening map. Returns true only if the stack is empty at the end and no mismatch occurred.",
+            "summary": "Classic stack-based validation: push opening brackets, and on each closing bracket check that the stack's top is the matching opener via a lookup dict. Returns false early on any mismatch or empty-stack pop, and requires an empty stack at the end.",
             "time_average": "O(n)",
             "time_worst": "O(n^2)"
           },
