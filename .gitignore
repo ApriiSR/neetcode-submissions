@@ -1,2 +1,6 @@
 __pycache__/
 *.pyc
+
+# Per-run scratch file: this run's newly-analyzed submissions, consumed by
+# scripts/announce.py. Never committed — see scripts/analyze.py.
+analysis/.new-this-run.json

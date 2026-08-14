@@ -31,6 +31,13 @@ SUBMISSIONS_ROOT = REPO_ROOT / "Data Structures & Algorithms"
 ANALYSIS_ROOT = REPO_ROOT / "analysis"
 BENCHMARKS_ROOT = ANALYSIS_ROOT / "benchmarks"
 
+# Where this run's list of newly-analyzed submissions gets written, for
+# scripts/announce.py to pick up — a scratch file, never committed (see
+# .gitignore). Overridable via env for callers that want a different
+# location; defaults under ANALYSIS_ROOT so test monkeypatching of that
+# still isolates it per-test.
+NEW_THIS_RUN_ENV = "ANALYZE_NEW_THIS_RUN_PATH"
+
 # `or` fallbacks: the workflow exports these from repo vars, which arrive as
 # empty strings when unset.
 # Defaults target Kimi-for-Coding (key from kimi.com/code/console, billed to the
@@ -383,6 +390,23 @@ def build_summary():
     )
 
 
+def new_this_run_path() -> Path:
+    override = os.environ.get(NEW_THIS_RUN_ENV)
+    if override:
+        return Path(override)
+    return ANALYSIS_ROOT / ".new-this-run.json"
+
+
+def write_new_this_run(new_records: list) -> None:
+    """Write the machine-readable list of this run's newly-analyzed
+    submissions for scripts/announce.py — always written (even empty), so a
+    quiet run doesn't leave a stale list from a previous one. Never
+    committed: see .gitignore."""
+    out_path = new_this_run_path()
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(json.dumps(new_records, indent=2) + "\n", encoding="utf-8")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--mock", action="store_true")
@@ -391,6 +415,7 @@ def main():
 
     had_error = False
     analyzed = 0
+    new_records = []
 
     for slug, number, path in iter_submissions(args.only):
         out_dir = ANALYSIS_ROOT / slug
@@ -408,6 +433,17 @@ def main():
         status = "ERROR" if failed else "ok"
         print(f"[{status}] {slug} submission-{number}")
 
+        if not failed:
+            new_records.append(
+                {
+                    "slug": slug,
+                    "number": number,
+                    "file": str(path.relative_to(REPO_ROOT)),
+                    "analysis_file": str(out_path.relative_to(REPO_ROOT)),
+                }
+            )
+
+    write_new_this_run(new_records)
     build_summary()
     print(f"Analyzed {analyzed} submission(s).")
 
