@@ -1,12 +1,12 @@
 {
-  "analysis_version": 2,
-  "analyzed_at": "2026-08-14T01:05:23.677580+00:00",
+  "analysis_version": 3,
+  "analyzed_at": "2026-08-14T01:15:27.660245+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": true,
-    "notes": "Variable named `dict` shadows the built-in type; rename to e.g. `counts`. A single pass with a seen-set and early return would be simpler and can exit earlier, and `i in dict` followed by `dict[i]` does two lookups where `dict.get(i, 0)` or `collections.Counter` would do one.",
+    "notes": "Shadowing the builtin 'dict' name is poor style; a set with early return (or len(set(nums)) != len(nums)) would be simpler and idiomatic, though the same hash worst case applies.",
     "space": "O(n)",
-    "summary": "Counts occurrences of each value in a dictionary during a first pass, then makes a second pass to return True upon finding any count greater than 1. Average time is linear thanks to hashing; adversarial hash collisions degrade lookups to O(n) each, giving O(n^2) worst case.",
+    "summary": "Counts occurrences of each value in a dict, then scans again to return True if any count exceeds 1.",
     "time_average": "O(n)",
     "time_worst": "O(n^2)"
   },
@@ -20,5 +20,5 @@
   "model": "k3",
   "slug": "duplicate-integer",
   "solved_at": "2026-08-12T18:40:56-07:00",
-  "statement": "contains-duplicate"
+  "statement": "duplicate-integer"
 }

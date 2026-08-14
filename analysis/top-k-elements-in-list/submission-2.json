@@ -1,14 +1,14 @@
 {
-  "analysis_version": 2,
-  "analyzed_at": "2026-08-14T01:07:02.917984+00:00",
+  "analysis_version": 3,
+  "analyzed_at": "2026-08-14T01:18:15.196580+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": true,
-    "notes": "The approach is convoluted and non-idiomatic: sorting values then reverse-lookup by linear scan is O(k*u) and fragile; collections.Counter plus heapq.nlargest(k, counter, key=counter.get) or counter.most_common(k) would be clearer and directly satisfy the better-than-O(n log n) follow-up. Also, the final set(output) dedupe both masks the duplicate-inclusion issue and discards deterministic ordering.",
-    "space": "O(min(n, 20001)) for the frequency map and output",
-    "summary": "Counts frequencies in a dict, sorts the frequency values, takes the k largest, then re-scans the map to collect every key matching those frequencies and dedupes via a set. Correctness that exactly k elements are returned relies on the problem's guaranteed uniqueness of the answer (no tie at the k/(k+1) frequency boundary).",
-    "time_average": "O(n + u log u + k*u), where u is the number of unique elements; with the stated constraint that nums[i] is in [-10^4, 10^4], u <= 20001 so this simplifies to O(n)",
-    "time_worst": "O(n^2), since adversarial hash collisions degrade the n dict insertions/lookups to O(n) each"
+    "notes": "Convoluted and non-idiomatic: re-scanning num_counts.items() for every selected frequency is O(k*m) (mitigated here only because k <= 5 and the value range bounds distinct elements to 2001). The list(set(output)) dedup is a red flag for the tie-handling weakness. Prefer collections.Counter with most_common(k) or heapq.nlargest for a clean O(n) solution given bounded k.",
+    "space": "O(n)",
+    "summary": "Builds a frequency map with a dict, sorts the frequency values to find the top-k thresholds, then for each selected frequency scans the whole map to collect matching keys. The problem's uniqueness guarantee is what prevents ties from inflating the result beyond k elements.",
+    "time_average": "O(n)",
+    "time_worst": "O(n^2)"
   },
   "file": "Data Structures & Algorithms/top-k-elements-in-list/submission-2.py",
   "golf": {
@@ -20,5 +20,5 @@
   "model": "k3",
   "slug": "top-k-elements-in-list",
   "solved_at": "2026-08-12T18:40:56-07:00",
-  "statement": "top-k-frequent-elements"
+  "statement": "top-k-elements-in-list"
 }

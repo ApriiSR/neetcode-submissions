@@ -1,12 +1,12 @@
 {
-  "analysis_version": 2,
-  "analyzed_at": "2026-08-14T01:07:39.090712+00:00",
+  "analysis_version": 3,
+  "analyzed_at": "2026-08-14T01:19:36.434903+00:00",
   "complexity": {
     "benchmark_model": "n log n",
     "hash_dependent": false,
-    "notes": "Unnecessarily re-sorts an already sorted input and makes several linear index() calls; a plain two-pointer pass on nums would be O(n) time and O(1) space. The nums2 copy also violates the problem's constant-extra-space requirement, and mutating nums via pop is poor style. Negative-index initialization (high = -1) works but is non-idiomatic.",
+    "notes": "Unnecessarily re-sorts an input that is already sorted, adding an O(n log n) factor and O(n) extra space, which also violates the problem's O(1) space requirement. The nums.index() fallback scans are each O(n) and the pop-based duplicate handling is convoluted; a plain two-pointer sweep on the original array would be O(n) time and O(1) space.",
     "space": "O(n)",
-    "summary": "Sorts a copy of the array, applies the classic two-pointer scan to find the pair summing to target, then uses index() (plus a pop workaround for duplicate values) to recover the original 1-based indices.",
+    "summary": "Sorts a copy of the array, then uses a two-pointer sweep to find the pair summing to target, and finally recovers the original 1-indexed positions via linear index() searches.",
     "time_average": "O(n log n)",
     "time_worst": "O(n log n)"
   },
@@ -20,5 +20,5 @@
   "model": "k3",
   "slug": "two-integer-sum-ii",
   "solved_at": "2026-08-12T20:17:47-07:00",
-  "statement": "two-sum-ii-input-array-is-sorted"
+  "statement": "two-integer-sum-ii"
 }

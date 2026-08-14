@@ -1,12 +1,12 @@
 {
-  "analysis_version": 2,
-  "analyzed_at": "2026-08-14T01:06:09.819573+00:00",
+  "analysis_version": 3,
+  "analyzed_at": "2026-08-14T01:17:03.948400+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": false,
-    "notes": "Uses integer division (prod // num) in the no-zero case, directly violating the problem's explicit 'no division' requirement. Slices nums[:zero] and nums[zero+1:] create O(n) extra copies, so space is O(n) rather than the O(1) achievable with a prefix/suffix product pass. Correctness itself is fine given the stated 32-bit fit guarantee.",
+    "notes": "Uses the division operation, contrary to the follow-up constraint; a prefix/suffix product approach would avoid it. The zero-case branch creates O(n) slice copies that could be avoided by iterating over the original list with index checks, and `nums.count(0)` plus `nums.index(0)` make extra passes that could be fused into one. Division is exact here (floor division of an even multiple is exact), so the guaranteed 32-bit/product constraints keep it correct.",
     "space": "O(n)",
-    "summary": "Zero-counting approach: if more than one zero, all outputs are 0; if exactly one zero, the product of all nonzero elements is placed at the zero's index; otherwise it computes the total product and divides by each element.",
+    "summary": "Branches on the number of zeros: with more than one zero every output is 0; with exactly one zero it computes the product of the nonzero elements via two loops over slices; otherwise it computes the total product and divides by each element.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },
@@ -20,5 +20,5 @@
   "model": "k3",
   "slug": "products-of-array-discluding-self",
   "solved_at": "2026-08-12T18:40:56-07:00",
-  "statement": "product-of-array-except-self"
+  "statement": "products-of-array-discluding-self"
 }

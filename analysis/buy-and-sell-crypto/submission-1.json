@@ -1,12 +1,12 @@
 {
-  "analysis_version": 2,
-  "analyzed_at": "2026-08-14T01:05:16.909276+00:00",
+  "analysis_version": 3,
+  "analyzed_at": "2026-08-14T01:15:18.353245+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": false,
-    "notes": "Correctness bug: best_buy is initialized to 100, but constraints allow prices[i] up to 10^4. If all prices exceed 100 (e.g. prices = [7000, 8000]), the phantom buy price of 100 inflates the profit (returns 7900 instead of 1000). Initialize best_buy to prices[0] (length >= 1 is guaranteed) or to float('inf'). Also, iterating 'for price in prices' would be more idiomatic than indexing with range(len(prices)).",
+    "notes": "Initializing best_buy to 100 relies on the stated constraint prices[i] <= 100, which is guaranteed here; using prices[0] or float('inf') would be more robust and idiomatic. Iterating directly over the list (for p in prices) would be cleaner than range(len(prices)).",
     "space": "O(1)",
-    "summary": "Single pass tracking the minimum buy price seen so far and the maximum profit achievable by selling at each subsequent price.",
+    "summary": "Single pass tracking the minimum price seen so far (best_buy) and the maximum profit achievable by selling at each day, returning the best profit found.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },
@@ -20,5 +20,5 @@
   "model": "k3",
   "slug": "buy-and-sell-crypto",
   "solved_at": "2026-08-13T17:45:07-07:00",
-  "statement": "best-time-to-buy-and-sell-stock"
+  "statement": "buy-and-sell-crypto"
 }

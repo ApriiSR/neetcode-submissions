@@ -1,12 +1,12 @@
 {
-  "analysis_version": 2,
-  "analyzed_at": "2026-08-14T01:06:31.269062+00:00",
+  "analysis_version": 3,
+  "analyzed_at": "2026-08-14T01:17:34.366707+00:00",
   "complexity": {
     "benchmark_model": "n^2",
     "hash_dependent": false,
-    "notes": "The decode loop's `s = s[a+1+...:]` copies the entire remaining string each iteration, yielding O(n^2) behavior; tracking an integer offset into the original string (or using an index-based scan) would restore linear time. Encode is idiomatic and linear.",
+    "notes": "Decode is quadratic: each iteration re-slices the remaining string (s = s[...:]), copying O(remaining) characters per string, so total work is O(total_chars * num_strings). Using an index pointer instead of re-slicing would make it O(n) overall. Minor style point: the length prefix is parsed twice (int(s[0:a])); computing it once would be cleaner.",
     "space": "O(n)",
-    "summary": "Encodes each string with a length prefix separated by '|'. Decode repeatedly parses the length prefix and slices the string, but re-slicing the remainder each iteration copies the remaining characters, making decode quadratic in the total character volume.",
+    "summary": "Encodes each string as '<length>|<content>' concatenated together; decode repeatedly reads the length prefix up to the '|' delimiter, extracts that many characters, and slices off the consumed prefix.",
     "time_average": "O(n^2)",
     "time_worst": "O(n^2)"
   },
@@ -20,5 +20,5 @@
   "model": "k3",
   "slug": "string-encode-and-decode",
   "solved_at": "2026-08-12T19:37:28-07:00",
-  "statement": null
+  "statement": "string-encode-and-decode"
 }

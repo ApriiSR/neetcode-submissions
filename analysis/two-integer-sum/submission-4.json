@@ -1,12 +1,12 @@
 {
-  "analysis_version": 2,
-  "analyzed_at": "2026-08-14T01:07:16.224027+00:00",
+  "analysis_version": 3,
+  "analyzed_at": "2026-08-14T01:18:30.761782+00:00",
   "complexity": {
     "benchmark_model": "n log n",
     "hash_dependent": false,
-    "notes": "Index recovery via nums.index/nums.pop is convoluted and each call is O(n); storing (value, index) pairs before sorting, or using a hash map for the classic O(n) one-pass approach, would be cleaner and faster. The final sorted() on a two-element list is harmless but adds clutter.",
+    "notes": "No hash structures, so worst case is genuinely O(n log n). The index recovery via repeated nums.index() calls is O(n) each (still dominated by the sort) and the pop/shift logic for duplicates is convoluted; a single pass with a value-to-index dict would give O(n) average time and be far more idiomatic.",
     "space": "O(n)",
-    "summary": "Sorts a copy of the array and uses a two-pointer scan to find the pair summing to target, then recovers the original indices via list.index (with a pop-based workaround for duplicate values). Dominated by the O(n log n) sort; the index lookups add only O(n).",
+    "summary": "Sorts a copy of the array, uses a two-pointer scan to find the pair summing to target, then recovers the original indices via linear index() searches, with a pop-and-shift workaround when both elements share the same value.",
     "time_average": "O(n log n)",
     "time_worst": "O(n log n)"
   },
@@ -20,5 +20,5 @@
   "model": "k3",
   "slug": "two-integer-sum",
   "solved_at": "2026-08-12T18:40:56-07:00",
-  "statement": "two-sum"
+  "statement": "two-integer-sum"
 }

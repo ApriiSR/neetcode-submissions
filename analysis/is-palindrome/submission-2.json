@@ -1,12 +1,12 @@
 {
-  "analysis_version": 2,
-  "analyzed_at": "2026-08-14T01:05:50.855156+00:00",
+  "analysis_version": 3,
+  "analyzed_at": "2026-08-14T01:16:13.144591+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": false,
-    "notes": "Clean and idiomatic; could avoid the extra reversed copy with a two-pointer in-place scan (O(1) extra space), but the current O(n) approach is perfectly readable and meets constraints easily.",
+    "notes": "Clean and idiomatic one-liner style. Uses O(n) extra space for the filtered and reversed strings; a two-pointer scan over the original string would achieve O(1) auxiliary space, but at n <= 1000 this is irrelevant. Calling lower() before filtering lowercases non-alphanumeric characters unnecessarily, which is harmless but slightly wasteful.",
     "space": "O(n)",
-    "summary": "Filters the lowercased string down to alphanumeric characters, then checks palindromicity by comparing against its reverse. Both the filtering pass and the reversal/comparison are linear scans.",
+    "summary": "Filters the lowercased string down to alphanumeric characters, then checks whether the cleaned string equals its reverse.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },
@@ -20,5 +20,5 @@
   "model": "k3",
   "slug": "is-palindrome",
   "solved_at": "2026-08-12T20:11:07-07:00",
-  "statement": "valid-palindrome"
+  "statement": "is-palindrome"
 }

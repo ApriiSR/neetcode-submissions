@@ -1,12 +1,12 @@
 {
-  "analysis_version": 2,
-  "analyzed_at": "2026-08-14T01:05:44.376536+00:00",
+  "analysis_version": 3,
+  "analyzed_at": "2026-08-14T01:16:03.904418+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": false,
-    "notes": "s.lower() creates an O(n) copy of the string; comparing characters on the fly with case folding would reduce auxiliary space to O(1). Pointer-skipping loops are safe since b cannot pass a, which always rests on an alphanumeric character.",
+    "notes": "s.lower() creates an O(n) copy; this could be avoided by lowercasing individual characters on comparison for O(1) extra space. The left-pointer skip loop correctly guards against running off the end (all-non-alphanumeric input), while the right-pointer loop needs no guard since it can never cross below the left pointer's position.",
     "space": "O(n)",
-    "summary": "Lowercases the string, then uses two pointers from both ends, skipping non-alphanumeric characters and comparing characters until they meet or a mismatch is found.",
+    "summary": "Lowercases the string, then uses two pointers from both ends, skipping non-alphanumeric characters and comparing matching characters until the pointers meet.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },
@@ -20,5 +20,5 @@
   "model": "k3",
   "slug": "is-palindrome",
   "solved_at": "2026-08-12T20:08:33-07:00",
-  "statement": "valid-palindrome"
+  "statement": "is-palindrome"
 }

@@ -1,12 +1,12 @@
 {
-  "analysis_version": 2,
-  "analyzed_at": "2026-08-14T01:05:00.882032+00:00",
+  "analysis_version": 3,
+  "analyzed_at": "2026-08-14T01:15:00.302463+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": true,
-    "notes": "The annotation tuple(int) is invalid typing syntax (should be tuple[int, ...]); also word_tuple is recomputed for every word in both passes, and a collections.defaultdict(list) would avoid the double computation and the redundant dict-comprehension pass. Worst case assumes adversarial hash collisions degrade dict lookups to O(n) each.",
+    "notes": "Each word's key is computed twice (once when building the dict, once when appending); using defaultdict(list) in a single loop would avoid the redundant work and the double pass. The return annotation tuple(int) is invalid type-hint syntax (should be tuple[int, ...]), and ord(letter)-97 is less readable than ord(letter)-ord('a'). [d[group] for group in d] could be written as list(d.values()).",
     "space": "O(n)",
-    "summary": "Each word is mapped to a 26-element letter-count tuple used as a dict key; words sharing a key are appended to the same group. Since word lengths are bounded by a constant, all work is linear in the number of words.",
+    "summary": "Maps each word to a 26-element character-count tuple and uses that tuple as a dict key to bucket anagrams together. With word lengths bounded (3-8 chars), building each key is O(1), so grouping is linear in the number of words.",
     "time_average": "O(n)",
     "time_worst": "O(n^2)"
   },
@@ -20,5 +20,5 @@
   "model": "k3",
   "slug": "anagram-groups",
   "solved_at": "2026-08-12T18:40:56-07:00",
-  "statement": "group-anagrams"
+  "statement": "anagram-groups"
 }
