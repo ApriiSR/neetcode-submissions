@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-14T19:02:06.433367+00:00",
+  "generated_at": "2026-08-14T19:34:52.069635+00:00",
   "problems": {
     "anagram-groups": {
       "submissions": [
@@ -1173,6 +1173,34 @@
           "slug": "products-of-array-discluding-self",
           "solved_at": "2026-08-12T18:40:56-07:00",
           "statement": "products-of-array-discluding-self"
+        }
+      ]
+    },
+    "reverse-a-linked-list": {
+      "submissions": [
+        {
+          "analysis_version": 5,
+          "analyzed_at": "2026-08-14T19:34:51.938670+00:00",
+          "complexity": {
+            "benchmark_model": "n",
+            "hash_dependent": false,
+            "notes": "Correct but slightly awkward structure: the loop condition handles the tail node's relinking after the loop, whereas the standard idiom (while curr: save next, flip, advance) handles everything inside the loop and also subsumes the head-is-None/single-node edge cases.",
+            "space": "O(1)",
+            "summary": "Iteratively reverses the singly linked list in a single pass by redirecting each node's next pointer to its predecessor, tracking previous/current/next nodes.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
+          "file": "Data Structures & Algorithms/reverse-a-linked-list/submission-0.py",
+          "golf": {
+            "bytes": 640,
+            "characters": 640,
+            "non_blank_lines": 19,
+            "tokens": 78
+          },
+          "model": "k3",
+          "slug": "reverse-a-linked-list",
+          "solved_at": "2026-08-14T12:34:37-07:00",
+          "statement": "reverse-a-linked-list"
         }
       ]
     },
