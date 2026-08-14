@@ -110,7 +110,7 @@ def render_source_image(source_path: Path) -> bytes | None:
             FREEZE_LANGUAGE,
             "-t",
             FREEZE_THEME,
-            "-w",
+            "--window",
         ]
         try:
             subprocess.run(cmd, check=True, capture_output=True, timeout=30)
