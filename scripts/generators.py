@@ -1,9 +1,13 @@
 """Deterministic input generators for benchmarking NeetCode submissions.
 
 Each problem in `PROBLEMS` maps to:
-- `entry`: the Solution method to call.
-- `scalable`: False for fixed-shape problems (valid-sudoku is a fixed 9x9
-  board); benchmark.py skips scaling curves for these.
+- `entry`: the Solution method to call, or None for a design problem
+  whose submission defines no Solution class at all (minimum-stack).
+- `scalable`: False for problems benchmark.py can't time -- fixed-shape
+  inputs (valid-sudoku is a fixed 9x9 board) and shapes its loader can't
+  construct (minimum-stack, reverse-a-linked-list; see their
+  scaling_note); benchmark.py skips scaling curves for these, so their
+  `generate` documents the input shape rather than feeding a timing run.
 - `generate(n, rng)`: returns a positional-args tuple (excluding `self`)
   for `entry`, sized around n. Uses only the passed-in random.Random, so
   it's deterministic for a given seed.
@@ -54,6 +58,11 @@ def _adv_anagram_groups(n):
     base = "abcdefghij"
     words = [base[i % len(base):] + base[:i % len(base)] for i in range(n)]
     return (words,)
+
+
+def _gen_binary_search(n, rng):
+    nums = sorted(rng.sample(range(-n * 10, n * 10 + 1), n))
+    return (nums, nums[rng.randrange(n)])
 
 
 def _gen_buy_and_sell_crypto(n, rng):
@@ -132,6 +141,10 @@ def _gen_is_palindrome(n, rng):
     return (half + half[::-1],)
 
 
+def _gen_largest_rectangle_in_histogram(n, rng):
+    return ([rng.randint(1, 100) for _ in range(n)],)
+
+
 def _gen_longest_consecutive_sequence(n, rng):
     nums = list(range(n))
     rng.shuffle(nums)
@@ -142,8 +155,25 @@ def _adv_longest_consecutive_sequence(n):
     return (_int_collisions(n),)
 
 
+def _gen_minimum_stack(n, rng):
+    ops = []
+    depth = 0
+    for _ in range(n):
+        if depth and rng.random() < 0.4:
+            ops.append(("pop",))
+            depth -= 1
+        else:
+            ops.append(("push", rng.randint(-1000, 1000)))
+            depth += 1
+    return (ops,)
+
+
 def _gen_products_of_array_discluding_self(n, rng):
     return ([rng.choice((1, -1)) for _ in range(n)],)
+
+
+def _gen_reverse_a_linked_list(n, rng):
+    return ([rng.randint(-1000, 1000) for _ in range(n)],)
 
 
 def _gen_string_encode_and_decode(n, rng):
@@ -225,6 +255,14 @@ PROBLEMS = {
         "adversarial_note": "every word is a rotation of the same 10-letter multiset, so all n words share one anagram signature (one exact dict key, not merely one hash bucket) and land in a single group; empirically this does NOT degrade to O(n^2) the way distinct-but-colliding keys do, since CPython dicts resolve a repeated exact key by direct slot lookup rather than probing a chain — see README",
         "scaling_note": "n = number of words; each word's length is drawn from a fixed small range (3-8 chars) independent of n, so total character volume scales linearly with n",
     },
+    "binary-search": {
+        "entry": "search",
+        "scalable": True,
+        "generate": _gen_binary_search,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = array length; values are sampled without replacement from a range that scales with n (-10n..10n) and then sorted ascending, and the target is always one of the n values (never absent), so every run finds its target",
+    },
     "buy-and-sell-crypto": {
         "entry": "maxProfit",
         "scalable": True,
@@ -281,6 +319,14 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "n = length of the input string",
     },
+    "largest-rectangle-in-histogram": {
+        "entry": "largestRectangleArea",
+        "scalable": True,
+        "generate": _gen_largest_rectangle_in_histogram,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of bars; each height is drawn uniformly from the fixed range 1..100, independent of n -- so a submission that sweeps over every height value from 0 to max(heights) does a constant (<=101) number of linear passes and stays O(n), rather than the O(n * max height) it would show if heights grew with n",
+    },
     "longest-consecutive-sequence": {
         "entry": "longestConsecutive",
         "scalable": True,
@@ -289,6 +335,14 @@ PROBLEMS = {
         "adversarial_note": "n distinct multiples of 2**61-1, all hashing to 0, so every set insert/lookup collides",
         "scaling_note": "n = array length; values are a shuffled permutation of range(n), so the value range scales with n too",
     },
+    "minimum-stack": {
+        "entry": None,
+        "scalable": False,
+        "generate": _gen_minimum_stack,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "not benchmarked: this is a design problem -- the submission defines a MinStack class with push/pop/top/getMin rather than a Solution class with one entry method, so benchmark.py's loader has nothing to drive; the generator builds an n-operation sequence (~60% push, ~40% pop, never popping an empty stack) purely as documentation of the input shape",
+    },
     "products-of-array-discluding-self": {
         "entry": "productExceptSelf",
         "scalable": True,
@@ -296,6 +350,14 @@ PROBLEMS = {
         "adversarial": None,
         "adversarial_note": None,
         "scaling_note": "n = array length; each element is drawn from the fixed set {1, -1}, independent of n",
+    },
+    "reverse-a-linked-list": {
+        "entry": "reverseList",
+        "scalable": False,
+        "generate": _gen_reverse_a_linked_list,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "not benchmarked: the entry takes a linked-list head, and benchmark.py's loader defines only List and Optional in the submission's namespace, so the `Optional[ListNode]` annotation raises NameError before anything can be timed; the generator returns the n node values the list would be built from, where n = number of nodes",
     },
     "string-encode-and-decode": {
         "entry": "encode",
