@@ -1,0 +1,24 @@
+{
+  "analysis_version": 4,
+  "analyzed_at": "2026-08-14T02:49:24.465366+00:00",
+  "complexity": {
+    "benchmark_model": "n",
+    "hash_dependent": false,
+    "notes": "Correctly handles duplicate minimums by pushing on <= and popping only on equality. Initializing min_stack with float('inf') avoids an empty-check in push; all operations are cleanly O(1) with no hashing involved.",
+    "space": "O(n)",
+    "summary": "Maintains a main stack plus an auxiliary min stack that records each new running minimum (including duplicates), so getMin is just a peek at the min stack's top; pop discards the min entry only when the popped value equals the current minimum.",
+    "time_average": "O(1) per operation",
+    "time_worst": "O(1) per operation"
+  },
+  "file": "Data Structures & Algorithms/minimum-stack/submission-0.py",
+  "golf": {
+    "bytes": 526,
+    "characters": 526,
+    "non_blank_lines": 16,
+    "tokens": 135
+  },
+  "model": "k3",
+  "slug": "minimum-stack",
+  "solved_at": "2026-08-13T19:49:04-07:00",
+  "statement": "minimum-stack"
+}
