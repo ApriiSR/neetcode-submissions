@@ -7,6 +7,13 @@ on:
       - "Data Structures & Algorithms/**"
   workflow_dispatch: {}
 
+# Rapid consecutive exports used to race: two runs would analyze in
+# parallel, both commit, and the loser's rebase could hit a real conflict
+# on summary.json (and the announce step could double-post). Queue them.
+concurrency:
+  group: analyze-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   # charmbracelet/freeze release used to render the Discord announcement
   # screenshots — see "Install freeze" below. Bump deliberately.
