@@ -129,7 +129,7 @@ class RenderSourceImageTests(unittest.TestCase):
         self.assertIsNone(result)
 
     def test_returns_bytes_when_freeze_succeeds(self):
-        def fake_run(cmd, check, capture_output, timeout, stdin=None):
+        def fake_run(cmd, check, capture_output, timeout, stdin=None, env=None):
             out_path = Path(cmd[cmd.index("-o") + 1])
             out_path.write_bytes(b"\x89PNG-fake-bytes")
             return mock.Mock(returncode=0)
@@ -137,6 +137,12 @@ class RenderSourceImageTests(unittest.TestCase):
         with mock.patch("subprocess.run", side_effect=fake_run):
             result = announce.render_source_image(Path(__file__))
         self.assertEqual(result, b"\x89PNG-fake-bytes")
+
+    def test_runs_freeze_with_the_go_gc_disabled(self):
+        # Guards the wasm-fallback segfault mitigation; see FREEZE_ENV.
+        with mock.patch("subprocess.run", return_value=mock.Mock(returncode=0)) as mock_run:
+            announce.render_source_image(Path(__file__))
+        self.assertEqual(mock_run.call_args.kwargs["env"]["GOGC"], "off")
 
     def test_returns_none_when_output_missing_despite_success(self):
         with mock.patch("subprocess.run", return_value=mock.Mock(returncode=0)):
@@ -262,7 +268,7 @@ class MainPostsForEachRecordTests(unittest.TestCase):
         with mock.patch.dict("os.environ", {"DISCORD_WEBHOOK_URL": "https://discord.example/webhook"}):
             with mock.patch.object(announce, "load_new_records", return_value=self.records):
                 with mock.patch.object(
-                    announce, "build_announcement", return_value=({"embeds": []}, None, "x.png")
+                    announce, "build_announcement", return_value=({"embeds": []}, b"png", "x.png")
                 ):
                     with mock.patch.object(announce, "post_webhook", return_value=True) as mock_post:
                         with mock.patch("time.sleep") as mock_sleep:
@@ -270,6 +276,17 @@ class MainPostsForEachRecordTests(unittest.TestCase):
         self.assertEqual(mock_post.call_count, 2)
         mock_sleep.assert_called_once()  # sleeps between, not after the last
         self.assertEqual(result, 0)
+
+    def test_post_without_an_image_still_posts_but_is_an_error(self):
+        with mock.patch.dict("os.environ", {"DISCORD_WEBHOOK_URL": "https://discord.example/webhook"}):
+            with mock.patch.object(announce, "load_new_records", return_value=self.records[:1]):
+                with mock.patch.object(
+                    announce, "build_announcement", return_value=({"embeds": []}, None, "x.png")
+                ):
+                    with mock.patch.object(announce, "post_webhook", return_value=True) as mock_post:
+                        result = announce.main()
+        mock_post.assert_called_once()
+        self.assertEqual(result, 1)
 
     def test_returns_nonzero_when_a_post_fails(self):
         with mock.patch.dict("os.environ", {"DISCORD_WEBHOOK_URL": "https://discord.example/webhook"}):

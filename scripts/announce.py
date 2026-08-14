@@ -51,6 +51,17 @@ FREEZE_BIN = os.environ.get("FREEZE_BIN", "freeze")
 FREEZE_THEME = "dracula"
 FREEZE_LANGUAGE = "python"
 
+# freeze writes an SVG and then rasterizes it, preferring `rsvg-convert` when
+# it's on PATH and otherwise falling back to resvg compiled to WebAssembly and
+# run under wazero (freeze's png.go). That fallback is the flaky one: the wasm
+# module runs on its own stack, and Go's GC has crashed mid-render trying to
+# walk it — "SIGSEGV in runtime.scanstack" and "split stack overflow" are both
+# that. Turning the GC off keeps it from scanning anything during these
+# sub-second renders. The real fix is having rsvg-convert installed (CI does,
+# via .github/actions/setup-render), which skips the wasm path entirely; this
+# is just insurance for machines that don't.
+FREEZE_ENV = {**os.environ, "GOGC": "off"}
+
 PROJECT_URL = "https://apriiori.com/projects/neetcode/"
 
 # Discord's own semantic colors (from their branding guide), matching
@@ -121,8 +132,8 @@ def render_source_image(source_path: Path, header: str = "") -> bytes | None:
     """Render `source_path` (with `header` prepended) to a PNG via freeze.
     Returns the PNG bytes, or None on any failure (freeze missing, non-zero
     exit, timeout, or no output produced) — the caller falls back to posting
-    without an image. Retries once: freeze has been seen dying to a flaky Go
-    "split stack overflow" on inputs that render fine moments later."""
+    without an image. Retries once, since the crash described in
+    FREEZE_ENV can hit one invocation and not the next."""
     for attempt in range(2):
         result = _render_once(source_path, header)
         if result is not None:
@@ -153,7 +164,12 @@ def _render_once(source_path: Path, header: str) -> bytes | None:
             # over the file argument, and CI steps run with an empty pipe on
             # stdin — which reads as "No input" and kills the render.
             subprocess.run(
-                cmd, check=True, capture_output=True, timeout=30, stdin=subprocess.DEVNULL
+                cmd,
+                check=True,
+                capture_output=True,
+                timeout=30,
+                stdin=subprocess.DEVNULL,
+                env=FREEZE_ENV,
             )
         except subprocess.CalledProcessError as exc:
             stderr = (exc.stderr or b"").decode("utf-8", "replace")[:500]
@@ -314,6 +330,13 @@ def main():
         else:
             ok = post_webhook(webhook_url, payload, image_bytes, filename)
             had_error = had_error or not ok
+            if ok and image_bytes is None:
+                # The image is the announcement — an embed without it is a
+                # title and a link. Posting anyway beats silence, but this
+                # should turn the run red rather than hide in stderr, since
+                # the only other place it shows up is Discord.
+                print(f"::warning::posted {filename} without its screenshot (render failed)")
+                had_error = True
 
         if i < len(new_records) - 1:
             time.sleep(SLEEP_BETWEEN_POSTS)

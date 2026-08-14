@@ -14,11 +14,6 @@ concurrency:
   group: analyze-${{ github.ref }}
   cancel-in-progress: false
 
-env:
-  # charmbracelet/freeze release used to render the Discord announcement
-  # screenshots — see "Install freeze" below. Bump deliberately.
-  FREEZE_VERSION: "0.2.2"
-
 jobs:
   analyze:
     runs-on: ubuntu-latest
@@ -53,32 +48,11 @@ jobs:
           PYTHONHASHSEED: "0"
         run: python3 scripts/benchmark.py
 
-      - name: Cache freeze binary
+      - name: Set up screenshot rendering
         # Only meaningful when we're about to try rendering an image, i.e.
         # analysis actually succeeded — see the announce step's condition.
         if: always() && steps.analysis.outcome == 'success'
-        id: freeze-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.local/bin/freeze
-          key: freeze-${{ runner.os }}-${{ env.FREEZE_VERSION }}
-
-      - name: Install freeze
-        if: >-
-          always() && steps.analysis.outcome == 'success' &&
-          steps.freeze-cache.outputs.cache-hit != 'true'
-        run: |
-          curl -sL \
-            "https://github.com/charmbracelet/freeze/releases/download/v${FREEZE_VERSION}/freeze_${FREEZE_VERSION}_Linux_x86_64.tar.gz" \
-            -o /tmp/freeze.tar.gz
-          tar -xzf /tmp/freeze.tar.gz -C /tmp
-          mkdir -p ~/.local/bin
-          mv "/tmp/freeze_${FREEZE_VERSION}_Linux_x86_64/freeze" ~/.local/bin/freeze
-          chmod +x ~/.local/bin/freeze
-
-      - name: Add freeze to PATH
-        if: always() && steps.analysis.outcome == 'success'
-        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+        uses: ./.github/actions/setup-render
 
       - name: Announce new submissions
         # Runs whether or not benchmarking succeeded — a benchmark failure
@@ -88,9 +62,9 @@ jobs:
         # records announce.py reads. `if: always()` alone isn't enough
         # (it would also fire after a failed analysis step); checking
         # steps.analysis.outcome directly is unambiguous about which
-        # failure this is meant to tolerate. (announce.py itself also
-        # falls back to posting without an image if freeze is missing or
-        # fails, so a broken freeze install here still degrades gracefully.)
+        # failure this is meant to tolerate. (announce.py still posts if
+        # freeze is missing or fails — better a bare embed than silence —
+        # but exits non-zero so the imageless post shows up here too.)
         if: always() && steps.analysis.outcome == 'success'
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
