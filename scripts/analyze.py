@@ -62,7 +62,12 @@ SUBMISSION_RE = re.compile(r"^submission-(\d+)\.py$")
 # (fixed dict literals, small alphabets) were being wrongly rated O(n^2)
 # worst case. Bumped to 5 when the prompt gained the tightest-bound rule for
 # strategy-branching hybrids (report O(min(...)) instead of collapsing).
-ANALYSIS_VERSION = 5
+# Bumped to 6 when the collision rule was narrowed again, from "unbounded,
+# input-controlled key space" to "hash values the input can actually choose":
+# it was rating a set() of ListNode objects as O(n^2) worst case, but those
+# use Python's default identity hash, so the addresses the allocator hands
+# out — not the input — decide the hash values.
+ANALYSIS_VERSION = 6
 
 # Defensive cap on how much of a fetched problem statement goes into the
 # prompt. NeetCode statements observed so far top out well under this; it
@@ -75,12 +80,21 @@ SYSTEM_PROMPT = (
     "n, and a Python solution, respond with STRICT JSON only (no markdown "
     "fences, no prose outside the JSON object) with exactly these fields: "
     '"time_average" (string, Big-O), "time_worst" (string, Big-O; when the '
-    "solution hashes keys drawn from an unbounded, input-controlled space, "
+    "solution hashes keys whose HASH VALUES are computed from unbounded, "
+    "input-controlled data (ints, strings, or tuples built out of the input), "
     "the worst case must account for adversarial hash collisions degrading "
-    "lookups to O(n) — but when the keyed values come from a bounded or "
-    "constant set (a fixed dict literal, single characters from a fixed "
-    "alphabet, a bounded computed signature), collisions are bounded and "
-    'lookups stay O(1) worst case), "space" (string, Big-O), '
+    "lookups to O(n). Two things do NOT qualify. First, keyed values from a "
+    "bounded or constant set (a fixed dict literal, single characters from a "
+    "fixed alphabet, a bounded computed signature) — collisions are bounded. "
+    "Second, and this is the one most often gotten wrong: objects hashed by "
+    "Python's DEFAULT identity hash, i.e. instances of a class that defines "
+    "neither __hash__ nor __eq__, such as the ListNode/TreeNode objects "
+    "handed to you by the problem. Their hash derives from the object's "
+    "address, chosen by the allocator, so no input can steer it into "
+    "collisions the way an attacker-chosen int can — putting nodes in a "
+    "set()/dict is O(1) worst case, not O(n). Ask whether the INPUT can "
+    "choose the hash values, not merely how many keys there are), "
+    '"space" (string, Big-O), '
     '"hash_dependent" (boolean, true if correctness or the stated time '
     'complexity relies on dict/set average-case hashing), "benchmark_model" '
     "(string, the expected asymptotic running time reduced to a SINGLE "
