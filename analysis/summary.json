@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-14T03:25:05.136880+00:00",
+  "generated_at": "2026-08-14T03:49:02.400201+00:00",
   "problems": {
     "anagram-groups": {
       "submissions": [
@@ -217,6 +217,34 @@
           "slug": "buy-and-sell-crypto",
           "solved_at": "2026-08-13T17:45:07-07:00",
           "statement": "buy-and-sell-crypto"
+        }
+      ]
+    },
+    "car-fleet": {
+      "submissions": [
+        {
+          "analysis_version": 4,
+          "analyzed_at": "2026-08-14T03:49:02.267224+00:00",
+          "complexity": {
+            "benchmark_model": "n log n",
+            "hash_dependent": false,
+            "notes": "The debug print inside the loop should be removed (it also adds O(n) I/O overhead), and the math.ceil expressions in it are both unused for the logic and mathematically incorrect for the fleet check (integer ceilings can wrongly equate distinct arrival times) \u2014 only the float division comparison is correct. Using sorted(zip(position, speed)) would be more idiomatic than the index-based list comprehension. Starting result at 1 is safe only because the constraints guarantee n >= 1.",
+            "space": "O(n)",
+            "summary": "Pairs each car's position and speed, sorts by position, then scans from the car nearest the target backward: a trailing car merges into the lead fleet if its arrival time is no greater than the lead's, otherwise it starts a new fleet and becomes the new lead. Sorting dominates the runtime; the scan is linear.",
+            "time_average": "O(n log n)",
+            "time_worst": "O(n log n)"
+          },
+          "file": "Data Structures & Algorithms/car-fleet/submission-4.py",
+          "golf": {
+            "bytes": 570,
+            "characters": 570,
+            "non_blank_lines": 14,
+            "tokens": 182
+          },
+          "model": "k3",
+          "slug": "car-fleet",
+          "solved_at": "2026-08-13T20:48:38-07:00",
+          "statement": "car-fleet"
         }
       ]
     },
