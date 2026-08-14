@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-14T21:59:26.314215+00:00",
+  "generated_at": "2026-08-14T22:10:23.072261+00:00",
   "problems": {
     "anagram-groups": {
       "submissions": [
@@ -1123,6 +1123,30 @@
           "model": "k3",
           "slug": "linked-list-cycle-detection",
           "solved_at": "2026-08-14T14:59:04-07:00",
+          "statement": "linked-list-cycle-detection"
+        },
+        {
+          "analysis_version": 5,
+          "analyzed_at": "2026-08-14T22:10:22.940494+00:00",
+          "complexity": {
+            "benchmark_model": "n",
+            "hash_dependent": true,
+            "notes": "Correct but uses O(n) extra space; Floyd's tortoise-and-hare algorithm would detect the cycle in O(1) space. The unused counter `i` should be removed. Worst case degrades to O(n^2) under adversarial hash collisions on the node objects.",
+            "space": "O(n)",
+            "summary": "Traverses the list while storing each visited node in a hash set; if a node is encountered that is already in the set, a cycle exists, otherwise the walk ends at null.",
+            "time_average": "O(n)",
+            "time_worst": "O(n^2)"
+          },
+          "file": "Data Structures & Algorithms/linked-list-cycle-detection/submission-2.py",
+          "golf": {
+            "bytes": 474,
+            "characters": 474,
+            "non_blank_lines": 17,
+            "tokens": 58
+          },
+          "model": "k3",
+          "slug": "linked-list-cycle-detection",
+          "solved_at": "2026-08-14T15:10:02-07:00",
           "statement": "linked-list-cycle-detection"
         }
       ]
