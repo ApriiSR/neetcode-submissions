@@ -1,0 +1,24 @@
+{
+  "analysis_version": 4,
+  "analyzed_at": "2026-08-14T03:25:05.018769+00:00",
+  "complexity": {
+    "benchmark_model": "n",
+    "hash_dependent": false,
+    "notes": "Initializing best_buy to 100 relies on the stated constraint prices[i] <= 100, which is guaranteed, but float('inf') would be more idiomatic and constraint-independent. Iterating with 'for price in prices' would also be cleaner than indexing.",
+    "space": "O(1)",
+    "summary": "Single pass tracking the minimum price seen so far (best_buy) and the maximum profit of selling at each day, returning the best profit found. Since best_profit starts at 0, the no-transaction case is handled automatically.",
+    "time_average": "O(n)",
+    "time_worst": "O(n)"
+  },
+  "file": "Data Structures & Algorithms/buy-and-sell-crypto/submission-1.py",
+  "golf": {
+    "bytes": 290,
+    "characters": 290,
+    "non_blank_lines": 8,
+    "tokens": 61
+  },
+  "model": "k3",
+  "slug": "buy-and-sell-crypto",
+  "solved_at": "2026-08-13T17:45:07-07:00",
+  "statement": "buy-and-sell-crypto"
+}

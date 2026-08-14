@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-14T03:18:55.113682+00:00",
+  "generated_at": "2026-08-14T03:25:05.136880+00:00",
   "problems": {
     "anagram-groups": {
       "submissions": [
@@ -157,7 +157,7 @@
         },
         {
           "analysis_version": 4,
-          "analyzed_at": "2026-08-14T02:40:08.244078+00:00",
+          "analyzed_at": "2026-08-14T03:25:05.018769+00:00",
           "benchmarks": {
             "adversarial": null,
             "best_fit": "n",
@@ -200,9 +200,9 @@
           "complexity": {
             "benchmark_model": "n",
             "hash_dependent": false,
-            "notes": "Initializing best_buy to 100 relies on the stated constraint prices[i] <= 100; using float('inf') (or prices[0]) would be more robust and idiomatic. Iterating with 'for price in prices' would be cleaner than indexing via range(len(prices)).",
+            "notes": "Initializing best_buy to 100 relies on the stated constraint prices[i] <= 100, which is guaranteed, but float('inf') would be more idiomatic and constraint-independent. Iterating with 'for price in prices' would also be cleaner than indexing.",
             "space": "O(1)",
-            "summary": "Single-pass scan tracking the minimum price seen so far (best_buy) and the maximum profit achievable by selling at the current day. Returns the best profit found, defaulting to 0 if no profitable transaction exists.",
+            "summary": "Single pass tracking the minimum price seen so far (best_buy) and the maximum profit of selling at each day, returning the best profit found. Since best_profit starts at 0, the no-transaction case is handled automatically.",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },
