@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-14T04:35:21.977098+00:00",
+  "generated_at": "2026-08-14T18:18:46.522439+00:00",
   "problems": {
     "anagram-groups": {
       "submissions": [
@@ -901,6 +901,34 @@
           "slug": "is-palindrome",
           "solved_at": "2026-08-12T20:11:07-07:00",
           "statement": "is-palindrome"
+        }
+      ]
+    },
+    "largest-rectangle-in-histogram": {
+      "submissions": [
+        {
+          "analysis_version": 5,
+          "analyzed_at": "2026-08-14T18:18:46.401973+00:00",
+          "complexity": {
+            "benchmark_model": "n",
+            "hash_dependent": false,
+            "notes": "Relies on the problem's value bound to be feasible; without it, runtime degrades with the magnitude of heights. The classic O(n) monotonic-stack solution is preferable and independent of height values. Minor style point: initializing `largest` with max(heights) doubles as both a lower bound and the loop limit, which is clever but obscure.",
+            "space": "O(1)",
+            "summary": "Brute-force: for each candidate height i from 0 up to max(heights), scan the array to find the widest run of bars with height >= i and track the maximum area. The stated value bound (heights[i] <= 10,000) caps the outer loop at a constant, making it linear in practice.",
+            "time_average": "O(n * H) where H = max(heights); since constraints bound heights[i] <= 10,000, this is effectively O(n)",
+            "time_worst": "O(n * H) where H = max(heights); with the stated bound H <= 10,000, effectively O(n)"
+          },
+          "file": "Data Structures & Algorithms/largest-rectangle-in-histogram/submission-0.py",
+          "golf": {
+            "bytes": 486,
+            "characters": 486,
+            "non_blank_lines": 15,
+            "tokens": 83
+          },
+          "model": "k3",
+          "slug": "largest-rectangle-in-histogram",
+          "solved_at": "2026-08-14T11:18:17-07:00",
+          "statement": "largest-rectangle-in-histogram"
         }
       ]
     },
