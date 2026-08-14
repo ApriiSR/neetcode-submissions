@@ -228,6 +228,23 @@ class MainQuietPathTests(unittest.TestCase):
         with mock.patch.object(analyze, "new_this_run_path", return_value=Path("/nonexistent/x.json")):
             self.assertEqual(announce.load_new_records(), [])
 
+    def test_reanalysis_records_are_not_announced(self):
+        # A version bump re-analyzes every existing record; announcing those
+        # would flood the channel with old solves.
+        import tempfile as _tf
+        with _tf.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
+            json.dump(
+                [
+                    {"slug": "old", "number": 0, "reanalysis": True},
+                    {"slug": "new", "number": 1, "reanalysis": False},
+                    {"slug": "legacy", "number": 2},
+                ],
+                f,
+            )
+        with mock.patch.object(analyze, "new_this_run_path", return_value=Path(f.name)):
+            slugs = [r["slug"] for r in announce.load_new_records()]
+        self.assertEqual(slugs, ["new", "legacy"])
+
 
 class MainPostsForEachRecordTests(unittest.TestCase):
     def setUp(self):

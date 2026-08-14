@@ -57,8 +57,11 @@ SUBMISSION_RE = re.compile(r"^submission-(\d+)\.py$")
 # stated constraints can differ from LeetCode's (e.g. buy-and-sell-crypto
 # caps prices at 100 on NeetCode vs. 10^4 on LeetCode), so every record
 # analyzed against a LeetCode-sourced statement needs redoing against the
-# correct one.
-ANALYSIS_VERSION = 3
+# correct one. Bumped to 4 when the always-assume-hash-collisions prompt rule
+# was scoped to unbounded input-controlled key spaces — constant key sets
+# (fixed dict literals, small alphabets) were being wrongly rated O(n^2)
+# worst case.
+ANALYSIS_VERSION = 4
 
 # Defensive cap on how much of a fetched problem statement goes into the
 # prompt. NeetCode statements observed so far top out well under this; it
@@ -70,9 +73,13 @@ SYSTEM_PROMPT = (
     "its problem statement, a note on how that problem's input scales with "
     "n, and a Python solution, respond with STRICT JSON only (no markdown "
     "fences, no prose outside the JSON object) with exactly these fields: "
-    '"time_average" (string, Big-O), "time_worst" (string, Big-O; if the '
-    "solution uses a dict or set, the worst case must account for adversarial "
-    "hash collisions degrading lookups to O(n)), \"space\" (string, Big-O), "
+    '"time_average" (string, Big-O), "time_worst" (string, Big-O; when the '
+    "solution hashes keys drawn from an unbounded, input-controlled space, "
+    "the worst case must account for adversarial hash collisions degrading "
+    "lookups to O(n) — but when the keyed values come from a bounded or "
+    "constant set (a fixed dict literal, single characters from a fixed "
+    "alphabet, a bounded computed signature), collisions are bounded and "
+    'lookups stay O(1) worst case), "space" (string, Big-O), '
     '"hash_dependent" (boolean, true if correctness or the stated time '
     'complexity relies on dict/set average-case hashing), "benchmark_model" '
     "(string, the expected asymptotic running time reduced to a SINGLE "
@@ -422,6 +429,9 @@ def main():
         out_path = out_dir / f"submission-{number}.json"
         if has_good_analysis(out_path):
             continue
+        # An existing (stale/errored) record means this is a re-analysis —
+        # e.g. a version bump — not a fresh solve; announce.py skips those.
+        reanalysis = out_path.is_file()
 
         record, failed = analyze_submission(slug, number, path, args.mock)
         had_error = had_error or failed
@@ -440,6 +450,7 @@ def main():
                     "number": number,
                     "file": str(path.relative_to(REPO_ROOT)),
                     "analysis_file": str(out_path.relative_to(REPO_ROOT)),
+                    "reanalysis": reanalysis,
                 }
             )
 

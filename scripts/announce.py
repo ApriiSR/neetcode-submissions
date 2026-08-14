@@ -279,7 +279,11 @@ def load_new_records() -> list:
         data = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
         return []
-    return data if isinstance(data, list) else []
+    if not isinstance(data, list):
+        return []
+    # Re-analyses (version bumps, error retries) regenerate records for old
+    # solves — announcing those would flood the channel with stale problems.
+    return [r for r in data if not r.get("reanalysis")]
 
 
 def main():
