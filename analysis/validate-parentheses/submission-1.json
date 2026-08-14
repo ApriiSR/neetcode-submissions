@@ -1,11 +1,12 @@
 {
-  "analyzed_at": "2026-08-14T00:01:46.714024+00:00",
+  "analysis_version": 2,
+  "analyzed_at": "2026-08-14T01:07:56.792320+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": false,
-    "notes": "Membership test against a 3-element list is O(1) but a set or a mapping dict (e.g. {')': '(', ...}) would be more idiomatic and avoid the repeated pop() calls; the current structure calls stack.pop() up to three times per closing bracket, which is awkward though still correct. Worst case is genuinely O(n) since no hash-based structures are used.",
+    "notes": "Correct but slightly awkward structure: the elif chain pops the stack inside the condition, so a mismatched type pops an element and returns False anyway (harmless here, but fragile if extended). Using a dict mapping closers to openers (e.g. {')':'(', '}':'{', ']':'['}) plus a set for openers would be more idiomatic and concise.",
     "space": "O(n)",
-    "summary": "Single pass over the string pushing opening brackets onto a stack; on each closing bracket it pops and verifies the match, returning False on mismatch or empty stack, and finally checks the stack is empty.",
+    "summary": "Classic stack-based validation: push opening brackets, and on each closing bracket pop and check the type matches; the string is valid iff the stack is empty at the end. Membership testing uses a small constant-size list, so each character is processed in O(1) time.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },
@@ -18,5 +19,6 @@
   },
   "model": "k3",
   "slug": "validate-parentheses",
-  "solved_at": "2026-08-13T17:01:27-07:00"
+  "solved_at": "2026-08-13T17:01:27-07:00",
+  "statement": "valid-parentheses"
 }

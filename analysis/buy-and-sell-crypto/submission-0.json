@@ -1,11 +1,12 @@
 {
-  "analyzed_at": "2026-08-14T00:30:34.268724+00:00",
+  "analysis_version": 2,
+  "analyzed_at": "2026-08-14T01:05:11.562527+00:00",
   "complexity": {
     "benchmark_model": "n^2",
     "hash_dependent": false,
-    "notes": "best_buy is dead code as written; the intended O(n) single-pass optimization would use best_buy (min price so far) instead of the inner loop. Minor style: iterating range(len(prices)) is cleaner, and prices[i] should be best_buy if the inner loop is removed.",
+    "notes": "The variable best_buy is dead code \u2014 it is updated but never used in the profit calculation (the inner loop uses prices[i] directly); its initialization to 100 would also be wrong given prices can be up to 10^4. A single-pass O(n) solution tracking the minimum price so far would be idiomatic; as written this will time out for n = 10^5.",
     "space": "O(1)",
-    "summary": "Brute-force enumeration of every buy index i and sell index j>i, keeping the maximum prices[j]-prices[i]. It tracks best_buy but never actually uses it in the profit update, so the result is still correct for all pairs.",
+    "summary": "Brute-force approach: for each buy day i, scans all later days j and tracks the maximum price difference, returning the best profit found (or 0 if none).",
     "time_average": "O(n^2)",
     "time_worst": "O(n^2)"
   },
@@ -18,5 +19,6 @@
   },
   "model": "k3",
   "slug": "buy-and-sell-crypto",
-  "solved_at": "2026-08-13T17:30:11-07:00"
+  "solved_at": "2026-08-13T17:30:11-07:00",
+  "statement": "best-time-to-buy-and-sell-stock"
 }

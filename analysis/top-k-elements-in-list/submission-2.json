@@ -1,13 +1,14 @@
 {
-  "analyzed_at": "2026-08-13T21:55:06.514325+00:00",
+  "analysis_version": 2,
+  "analyzed_at": "2026-08-14T01:07:02.917984+00:00",
   "complexity": {
-    "benchmark_model": "n log n",
+    "benchmark_model": "n",
     "hash_dependent": true,
-    "notes": "Non-idiomatic counting (use dict.get(num, 0) + 1 or collections.Counter) and the reverse lookup re-scans the dict up to k times instead of sorting items by frequency directly. Also, when multiple keys share a frequency, the set-deduped result can return more than k elements, and duplicate frequencies in the sliced list cause redundant scans.",
-    "space": "O(n)",
-    "summary": "Builds a frequency map with a dict, sorts the frequency values and keeps the top k (k <= 5, so bounded), then for each retained frequency scans the whole dict to recover matching keys, deduplicating with a set at the end.",
-    "time_average": "O(n log n)",
-    "time_worst": "O(n^2)"
+    "notes": "The approach is convoluted and non-idiomatic: sorting values then reverse-lookup by linear scan is O(k*u) and fragile; collections.Counter plus heapq.nlargest(k, counter, key=counter.get) or counter.most_common(k) would be clearer and directly satisfy the better-than-O(n log n) follow-up. Also, the final set(output) dedupe both masks the duplicate-inclusion issue and discards deterministic ordering.",
+    "space": "O(min(n, 20001)) for the frequency map and output",
+    "summary": "Counts frequencies in a dict, sorts the frequency values, takes the k largest, then re-scans the map to collect every key matching those frequencies and dedupes via a set. Correctness that exactly k elements are returned relies on the problem's guaranteed uniqueness of the answer (no tie at the k/(k+1) frequency boundary).",
+    "time_average": "O(n + u log u + k*u), where u is the number of unique elements; with the stated constraint that nums[i] is in [-10^4, 10^4], u <= 20001 so this simplifies to O(n)",
+    "time_worst": "O(n^2), since adversarial hash collisions degrade the n dict insertions/lookups to O(n) each"
   },
   "file": "Data Structures & Algorithms/top-k-elements-in-list/submission-2.py",
   "golf": {
@@ -18,5 +19,6 @@
   },
   "model": "k3",
   "slug": "top-k-elements-in-list",
-  "solved_at": "2026-08-12T18:40:56-07:00"
+  "solved_at": "2026-08-12T18:40:56-07:00",
+  "statement": "top-k-frequent-elements"
 }

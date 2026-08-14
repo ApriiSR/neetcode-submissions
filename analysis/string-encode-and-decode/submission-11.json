@@ -1,11 +1,12 @@
 {
-  "analyzed_at": "2026-08-13T21:54:36.631384+00:00",
+  "analysis_version": 2,
+  "analyzed_at": "2026-08-14T01:06:31.269062+00:00",
   "complexity": {
     "benchmark_model": "n^2",
     "hash_dependent": false,
-    "notes": "Encode is clean and linear. Decode would be O(n) if it used an index pointer into the original string instead of reslicing s each loop; the repeated s = s[k:] copies dominate the runtime. Also note int(s[0:a]) is computed twice per iteration and could be stored in a variable.",
+    "notes": "The decode loop's `s = s[a+1+...:]` copies the entire remaining string each iteration, yielding O(n^2) behavior; tracking an integer offset into the original string (or using an index-based scan) would restore linear time. Encode is idiomatic and linear.",
     "space": "O(n)",
-    "summary": "Encodes each string as a length-prefixed token (len|s). Decoding repeatedly finds the delimiter, slices out the string, and reassigns s to the sliced remainder, which copies the remaining characters every iteration and makes decode quadratic in the total character volume.",
+    "summary": "Encodes each string with a length prefix separated by '|'. Decode repeatedly parses the length prefix and slices the string, but re-slicing the remainder each iteration copies the remaining characters, making decode quadratic in the total character volume.",
     "time_average": "O(n^2)",
     "time_worst": "O(n^2)"
   },
@@ -18,5 +19,6 @@
   },
   "model": "k3",
   "slug": "string-encode-and-decode",
-  "solved_at": "2026-08-12T19:37:28-07:00"
+  "solved_at": "2026-08-12T19:37:28-07:00",
+  "statement": null
 }

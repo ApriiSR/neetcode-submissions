@@ -1,11 +1,12 @@
 {
-  "analyzed_at": "2026-08-13T21:52:56.794234+00:00",
+  "analysis_version": 2,
+  "analyzed_at": "2026-08-14T01:05:00.882032+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": true,
-    "notes": "word_tuple is computed twice per word (once to build the dict, once to append); a collections.defaultdict(list) or dict.setdefault would avoid the redundant work and be cleaner. The annotation 'tuple(int)' is a runtime call, not a type hint \u2014 it should be 'tuple[int, ...]'. Worst case is O(n^2) because adversarial hash collisions degrade dict operations to O(n) each.",
+    "notes": "The annotation tuple(int) is invalid typing syntax (should be tuple[int, ...]); also word_tuple is recomputed for every word in both passes, and a collections.defaultdict(list) would avoid the double computation and the redundant dict-comprehension pass. Worst case assumes adversarial hash collisions degrade dict lookups to O(n) each.",
     "space": "O(n)",
-    "summary": "Each word is mapped to a 26-element letter-count tuple used as a dict key, and words are grouped by identical signatures. Since word length is bounded by a small constant, each signature is computed in O(1), giving linear average time overall.",
+    "summary": "Each word is mapped to a 26-element letter-count tuple used as a dict key; words sharing a key are appended to the same group. Since word lengths are bounded by a constant, all work is linear in the number of words.",
     "time_average": "O(n)",
     "time_worst": "O(n^2)"
   },
@@ -18,5 +19,6 @@
   },
   "model": "k3",
   "slug": "anagram-groups",
-  "solved_at": "2026-08-12T18:40:56-07:00"
+  "solved_at": "2026-08-12T18:40:56-07:00",
+  "statement": "group-anagrams"
 }

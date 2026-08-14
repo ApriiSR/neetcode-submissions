@@ -1,11 +1,12 @@
 {
-  "analyzed_at": "2026-08-13T21:53:42.500776+00:00",
+  "analysis_version": 2,
+  "analyzed_at": "2026-08-14T01:05:59.449942+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": true,
-    "notes": "The pop-then-expand trick avoids the usual 'only start from run beginnings' check and is elegant, though slightly less conventional than the canonical sequence-start approach; readability is still good.",
+    "notes": "The pop-and-expand approach is correct and achieves amortized O(n) since each element is removed from the set at most once. The worst case degrades to O(n^2) under adversarial hash collisions in the set membership checks. A common alternative idiom only expands from sequence starts (checking num-1 not in set first), which avoids some redundant membership tests but has the same asymptotic complexity.",
     "space": "O(n)",
-    "summary": "Builds a set of the values, then repeatedly pops an arbitrary element and expands outward to consume its entire consecutive run, tracking the maximum run length. Each element is removed from the set exactly once, giving linear total work on average.",
+    "summary": "Builds a set of the numbers, then repeatedly pops an arbitrary element and expands outward in both directions, removing each consecutive element from the set so every value is processed exactly once. Tracks the maximum run length found.",
     "time_average": "O(n)",
     "time_worst": "O(n^2)"
   },
@@ -18,5 +19,6 @@
   },
   "model": "k3",
   "slug": "longest-consecutive-sequence",
-  "solved_at": "2026-08-12T19:11:24-07:00"
+  "solved_at": "2026-08-12T19:11:24-07:00",
+  "statement": "longest-consecutive-sequence"
 }

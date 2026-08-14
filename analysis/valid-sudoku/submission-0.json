@@ -1,11 +1,12 @@
 {
-  "analyzed_at": "2026-08-13T21:55:35.637864+00:00",
+  "analysis_version": 2,
+  "analyzed_at": "2026-08-14T01:07:47.648398+00:00",
   "complexity": {
     "benchmark_model": "1",
     "hash_dependent": false,
-    "notes": "The `valid *= isValidLine(...)` trick works (bool-as-int multiplication) but is unidiomatic; `valid = valid and isValidLine(...)` or `all(...)` would be clearer. Also, `line.count(num)` re-scans for every element, which is fine at this size, and the `List` type hints require `from typing import List`.",
+    "notes": "Using `valid *= isValidLine(...)` (integer multiplication of booleans) is unidiomatic; `valid = valid and isValidLine(...)` or early returns would be clearer. `line.count(num)` inside the loop is O(9) per call, fine here but a set-based check would be the standard pattern for scalable input.",
     "space": "O(1)",
-    "summary": "Validates the fixed 9x9 Sudoku by scanning each row, column, and 3x3 box, rejecting any line where a non-'.' digit appears more than once (checked via list.count). Since the board size is constant, all work is constant.",
+    "summary": "Validates each row, column, and 3x3 box by checking for duplicate digits using list.count on each filled cell. Since the board is a fixed 9x9 grid, all work is bounded by a constant.",
     "time_average": "O(1)",
     "time_worst": "O(1)"
   },
@@ -18,5 +19,6 @@
   },
   "model": "k3",
   "slug": "valid-sudoku",
-  "solved_at": "2026-08-12T18:56:58-07:00"
+  "solved_at": "2026-08-12T18:56:58-07:00",
+  "statement": "valid-sudoku"
 }
