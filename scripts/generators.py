@@ -55,6 +55,10 @@ def _adv_anagram_groups(n):
     return (words,)
 
 
+def _gen_buy_and_sell_crypto(n, rng):
+    return ([rng.randint(1, 1000) for _ in range(n)],)
+
+
 def _gen_duplicate_integer(n, rng):
     return (rng.sample(range(n * 4 + 1), n),)
 
@@ -169,6 +173,14 @@ PROBLEMS = {
         "adversarial": _adv_anagram_groups,
         "adversarial_note": "every word is a rotation of the same 10-letter multiset, so all n words share one anagram signature (one exact dict key, not merely one hash bucket) and land in a single group; empirically this does NOT degrade to O(n^2) the way distinct-but-colliding keys do, since CPython dicts resolve a repeated exact key by direct slot lookup rather than probing a chain — see README",
         "scaling_note": "n = number of words; each word's length is drawn from a fixed small range (3-8 chars) independent of n, so total character volume scales linearly with n",
+    },
+    "buy-and-sell-crypto": {
+        "entry": "maxProfit",
+        "scalable": True,
+        "generate": _gen_buy_and_sell_crypto,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = array length; each price is drawn uniformly from the fixed range 1..1000, independent of n",
     },
     "duplicate-integer": {
         "entry": "hasDuplicate",
