@@ -1,0 +1,24 @@
+{
+  "analysis_version": 3,
+  "analyzed_at": "2026-08-14T01:59:28.216243+00:00",
+  "complexity": {
+    "benchmark_model": "n",
+    "hash_dependent": false,
+    "notes": "Correct and readable. The elif chain conditionally pops, which is subtle but works; using a dict like pairs = {')': '(', '}': '{', ']': '['} would make the matching logic more concise. The membership test against a 3-element list is O(1) and fine, though a set or tuple would be more idiomatic.",
+    "space": "O(n)",
+    "summary": "Classic stack-based validation: push opening brackets, and on each closing bracket check that the popped top of stack is the matching opener. Returns false on any mismatch or premature closer, and true only if the stack is empty at the end.",
+    "time_average": "O(n)",
+    "time_worst": "O(n)"
+  },
+  "file": "Data Structures & Algorithms/validate-parentheses/submission-1.py",
+  "golf": {
+    "bytes": 586,
+    "characters": 586,
+    "non_blank_lines": 16,
+    "tokens": 97
+  },
+  "model": "k3",
+  "slug": "validate-parentheses",
+  "solved_at": "2026-08-13T17:01:27-07:00",
+  "statement": "validate-parentheses"
+}
