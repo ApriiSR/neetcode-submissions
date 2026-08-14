@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-14T03:52:16.035725+00:00",
+  "generated_at": "2026-08-14T04:12:25.173569+00:00",
   "problems": {
     "anagram-groups": {
       "submissions": [
@@ -268,6 +268,30 @@
           "model": "k3",
           "slug": "car-fleet",
           "solved_at": "2026-08-13T20:48:54-07:00",
+          "statement": "car-fleet"
+        },
+        {
+          "analysis_version": 4,
+          "analyzed_at": "2026-08-14T04:12:25.037075+00:00",
+          "complexity": {
+            "benchmark_model": "n",
+            "hash_dependent": false,
+            "notes": "Clever bucket trick avoids an O(n log n) sort but costs O(target) time and space regardless of n; a sort-based scan is more idiomatic and memory-friendly. Float division is safe here given the bounds, though cross-multiplication would avoid floating point entirely.",
+            "space": "O(target)",
+            "summary": "Buckets cars by position into a target-sized array (positions are unique, so no collisions), then scans from closest to the destination outward, merging any car whose arrival time is no later than the current lead fleet's and counting a new fleet otherwise.",
+            "time_average": "O(n + target)",
+            "time_worst": "O(n + target)"
+          },
+          "file": "Data Structures & Algorithms/car-fleet/submission-6.py",
+          "golf": {
+            "bytes": 551,
+            "characters": 551,
+            "non_blank_lines": 15,
+            "tokens": 149
+          },
+          "model": "k3",
+          "slug": "car-fleet",
+          "solved_at": "2026-08-13T21:12:01-07:00",
           "statement": "car-fleet"
         }
       ]
