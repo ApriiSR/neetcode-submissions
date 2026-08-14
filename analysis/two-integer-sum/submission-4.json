@@ -1,12 +1,12 @@
 {
-  "analysis_version": 5,
-  "analyzed_at": "2026-08-14T04:32:29.153974+00:00",
+  "analysis_version": 6,
+  "analyzed_at": "2026-08-14T22:27:41.490917+00:00",
   "complexity": {
     "benchmark_model": "n log n",
     "hash_dependent": false,
-    "notes": "The nums.index() calls are O(n) linear scans each (still dominated by the sort), and nums.pop() mutates the caller's input list, which is poor practice. A dict-based single pass would achieve O(n) average time and avoid the index-recovery awkwardness.",
+    "notes": "No hashing is used, so worst case is genuinely O(n log n) from the sort; the index() calls are O(n) each but only a constant number of them. The index-recovery logic is convoluted and fragile \u2014 storing (value, index) pairs before sorting or using a hash map would be both simpler and O(n) average time. Also note nums.index may misidentify which of two equal-valued elements was picked, though the single-solution guarantee prevents wrong output.",
     "space": "O(n)",
-    "summary": "Sorts a copy of the array and uses a two-pointer scan to find the pair summing to target, then recovers the original indices via linear nums.index() searches, with special handling when the pair is a duplicated value.",
+    "summary": "Copies and sorts the array, then uses a two-pointer scan from both ends to find the pair summing to target, and finally recovers the original indices via linear index() lookups (with a pop workaround for duplicate values).",
     "time_average": "O(n log n)",
     "time_worst": "O(n log n)"
   },

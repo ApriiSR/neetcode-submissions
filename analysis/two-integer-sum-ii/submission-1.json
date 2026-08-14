@@ -1,12 +1,12 @@
 {
-  "analysis_version": 5,
-  "analyzed_at": "2026-08-14T04:32:41.667519+00:00",
+  "analysis_version": 6,
+  "analyzed_at": "2026-08-14T22:27:51.479493+00:00",
   "complexity": {
     "benchmark_model": "n log n",
     "hash_dependent": false,
-    "notes": "Sorting is unnecessary since the input is guaranteed pre-sorted, and the nums2 copy plus the O(1)-space requirement in the problem statement are violated (uses O(n) extra space). The index() calls are O(n) each but remain dominated by the O(n log n) sort; correctness is fine given the exactly-one-solution guarantee.",
+    "notes": "The input is guaranteed sorted, so sorting is wasted work and forces an awkward value-to-index remapping; a direct two-pointer scan on nums would be O(n) time and O(1) space. As written, nums2 is an O(n) copy, violating the problem's O(1) extra-space requirement, and mutating nums with pop is poor style. The O(n) index/pop calls are dominated by the sort, so the bound stands.",
     "space": "O(n)",
-    "summary": "Sorts a copy of the array, then runs a two-pointer scan from both ends to find the pair summing to target, and finally recovers the original 1-indexed positions via linear index() lookups (with a pop to disambiguate duplicate values).",
+    "summary": "Needlessly copies and sorts the already-sorted array (Timsort O(n log n)), then runs an O(n) two-pointer scan on the copy, and finally maps values back to original indices with O(n) list.index calls (plus an O(n) pop to disambiguate duplicates).",
     "time_average": "O(n log n)",
     "time_worst": "O(n log n)"
   },

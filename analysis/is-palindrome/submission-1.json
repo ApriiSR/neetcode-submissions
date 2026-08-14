@@ -1,12 +1,12 @@
 {
-  "analysis_version": 5,
-  "analyzed_at": "2026-08-14T04:30:27.486798+00:00",
+  "analysis_version": 6,
+  "analyzed_at": "2026-08-14T22:24:46.941794+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": false,
-    "notes": "s.lower() creates an O(n) copy; the algorithm itself is in-place otherwise. The inner b-skip loop lacks an explicit bounds check, but it is safe because once a==len(s) the function has already returned True.",
+    "notes": "s.lower() allocates a full copy of the string, making space O(n); using str.casefold-free in-place comparisons or lowercasing individual characters on the fly would give O(1) extra space. The inner b-loop is safe because it can never pass the already-validated alphanumeric at index a.",
     "space": "O(n)",
-    "summary": "Two-pointer scan from both ends of the lowercased string, skipping non-alphanumeric characters and comparing the rest pairwise. Each pointer moves monotonically, so total work is linear.",
+    "summary": "Two-pointer scan from both ends of the lowercased string, skipping non-alphanumeric characters and comparing matching characters until the pointers meet.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },

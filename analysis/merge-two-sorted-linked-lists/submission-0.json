@@ -1,14 +1,14 @@
 {
-  "analysis_version": 5,
-  "analyzed_at": "2026-08-14T20:53:42.656048+00:00",
+  "analysis_version": 6,
+  "analyzed_at": "2026-08-14T22:26:00.040014+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": false,
-    "notes": "Correct but slightly convoluted head-selection logic; a dummy head node would make the code cleaner and avoid the duplicated return statements. Strictly speaking it mutates/reuses the input nodes rather than building new ones, which the problem explicitly allows.",
+    "notes": "Correct and O(1) extra space, but the repeated `list1.val < list2.val` checks when initializing root/next1/next2 are clunky; a dummy head node would simplify the code and avoid the duplicated comparisons. Also the final if/else both return root, so it could be collapsed to `current.next = next1 or next2; return root`.",
     "space": "O(1)",
-    "summary": "Iteratively merges the two sorted lists with two pointers, splicing existing nodes onto a merged chain rooted at the smaller head, then appends the non-empty remainder in O(1).",
-    "time_average": "O(n)",
-    "time_worst": "O(n)"
+    "summary": "Iterative two-pointer merge: picks the smaller head as root, then walks both lists appending the smaller node each step, and finally attaches the remaining tail of whichever list is non-empty.",
+    "time_average": "O(n + m)",
+    "time_worst": "O(n + m)"
   },
   "file": "Data Structures & Algorithms/merge-two-sorted-linked-lists/submission-0.py",
   "golf": {

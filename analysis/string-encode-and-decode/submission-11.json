@@ -1,12 +1,12 @@
 {
-  "analysis_version": 5,
-  "analyzed_at": "2026-08-14T04:31:49.793442+00:00",
+  "analysis_version": 6,
+  "analyzed_at": "2026-08-14T22:27:09.340339+00:00",
   "complexity": {
     "benchmark_model": "n^2",
     "hash_dependent": false,
-    "notes": "decode is quadratic because s = s[a+1+...:] copies the rest of the string every iteration; using an index pointer (or iter over a single pass) instead of re-slicing would make it O(n). s.index('|') is fine here since the delimiter always appears within the short numeric prefix at the current position.",
+    "notes": "The repeated slicing in decode causes the O(n^2) behavior; using an index pointer into the original string (and only materializing each extracted word) would restore O(n) total time. Also, int(s[0:a]) is computed twice per iteration \u2014 parse it once into a variable for readability.",
     "space": "O(n)",
-    "summary": "Encodes each string as a length-prefix plus the string itself (O(n) total via join). Decode repeatedly parses the prefix and re-slices the remainder of the input; since each slice copies the remaining O(n) characters, decoding is O(n^2) overall.",
+    "summary": "Encodes each string as '<len>|<string>' concatenated together; decode repeatedly finds the '|' delimiter, parses the length, and extracts the payload. Encode is linear in total characters, but decode re-slices the remaining string each iteration (s = s[...:]), copying the suffix each time, which makes the whole decode quadratic in the total character volume.",
     "time_average": "O(n^2)",
     "time_worst": "O(n^2)"
   },

@@ -1,12 +1,12 @@
 {
-  "analysis_version": 5,
-  "analyzed_at": "2026-08-14T04:33:12.746873+00:00",
+  "analysis_version": 6,
+  "analyzed_at": "2026-08-14T22:28:12.952154+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": false,
-    "notes": "Clean and idiomatic; the fixed literal mapping keeps both correctness and constant-time lookups independent of hash randomness.",
+    "notes": "The dict keys are a fixed three-character literal, so lookups are O(1) worst case with no adversarial hash risk. Idiomatic and clean; iterating while indexing the map directly is fine since the input is guaranteed to contain only bracket characters.",
     "space": "O(n)",
-    "summary": "Classic stack-based validation: push opening brackets, and on each closing bracket pop and check it matches via a fixed close-to-open mapping; the string is valid iff the stack ends empty. The dict keys come from a constant 6-character alphabet, so lookups are O(1) even in the worst case.",
+    "summary": "Classic stack-based validation: push each opening bracket, and for each closing bracket pop and check it matches via a fixed closing-to-opening map. Returns true only if every close matches and the stack empties.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },

@@ -1,12 +1,12 @@
 {
-  "analysis_version": 5,
-  "analyzed_at": "2026-08-14T04:27:41.804336+00:00",
+  "analysis_version": 6,
+  "analyzed_at": "2026-08-14T22:22:43.844217+00:00",
   "complexity": {
     "benchmark_model": "n^2",
     "hash_dependent": false,
-    "notes": "best_buy is computed each iteration but never used in the profit calculation (the code uses prices[i] directly), making it dead code; it could have enabled an O(n) solution. Initializing best_buy to 100 also happens to work only because the constraint caps prices at 100.",
+    "notes": "The best_buy variable is computed but never used; it hints at the intended O(n) single-pass solution (track minimum price so far and update profit at each day). The inner loop is also redundant since the maximum sell price after i could be tracked incrementally, making this unnecessarily O(n^2).",
     "space": "O(1)",
-    "summary": "Brute-force: for each buy day i, scan all later days j to maximize prices[j] - prices[i], keeping a running best profit floored at 0. Correct but quadratic; a single-pass min-price tracking would give O(n).",
+    "summary": "Brute force: for each buy day i, scan all later sell days j and track the maximum price difference, returning 0 if no profit exists.",
     "time_average": "O(n^2)",
     "time_worst": "O(n^2)"
   },

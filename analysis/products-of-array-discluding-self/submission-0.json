@@ -1,12 +1,12 @@
 {
-  "analysis_version": 5,
-  "analyzed_at": "2026-08-14T04:31:19.917197+00:00",
+  "analysis_version": 6,
+  "analyzed_at": "2026-08-14T22:26:29.483441+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": false,
-    "notes": "Uses the division approach, so it does not meet the follow-up requirement (prefix/suffix products without division would be preferred). The slices nums[:zero] and nums[zero+1:] allocate extra O(n) memory; indexing directly would avoid that. Also, 'case x if x > 1' works but 'case _' after checking 'a > 1' first would be clearer.",
+    "notes": "Uses division (prod // num), so it does not satisfy the O(n) no-division follow-up; the standard prefix/suffix product approach would. The slices nums[:zero] and nums[zero+1:] allocate O(n) extra space and could be avoided by iterating with indices. The match/case on the zero count is readable but unconventional for this problem.",
     "space": "O(n)",
-    "summary": "Counts zeros with a match statement: with 2+ zeros all outputs are 0, with 1 zero only that position gets the product of the rest, otherwise divides the total product by each element.",
+    "summary": "Counts zeros to branch into three cases: more than one zero yields all zeros; exactly one zero yields the product of non-zero elements at the zero's index; otherwise divides the total product by each element. Each case is a linear pass over the array.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },

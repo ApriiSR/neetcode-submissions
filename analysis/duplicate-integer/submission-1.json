@@ -1,12 +1,12 @@
 {
-  "analysis_version": 5,
-  "analyzed_at": "2026-08-14T04:29:59.166184+00:00",
+  "analysis_version": 6,
+  "analyzed_at": "2026-08-14T22:24:13.557529+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": true,
-    "notes": "Variable named dict shadows the built-in type. More idiomatic would be a set membership check in a single loop, or simply len(set(nums)) != len(nums); a Counter would also simplify the counting pass.",
+    "notes": "Shadows the builtin name 'dict' with the local variable. A set with early exit on first repeated value would be simpler, use one pass, and allow early termination. Worst case degrades to O(n^2) because keys are attacker-controlled integers susceptible to adversarial hash collisions.",
     "space": "O(n)",
-    "summary": "Counts occurrences of each value in a hash map over one pass, then makes a second pass to return True as soon as any value has count greater than one. The values come from an input-controlled, unbounded key space, so adversarial hash collisions degrade dict operations to O(n) in the worst case.",
+    "summary": "Builds a frequency dictionary over nums in one pass, then makes a second pass to find any value with count greater than 1.",
     "time_average": "O(n)",
     "time_worst": "O(n^2)"
   },

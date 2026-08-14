@@ -1,12 +1,12 @@
 {
-  "analysis_version": 5,
-  "analyzed_at": "2026-08-14T04:31:58.043435+00:00",
+  "analysis_version": 6,
+  "analyzed_at": "2026-08-14T22:27:20.997278+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": false,
-    "notes": "Correct under the problem's stated ASCII-only constraint, since the emoji delimiter cannot appear in the input; however, this fails the follow-up requirement of handling any possible character set, where a length-prefixed encoding would be needed. The empty-list special case is a minor wart (decode('') returns [] only because of the trailing pop).",
+    "notes": "Correctness relies on the delimiter never appearing inside the strings; this is guaranteed here because input strings contain only ASCII characters while the emoji is non-ASCII, but the approach fails the follow-up requirement of supporting arbitrary character sets (a length-prefix encoding would generalize). Works but is fragile and not idiomatic for a serialization problem.",
     "space": "O(n)",
-    "summary": "Encode joins all strings with an emoji delimiter (plus a trailing delimiter), and decode splits on that delimiter and drops the empty trailing element.",
+    "summary": "Encodes by joining the strings with an emoji delimiter (with a trailing delimiter to disambiguate empty strings/empty list) and decodes by splitting on that delimiter and dropping the trailing empty fragment. Both operations are linear in the total character volume, which scales linearly with the number of strings.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },

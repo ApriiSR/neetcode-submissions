@@ -1,14 +1,14 @@
 {
-  "analysis_version": 5,
-  "analyzed_at": "2026-08-14T04:29:20.083678+00:00",
+  "analysis_version": 6,
+  "analyzed_at": "2026-08-14T22:23:13.180235+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": false,
-    "notes": "Works but is unconventional: allocating an O(target) array just to sort by position is wasteful when n << target; sorted(zip(position, speed)) would give O(n) space and O(n log n) time more idiomatically. Correctness relies on positions being unique and below target, both guaranteed by the constraints.",
+    "notes": "Per the scaling note target = 2n+1, so the O(target) allocation and filtering stay linear in n. Initializing result = 1 relies on the stated n >= 1 constraint, which is valid. Using floats for arrival-time comparison is fine here given the small integer ranges, but a cross-multiplication comparison would avoid any floating-point concern.",
     "space": "O(target)",
-    "summary": "Places cars into a position-indexed array of size target (which also sorts them by position), then scans from closest-to-target backward, merging any car whose arrival time is no later than the fleet ahead into that fleet and counting a new fleet otherwise.",
-    "time_average": "O(target + n)",
-    "time_worst": "O(target + n)"
+    "summary": "Places cars into a counting array indexed by position (so they come out sorted), then scans from the car nearest the target, comparing arrival times to merge followers into the lead fleet and counting a new fleet whenever a car would arrive later than the lead.",
+    "time_average": "O(n + target)",
+    "time_worst": "O(n + target)"
   },
   "file": "Data Structures & Algorithms/car-fleet/submission-6.py",
   "golf": {

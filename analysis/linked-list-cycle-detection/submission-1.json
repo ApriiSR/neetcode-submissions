@@ -1,14 +1,14 @@
 {
-  "analysis_version": 5,
-  "analyzed_at": "2026-08-14T21:59:26.191347+00:00",
+  "analysis_version": 6,
+  "analyzed_at": "2026-08-14T22:25:09.273525+00:00",
   "complexity": {
     "benchmark_model": "1",
     "hash_dependent": false,
-    "notes": "Correct only because the problem guarantees length <= 1000; the classic, constraint-free approach is Floyd's tortoise-and-hare in O(n) time and O(1) space. The for/else-free structure is readable, though the magic constant 1005 would be clearer as a named bound.",
+    "notes": "Correct given the problem's length bound, but non-general and unidiomatic; Floyd's tortoise-and-hare is the standard O(n) time, O(1) space solution that works for any length.",
     "space": "O(1)",
-    "summary": "Exploits the stated length cap (<= 1000): it follows next pointers at most 1005 times; if null is reached the list terminates (no cycle), otherwise the list must contain a cycle.",
-    "time_average": "O(min(n, 1005)) = O(1)",
-    "time_worst": "O(min(n, 1005)) = O(1)"
+    "summary": "Exploits the stated constraint that the list has at most 1000 nodes: it walks at most 1005 steps, returning False if it reaches null and True (cycle must exist) otherwise. Runs in constant time and space.",
+    "time_average": "O(1)",
+    "time_worst": "O(1)"
   },
   "file": "Data Structures & Algorithms/linked-list-cycle-detection/submission-1.py",
   "golf": {

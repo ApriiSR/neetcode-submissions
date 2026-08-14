@@ -1,12 +1,12 @@
 {
-  "analysis_version": 5,
-  "analyzed_at": "2026-08-14T04:30:36.569768+00:00",
+  "analysis_version": 6,
+  "analyzed_at": "2026-08-14T22:24:50.703048+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": false,
-    "notes": "Concise and idiomatic; a two-pointer approach over the original string would reduce space to O(1), but at n <= 1000 the O(n) extra space is immaterial. Note that isalnum() also accepts Unicode alphanumerics beyond ASCII letters/digits, though the constraint of printable ASCII input makes this a non-issue here.",
+    "notes": "Clean and idiomatic; an O(1)-extra-space two-pointer variant exists, but the O(n) filtered copy is the standard readable approach.",
     "space": "O(n)",
-    "summary": "Filters the lowercased string to alphanumeric characters, builds a cleaned copy, and compares it against its reverse to decide palindrome status.",
+    "summary": "Filters the lowercased string down to alphanumeric characters, then compares the filtered string against its reverse. Each step is a single linear pass.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },

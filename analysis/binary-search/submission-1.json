@@ -1,12 +1,12 @@
 {
-  "analysis_version": 5,
-  "analyzed_at": "2026-08-14T18:46:24.928231+00:00",
+  "analysis_version": 6,
+  "analyzed_at": "2026-08-14T22:22:29.926010+00:00",
   "complexity": {
     "benchmark_model": "log n",
     "hash_dependent": false,
-    "notes": "Recursion adds O(log n) call-stack space; an iterative loop would achieve O(1) space. The half-open interval handling with the separate end - start == 1 and == 0 base cases is correct but more verbose than needed; note the recursive helper is defined at module level rather than as a method, which works but is slightly unusual for the NeetCode class-based template.",
+    "notes": "Recursive implementation uses O(log n) stack space; an iterative loop would achieve O(1) space. The base cases are slightly convoluted but correct, and using the half-open [start, end) convention is clean.",
     "space": "O(log n)",
-    "summary": "Classic recursive binary search: halve the search interval [start, end) each call by comparing the midpoint against the target, with explicit base cases for empty and single-element ranges.",
+    "summary": "Classic recursive binary search over a sorted array, halving the search interval each call until the target is found or the interval is empty. No hashing involved, so average and worst case are both O(log n).",
     "time_average": "O(log n)",
     "time_worst": "O(log n)"
   },

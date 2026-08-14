@@ -1,14 +1,14 @@
 {
-  "analysis_version": 5,
-  "analyzed_at": "2026-08-14T04:31:07.783246+00:00",
+  "analysis_version": 6,
+  "analyzed_at": "2026-08-14T22:26:16.931675+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": false,
-    "notes": "Initializing min_stack with float('inf') is a clean sentinel that avoids empty-checks in push. Space is O(n) in the worst case (monotonically decreasing pushes), which is inherent to this design.",
+    "notes": "Correctly handles duplicate minimums via the <= push condition paired with the equality-based pop. An equally idiomatic alternative stores (value, running_min) tuples on a single stack; a tuple-free variant could push 2*val - prev_min encodings, but the current approach is clearer.",
     "space": "O(n)",
-    "summary": "Auxiliary min-stack approach: a second stack stores running minima, pushing a value only when it is <= the current minimum and popping it when the popped main value equals the current minimum. All four operations are O(1) list-index operations, so a sequence of n calls costs O(n) total.",
-    "time_average": "O(1) per operation",
-    "time_worst": "O(1) per operation"
+    "summary": "Two parallel stacks: the main stack holds all values, while an auxiliary min stack (seeded with +inf) pushes a value only when it is <= the current minimum and pops it when it matches the popped value, so getMin is always the top of the min stack. Every operation is O(1), and using <= with the equality check on pop correctly handles duplicate minimums.",
+    "time_average": "O(1) per operation (amortized for push/pop; O(n) total for n operations)",
+    "time_worst": "O(1) amortized per operation; a single push/pop can take O(n) if the underlying list reallocates, but n operations are O(n) total"
   },
   "file": "Data Structures & Algorithms/minimum-stack/submission-0.py",
   "golf": {

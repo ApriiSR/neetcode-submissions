@@ -1,14 +1,14 @@
 {
-  "analysis_version": 5,
-  "analyzed_at": "2026-08-14T18:31:51.649223+00:00",
+  "analysis_version": 6,
+  "analyzed_at": "2026-08-14T22:25:03.653163+00:00",
   "complexity": {
     "benchmark_model": "n",
     "hash_dependent": false,
-    "notes": "Reusing the variable `largest` for both max(heights) and the running best area is confusing; separate variables would be clearer. The standard monotonic-stack solution achieves O(n) without depending on the value bound and is strongly preferred for readability and robustness. The loop `range(largest+1)` also wastes iterations once `largest` has been overwritten by an area value, though this does not affect correctness.",
+    "notes": "Correctness is fine but the algorithm is impractical; the canonical monotonic-stack solution achieves the same O(n) with a small constant. Also, reusing the variable 'largest' for both the maximum bar height and the best area found is confusing \u2014 a separate variable would improve readability.",
     "space": "O(1)",
-    "summary": "Brute-force over heights: for each candidate height i from 0 to max(heights), scan all bars to find the longest run of bars with height >= i and track the best area i * run_length. Correct but slow, relying on the bounded value range (heights[i] <= 10,000) to stay feasible.",
-    "time_average": "O(n * H) where H = max(heights); since the constraints bound H <= 10^4, this is effectively O(n)",
-    "time_worst": "O(n * H) where H = max(heights); with H <= 10^4 guaranteed, O(n)"
+    "summary": "Brute-force sweep: for every integer height h from 0 to max(heights), it makes one linear pass finding the widest run of bars with height >= h and tracks the best area. Since heights are bounded by 10000, this is at most 10001 linear passes, i.e. O(n) in n but with an enormous constant (~10^9 operations at n=10^5), so it will time out in practice despite being linear.",
+    "time_average": "O(n * max(heights))",
+    "time_worst": "O(n * max(heights))"
   },
   "file": "Data Structures & Algorithms/largest-rectangle-in-histogram/submission-0.py",
   "golf": {
