@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-15T02:36:59.480511+00:00",
+  "generated_at": "2026-08-15T03:02:33.899630+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -77,9 +77,11 @@
             "tokens": 101
           },
           "model": "k3",
+          "relation_to_previous": "revision",
           "slug": "add-two-numbers",
           "solved_at": "2026-08-14T19:36:25-07:00",
-          "statement": "add-two-numbers"
+          "statement": "add-two-numbers",
+          "supersedes": "submission-2"
         }
       ]
     },
