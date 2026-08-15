@@ -1,0 +1,26 @@
+{
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-15T06:38:17.744848+00:00",
+  "complexity": {
+    "benchmark_model": "n",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": true,
+    "notes": "Simple and idiomatic, but does not meet the follow-up's O(1) extra space requirement (Floyd's cycle detection or binary search on the value range would).",
+    "space": "O(n)",
+    "summary": "Scans the array once, inserting each value into a hash set and returning the first value already present.",
+    "time_average": "O(n)",
+    "time_worst": "O(n^2)"
+  },
+  "file": "Data Structures & Algorithms/find-duplicate-integer/submission-0.py",
+  "golf": {
+    "bytes": 178,
+    "characters": 178,
+    "non_blank_lines": 7,
+    "tokens": 41
+  },
+  "model": "k3",
+  "slug": "find-duplicate-integer",
+  "solved_at": "2026-08-14T23:37:55-07:00",
+  "statement": "find-duplicate-integer"
+}
