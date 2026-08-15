@@ -1,14 +1,14 @@
 {
-  "analysis_version": 7,
-  "analyzed_at": "2026-08-15T01:23:28.866665+00:00",
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-15T01:45:23.090038+00:00",
   "complexity": {
     "benchmark_model": "n^2",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "decode could be O(n) by keeping an integer index into s instead of repeatedly doing s = s[...:] (each slice copies the remainder, making the loop O(total^2)). Using str.index per step is also less idiomatic than scanning with a pointer. Encode itself is clean and O(total chars).",
+    "notes": "decode(s) copies the remaining suffix on every iteration (s = s[...:]), making it O(T^2) in the total encoded length; an index pointer into the original string would make it linear. Also 'List' requires 'from typing import List'.",
     "space": "O(n)",
-    "summary": "Length-prefix encoding: each string is written as `<len>|<content>`, and decode repeatedly finds the next `|`, parses the length, and slices out that many characters. Decode is quadratic because each iteration re-slices the entire remaining string.",
+    "summary": "Encode prefixes each string with its length and a '|' separator; decode repeatedly parses the length header and slices out that many characters. Decoding is quadratic because each iteration re-slices the entire remaining encoded string, copying it.",
     "time_average": "O(n^2)",
     "time_worst": "O(n^2)"
   },

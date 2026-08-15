@@ -1,14 +1,14 @@
 {
-  "analysis_version": 7,
-  "analyzed_at": "2026-08-15T01:24:04.140534+00:00",
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-15T01:46:33.996047+00:00",
   "complexity": {
     "benchmark_model": "n log n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": true,
-    "notes": "The per-count linear scan over num_counts.items() plus the final set() dedup are awkward workarounds; collecting (count, key) pairs and taking the k largest directly (e.g. heapq.nlargest) would be cleaner and avoid both. Sorting all m counts is O(m log m) when only the top k are needed.",
+    "notes": "Counting is non-idiomatic (`num in num_counts` then a second lookup; `dict.get(num, 0) + 1` or `collections.Counter` is cleaner), and the O(k*m) reverse lookup plus list(set(...)) dedup is convoluted \u2014 sorting items by count or using a heap would be simpler and faster. Correctness hinges on the statement's unique-answer precondition: if a frequency tie straddled the k-th boundary, the value-based reverse lookup would emit more than k keys.",
     "space": "O(n)",
-    "summary": "Counts frequencies in a dict, sorts the frequency values and takes the k largest, then scans the dict once per selected count to collect matching keys, deduplicating via set at the end.",
+    "summary": "Builds a frequency dict, sorts the frequency values and keeps the top k, then reverse-looks-up every key whose count matches one of those frequencies and dedups via set().",
     "time_average": "O(n log n)",
     "time_worst": "O(n^2)"
   },

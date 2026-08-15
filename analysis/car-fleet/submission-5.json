@@ -1,14 +1,14 @@
 {
-  "analysis_version": 7,
-  "analyzed_at": "2026-08-15T01:13:50.123335+00:00",
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-15T01:38:18.878162+00:00",
   "complexity": {
     "benchmark_model": "n log n",
     "correctness": "neetcode-only",
-    "correctness_reason": "Arrival times are compared with floating-point division, which is exact enough under NeetCode's caps (target, speeds, positions <= 10^6) but with the generalized unbounded magnitudes two distinct arrival times can round to the same float and be wrongly merged into one fleet.",
+    "correctness_reason": "Float division in the arrival-time comparison loses precision once the caps on target/position/speed are lifted: with sufficiently large integers, two distinct rational arrival times can differ by less than a double's ulp (e.g. consecutive Farey-style ratios d1/s1 vs d2/s2 with d,s ~ 2^40) and compare equal or inverted, merging or splitting fleets wrongly.",
     "hash_dependent": false,
-    "notes": "Building the pairs via sorted(zip(position, speed)) would be cleaner than the indexed list comprehension; popping from the end keeps each step O(1). Comparing arrival times via cross-multiplication ((target - p1) * s2 vs (target - p2) * s1) would avoid floating point entirely and stay exact for arbitrarily large integers.",
+    "notes": "Sorting ascending and popping from the end processes cars nearest the target first, which is correct. Unused `import math`. Using exact integer cross-multiplication ((target-p1)*s2 vs (target-p2)*s1) instead of float division would make comparisons exact for arbitrarily large values.",
     "space": "O(n)",
-    "summary": "Sorts the cars by position and scans from the car nearest the target backward, using arrival time (target - position) / speed: a car forms a new fleet only if its arrival time exceeds that of the fleet ahead, otherwise it merges into that fleet.",
+    "summary": "Sorts cars by position, then scans from closest-to-target backwards, comparing each car's arrival time (target-pos)/speed against the current lead fleet's arrival time via float division; a strictly later lead time starts a new fleet.",
     "time_average": "O(n log n)",
     "time_worst": "O(n log n)"
   },

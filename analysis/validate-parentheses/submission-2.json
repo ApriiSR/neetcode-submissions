@@ -1,14 +1,14 @@
 {
-  "analysis_version": 7,
-  "analyzed_at": "2026-08-15T01:24:56.361248+00:00",
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-15T01:48:43.407711+00:00",
   "complexity": {
     "benchmark_model": "n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "Clean and idiomatic; the map keys come from a fixed 3-character set, so hashing is bounded and lookups are O(1) even in the worst case.",
+    "notes": "The dict is keyed by three fixed characters from a constant bracket alphabet, so lookups are O(1) even adversarially; 'bracket in \"({[\"' is a clean constant-time membership check on a 3-char string.",
     "space": "O(n)",
-    "summary": "Single pass with a stack: push opening brackets, and on each closing bracket pop and check it matches via a fixed close-to-open map; valid iff the stack is empty at the end and no mismatch occurred.",
+    "summary": "Classic stack solution: push opening brackets, and on a closing bracket pop and verify it matches via a fixed close-to-open map; the string is valid iff the stack empties with no mismatches.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },

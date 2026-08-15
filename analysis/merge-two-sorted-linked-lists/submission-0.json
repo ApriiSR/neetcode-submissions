@@ -1,16 +1,16 @@
 {
-  "analysis_version": 7,
-  "analyzed_at": "2026-08-15T01:22:03.021582+00:00",
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-15T01:43:42.707730+00:00",
   "complexity": {
     "benchmark_model": "n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "The root-selection preamble is verbose and duplicates the comparison logic; using a dummy head node would eliminate the special-casing and make the loop uniform. Minor spacing inconsistencies (current=next1).",
+    "notes": "Correct but the initialization is convoluted; computing root/next1/next2 via the same comparison twice is harder to read than the standard dummy-head pattern (dummy = ListNode(); tail = dummy) which also removes the early None checks and the duplicated return statements.",
     "space": "O(1)",
-    "summary": "Iterative two-pointer merge: picks the smaller head as the root, then walks both lists attaching the smaller node each step, and finally appends the non-empty remainder.",
-    "time_average": "O(n + m)",
-    "time_worst": "O(n + m)"
+    "summary": "Iterative two-pointer merge: picks the smaller head as root, then walks both lists appending the smaller current node, and finally splices on the non-empty remainder. Reuses the original nodes with O(1) extra space.",
+    "time_average": "O(n)",
+    "time_worst": "O(n)"
   },
   "file": "Data Structures & Algorithms/merge-two-sorted-linked-lists/submission-0.py",
   "golf": {

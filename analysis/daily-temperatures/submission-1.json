@@ -1,14 +1,14 @@
 {
-  "analysis_version": 7,
-  "analyzed_at": "2026-08-15T01:18:52.949190+00:00",
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-15T01:41:28.615566+00:00",
   "complexity": {
     "benchmark_model": "n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "Idiomatic monotonic stack; storing tuples works fine, though storing indices alone and comparing temperatures[stack[-1]] would be slightly cleaner.",
+    "notes": "Works but could be tightened idiomatically: use enumerate instead of range(len(...)), and store plain indices on the stack (comparing temperatures[stack[-1]]) rather than (temp, index) tuples. The scaling note about bounded temperature range does not change the bound: the stack invariant guarantees amortized O(1) per element regardless of value distribution.",
     "space": "O(n)",
-    "summary": "Monotonic decreasing stack of (temperature, index) pairs; each new temperature pops all cooler pending days and records the day difference. Each index is pushed and popped at most once, giving amortized O(1) per day.",
+    "summary": "Monotonic decreasing stack of (temperature, index) pairs; each new temperature pops all cooler pending days and records their wait. Each index is pushed and popped at most once, so total work is linear.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },

@@ -1,14 +1,14 @@
 {
-  "analysis_version": 7,
-  "analyzed_at": "2026-08-15T01:14:10.836930+00:00",
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-15T01:39:19.952030+00:00",
   "complexity": {
     "benchmark_model": "n",
     "correctness": "neetcode-only",
-    "correctness_reason": "Arrival times are compared as floats, which is exact enough only because positions, speeds, and target are capped at 10^6 (cross-products stay under 2^53); in the generalized problem, e.g. target and distances near 10^17 with speeds differing in the 17th significant digit (such as (target-p1)/s1 = 10^17/1 versus (target-p2)/s2 = (10^17+1)/1), rounding merges or splits fleets incorrectly.",
+    "correctness_reason": "With caps lifted, two distinct arrival times can round to the same double (e.g. lead time 2^30 via distance 2^30/speed 1 and follower time 2^30 + 2^-30 via distance 2^60+1/speed 2^30), making a trailing car that should form its own fleet compare equal and get merged; within NeetCode's 10^6 caps the minimum gap between distinct times always exceeds the double ulp, so ordering is preserved.",
     "hash_dependent": false,
-    "notes": "The O(target) counting array is an unusual substitute for simply sorting by position (O(n log n), O(n) space); the pop()-driven while loop is also less readable than an indexed loop or a monotonic stack. Under the given scaling target ~ 2n+1, so the allocation stays linear.",
-    "space": "O(n + target)",
-    "summary": "Places each car into a counting array indexed by position, compacts it, then walks from the car nearest the target backward, merging any car whose float arrival time is at most the current lead fleet's time and counting a new fleet otherwise.",
+    "notes": "The float comparison (target-lead[0])/lead[1] >= (target-cars[-1][0])/cars[-1][1] is the standard idiom but is fragile for large values; cross-multiplying to integer arithmetic ((target-lead[0])*cars[-1][1] >= (target-cars[-1][0])*lead[1]) is exact. result is seeded with 1, which silently assumes n >= 1 (guaranteed by constraints). The stored tuples never use their position element after bucketing, so storing just the speed would suffice.",
+    "space": "O(target)",
+    "summary": "Buckets each car into a target-sized array indexed by position, compacts out the empty slots (which yields cars sorted by distance from the destination), then pops from the back, merging each car into the lead fleet if its arrival time is no later than the lead's, otherwise starting a new fleet.",
     "time_average": "O(n + target)",
     "time_worst": "O(n + target)"
   },

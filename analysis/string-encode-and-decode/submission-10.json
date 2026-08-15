@@ -1,14 +1,14 @@
 {
-  "analysis_version": 7,
-  "analyzed_at": "2026-08-15T01:23:20.694474+00:00",
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-15T01:45:10.966230+00:00",
   "complexity": {
     "benchmark_model": "n",
     "correctness": "incorrect",
-    "correctness_reason": "The delimiter is composed of ASCII characters that input strings may legally contain, so e.g. strs = [\"xpaysutdlfmywvaugplk49w87ky9v478y\"] encodes and then decodes into extra spurious segments, failing round-trip on a permitted input.",
+    "correctness_reason": "The delimiter 'paysutdlfmywvaugplk49w87ky9v478' consists of valid ASCII characters that the input is permitted to contain, so strs = [\"paysutdlfmywvaugplk49w87ky9v478\"] encodes to delimiter+delimiter and decodes to ['', ''] instead of the original list.",
     "hash_dependent": false,
-    "notes": "The delimiter trick is fragile; a length-prefixed encoding (e.g. 'len#str') is the standard robust approach and equally simple.",
+    "notes": "The algorithm relies on the delimiter never occurring in the data, but the delimiter is itself made of ASCII letters and digits, so it is not safe. A length-prefix scheme (e.g. 'len#string') would be robust for any character set. The empty-list special case in encode is redundant since join on an empty list already yields '', which decodes correctly.",
     "space": "O(n)",
-    "summary": "Joins the list with a hard-coded 'random' delimiter string (appending it at the end) and decodes via split plus a pop of the trailing empty segment. Time and space are linear in total character volume.",
+    "summary": "Encodes by joining the strings with a fixed 31-character magic delimiter (and appending one trailing delimiter), and decodes by splitting on that delimiter and dropping the empty tail.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },

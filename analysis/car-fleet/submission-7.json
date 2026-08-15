@@ -1,16 +1,16 @@
 {
-  "analysis_version": 7,
-  "analyzed_at": "2026-08-15T01:18:46.606464+00:00",
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-15T01:41:16.947534+00:00",
   "complexity": {
     "benchmark_model": "n",
     "correctness": "neetcode-only",
-    "correctness_reason": "Arrival times are compared with float division, which loses precision once position/target/speed magnitudes exceed about 2^53 (and overflows entirely near 1e308), so with the caps on target and speed lifted a pair of fleets whose true arrival-time ratio differs below float64 resolution can be merged or split incorrectly.",
+    "correctness_reason": "Arrival times are compared as Python floats, so once the magnitude cap is lifted and target/speed values exceed 2^53, quotients that differ by less than one ulp round to the same float and can flip a merge decision; within NeetCode's caps (values <= 1e6) the distinct rationals always differ by more than float64 rounding error, so it is safe there.",
     "hash_dependent": false,
-    "notes": "Clever branch selection keeps the counting-array strategy from ever being asymptotically worse than the sort. Comparing arrival times via float division is concise but cross-multiplication ((target - p1) * s2 >= (target - p2) * s1) would be exact; also, silently initializing result to 1 relies on the n >= 1 constraint.",
-    "space": "O(n + min(target, n log n))",
-    "summary": "Hybrid approach: it builds a position-indexed array when target is small relative to n log n, otherwise sorts the (position, speed) pairs. It then walks cars from nearest-to-target outward, merging each car into the lead fleet if its arrival time is no better, and counting a new fleet otherwise.",
-    "time_average": "O(min(target + n, n log n))",
-    "time_worst": "O(min(target + n, n log n))"
+    "notes": "The bit_length-based guard is a cheap stand-in for n log n and correctly picks the faster strategy; using it makes the whole algorithm O(min(n + target, n log n)) rather than a single fixed bound. Comparing arrival times via float division instead of cross-multiplication (target-p1)*s2 vs (target-p2)*s1 is concise but is what costs the solution generality. The inline 'I asked Claude' comment is not something to leave in submitted code.",
+    "space": "O(min(target, n log n))",
+    "summary": "Hybrid: it either bucket-places cars by position into an array of size target (when target < n*log n) or sorts the (position, speed) pairs, then scans from the car nearest the destination backward, merging each car into the fleet ahead if its arrival time is no later, and counting a new fleet otherwise.",
+    "time_average": "O(min(n + target, n log n))",
+    "time_worst": "O(min(n + target, n log n))"
   },
   "file": "Data Structures & Algorithms/car-fleet/submission-7.py",
   "golf": {

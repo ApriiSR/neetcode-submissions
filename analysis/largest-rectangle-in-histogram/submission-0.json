@@ -1,16 +1,16 @@
 {
-  "analysis_version": 7,
-  "analyzed_at": "2026-08-15T01:21:21.060040+00:00",
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-15T01:42:53.782954+00:00",
   "complexity": {
     "benchmark_model": "n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "Reusing `largest` as both the sweep bound and the running answer is confusing but safe here because range() is materialized before the loop mutates it. Starting the sweep at i = 0 wastes one pass; range(1, largest+1) suffices.",
+    "notes": "Reusing `largest` as both the initial max-height bound and the running answer accumulator is confusing but harmless: the range() bound is fixed at loop creation, so updating `largest` inside the loop does not alter iteration, and max(heights) is a valid initial answer since a single tallest bar achieves that area. No hashing involved.",
     "space": "O(1)",
-    "summary": "Sweeps every integer height i from 0 to max(heights), and for each i scans the array once to find the widest run of bars with height >= i, tracking the best area i * width. Correct because the optimal rectangle's height equals some bar height, but it is O(n * H) instead of the O(n) monotonic-stack solution.",
-    "time_average": "O(n * H)",
-    "time_worst": "O(n * H)"
+    "summary": "Brute-force height sweep: for every level i from 0 to max(heights), it scans all bars to find the widest run of bars with height >= i and records i * width. The answer is the max over all levels, which correctly characterizes the largest rectangle (its height equals the minimum bar in its span).",
+    "time_average": "O(n * max(heights))",
+    "time_worst": "O(n * max(heights))"
   },
   "file": "Data Structures & Algorithms/largest-rectangle-in-histogram/submission-0.py",
   "golf": {

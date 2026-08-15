@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-08-15T01:24:56.497162+00:00",
+  "generated_at": "2026-08-15T01:48:43.519818+00:00",
   "problems": {
     "anagram-groups": {
       "submissions": [
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:11:57.550711+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:35:53.705390+00:00",
           "benchmarks": {
             "adversarial": {
               "best_fit": "n",
@@ -84,14 +84,14 @@
           },
           "complexity": {
             "benchmark_model": "n",
-            "correctness": "incorrect",
-            "correctness_reason": "The return annotation `tuple(int)` is a function call evaluated at definition time, and since `int` is not iterable it raises TypeError ('type' object is not iterable), so the module fails to load on every permitted input.",
+            "correctness": "general",
+            "correctness_reason": "",
             "hash_dependent": true,
-            "notes": "The two-pass construction recomputes every signature twice; a single pass with dict.setdefault or a collections.defaultdict(list) would be cleaner and half the hashing work. The intended annotation was presumably tuple[int, ...] rather than the call tuple(int).",
-            "space": "O(n * L)",
-            "summary": "Computes a 26-element character-count tuple as the anagram signature for each word, builds a dict mapping signatures to groups, then appends each word to its group in a second pass and returns the dict's values.",
-            "time_average": "O(n * L)",
-            "time_worst": "O(n*L + n^2)"
+            "notes": "The signature is computed twice per word; a single pass with dict.setdefault(sig, []).append(word) would halve the work. ord(letter)-97 is clearer as ord(letter)-ord('a'). The annotation '-> tuple(int)' would raise under eager evaluation on older Pythons, but PEP 649 on CPython 3.14 defers it, so it is harmless here. Worst case reflects adversarial collisions on the input-controlled count-tuple keys; with the stated 3-8 char word lengths the signature space is bounded and this does not materialize.",
+            "space": "O(n)",
+            "summary": "Each word is mapped to a 26-element character-count tuple used as its anagram signature, and words are grouped in a dict keyed by that signature. The solution makes two passes (one to seed the dict, one to append), computing the signature twice per word.",
+            "time_average": "O(n*L)",
+            "time_worst": "O(n^2 + n*L)"
           },
           "file": "Data Structures & Algorithms/anagram-groups/submission-1.py",
           "golf": {
@@ -110,8 +110,8 @@
     "binary-search": {
       "submissions": [
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:12:18.234208+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:36:04.933565+00:00",
           "benchmarks": {
             "adversarial": null,
             "benchmark_version": 2,
@@ -157,9 +157,9 @@
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "Recursion adds O(log n) stack space where an iterative loop would be O(1), and Python's default recursion limit (~1000) would be exceeded for astronomically large n; an iterative version avoids both.",
+            "notes": "Recursion uses O(log n) stack space where an iterative loop would be O(1); the half-open interval handling with explicit end-start==1 and end-start==0 base cases is correct but more verbose than needed. Using a module-level helper instead of a private method is a minor style choice.",
             "space": "O(log n)",
-            "summary": "Standard recursive binary search: each call halves the search interval [start, end) until the target is found or the interval is empty.",
+            "summary": "Standard recursive binary search over the half-open interval [start, end): compare against the midpoint, recurse into the appropriate half, with explicit base cases for empty and single-element ranges.",
             "time_average": "O(log n)",
             "time_worst": "O(log n)"
           },
@@ -176,8 +176,8 @@
           "statement": "binary-search"
         },
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:12:35.805561+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:36:22.788263+00:00",
           "benchmarks": {
             "adversarial": null,
             "benchmark_version": 2,
@@ -223,9 +223,9 @@
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "Using mid = start + (end - start) // 2 and a half-open interval is clean and avoids off-by-one errors; the empty-array case is also handled correctly by the start == end check.",
+            "notes": "The loop invariant (target, if present, lies in [start, end)) is maintained correctly, and start can never exceed len(nums) before the final guard `start == end` short-circuits the index access. The bare `List[int]` annotation is safe on CPython 3.14 since PEP 649 defers annotation evaluation, though importing List from typing would be cleaner style.",
             "space": "O(1)",
-            "summary": "Classic iterative binary search over the half-open interval [start, end), narrowing the range each iteration and returning the index on equality; after the loop at most one candidate remains and it is checked explicitly. The final guard handles both the exhausted (start == end) case and a lone non-matching element.",
+            "summary": "Classic iterative binary search over the half-open interval [start, end), narrowing on comparison with nums[mid]; after the loop collapses the range to one index, it verifies nums[start] against target.",
             "time_average": "O(log n)",
             "time_worst": "O(log n)"
           },
@@ -246,8 +246,8 @@
     "buy-and-sell-crypto": {
       "submissions": [
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:12:45.535258+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:36:31.074994+00:00",
           "benchmarks": {
             "adversarial": null,
             "benchmark_version": 2,
@@ -279,9 +279,9 @@
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "best_buy is dead code \u2014 a leftover from the intended O(n) running-minimum approach; removing it (or actually using it) would clarify the solution. The initial value 100 leans on the NeetCode price cap but is harmless since the variable is unused.",
+            "notes": "best_buy is dead code \u2014 it is updated but never used in the profit computation, and its initializer 100 hard-codes the capped price range. The natural O(n) single-pass solution (track running minimum and best profit) would be both simpler and faster.",
             "space": "O(1)",
-            "summary": "Brute-force: for every buy day i, scan every later sell day j and track the maximum profit, never going below 0. The best_buy variable is computed but never actually used in the profit calculation.",
+            "summary": "Brute-force: for each buy day i, scans every later day j and keeps the maximum profit, returning 0 if none is profitable.",
             "time_average": "O(n^2)",
             "time_worst": "O(n^2)"
           },
@@ -298,8 +298,8 @@
           "statement": "buy-and-sell-crypto"
         },
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:12:51.501935+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:36:45.945169+00:00",
           "benchmarks": {
             "adversarial": null,
             "benchmark_version": 2,
@@ -343,11 +343,11 @@
           "complexity": {
             "benchmark_model": "n",
             "correctness": "neetcode-only",
-            "correctness_reason": "best_buy is hard-coded to 100, so once the price cap is lifted an input like [1000, 2000] yields 1900 instead of the correct 1000.",
+            "correctness_reason": "With the price cap lifted, e.g. prices = [200, 300], best_buy starts at 100 (never an actual price) and the code returns 200 instead of the true maximum profit of 100.",
             "hash_dependent": false,
-            "notes": "Initializing best_buy to the constant 100 instead of prices[0] or infinity is a subtle correctness hazard that only works because of the stated price cap.",
+            "notes": "Hard-coding best_buy = 100 only works because the statement caps prices at 100; initializing to prices[0] or float('inf') would be correct and equally idiomatic.",
             "space": "O(1)",
-            "summary": "Single pass tracking the minimum price seen so far (best_buy) and the maximum profit of selling at each day against that minimum.",
+            "summary": "Single pass tracking the minimum buy price seen so far and the best profit achievable by selling at each day, returning the maximum (floored at 0 since best_profit starts at 0).",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },
@@ -368,8 +368,8 @@
     "car-fleet": {
       "submissions": [
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:13:09.398950+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:37:43.804867+00:00",
           "benchmarks": {
             "adversarial": null,
             "benchmark_version": 2,
@@ -413,11 +413,11 @@
           "complexity": {
             "benchmark_model": "n log n",
             "correctness": "neetcode-only",
-            "correctness_reason": "Once the value caps are lifted, float division of unbounded ints loses precision (distinct times past 2^53 compare equal, merging fleets that should be separate) and can even raise OverflowError converting huge ints to float; within NeetCode's 10^6 caps the double arithmetic is exact enough to be correct.",
+            "correctness_reason": "Arrival times are compared as floats, so with the generalized unbounded magnitudes an input like target=10**20+1, position=[0,1], speed=[1,1] makes both float times round to the same value and the two fleets are wrongly merged (returns 1 instead of 2); within NeetCode's caps (values <= 1e6) correctly-rounded double division keeps the comparisons exact.",
             "hash_dependent": false,
-            "notes": "The debug print (with math.ceil) should be removed; it adds I/O per iteration and the ceil values aren't even used in the comparison. Comparing (target - p)/s as floats is fragile \u2014 cross-multiplication (target-p1)*s2 vs (target-p2)*s1 keeps everything in exact integer arithmetic.",
+            "notes": "Leftover debug print of math.ceil(...) inside the loop should be removed (also adds no asymptotic cost). Using float division for arrival times is fragile; comparing via cross-multiplication (target - pos1) * speed2 >= (target - pos2) * speed1 would be exact for arbitrary integers. List needs the usual typing import.",
             "space": "O(n)",
-            "summary": "Sorts cars by position, then scans from the car nearest the target backward: a trailing car merges into the lead fleet if its arrival time is no greater than the leader's, otherwise it starts a new fleet. Arrival times are compared as floats via division.",
+            "summary": "Sorts cars by position, then scans from closest-to-target backward, comparing each car's arrival time (as a float) against the current lead fleet's time: cars that arrive no later than the lead merge into its fleet, otherwise a new fleet is counted.",
             "time_average": "O(n log n)",
             "time_worst": "O(n log n)"
           },
@@ -434,8 +434,8 @@
           "statement": "car-fleet"
         },
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:13:50.123335+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:38:18.878162+00:00",
           "benchmarks": {
             "adversarial": null,
             "benchmark_version": 2,
@@ -479,11 +479,11 @@
           "complexity": {
             "benchmark_model": "n log n",
             "correctness": "neetcode-only",
-            "correctness_reason": "Arrival times are compared with floating-point division, which is exact enough under NeetCode's caps (target, speeds, positions <= 10^6) but with the generalized unbounded magnitudes two distinct arrival times can round to the same float and be wrongly merged into one fleet.",
+            "correctness_reason": "Float division in the arrival-time comparison loses precision once the caps on target/position/speed are lifted: with sufficiently large integers, two distinct rational arrival times can differ by less than a double's ulp (e.g. consecutive Farey-style ratios d1/s1 vs d2/s2 with d,s ~ 2^40) and compare equal or inverted, merging or splitting fleets wrongly.",
             "hash_dependent": false,
-            "notes": "Building the pairs via sorted(zip(position, speed)) would be cleaner than the indexed list comprehension; popping from the end keeps each step O(1). Comparing arrival times via cross-multiplication ((target - p1) * s2 vs (target - p2) * s1) would avoid floating point entirely and stay exact for arbitrarily large integers.",
+            "notes": "Sorting ascending and popping from the end processes cars nearest the target first, which is correct. Unused `import math`. Using exact integer cross-multiplication ((target-p1)*s2 vs (target-p2)*s1) instead of float division would make comparisons exact for arbitrarily large values.",
             "space": "O(n)",
-            "summary": "Sorts the cars by position and scans from the car nearest the target backward, using arrival time (target - position) / speed: a car forms a new fleet only if its arrival time exceeds that of the fleet ahead, otherwise it merges into that fleet.",
+            "summary": "Sorts cars by position, then scans from closest-to-target backwards, comparing each car's arrival time (target-pos)/speed against the current lead fleet's arrival time via float division; a strictly later lead time starts a new fleet.",
             "time_average": "O(n log n)",
             "time_worst": "O(n log n)"
           },
@@ -500,8 +500,8 @@
           "statement": "car-fleet"
         },
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:14:10.836930+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:39:19.952030+00:00",
           "benchmarks": {
             "adversarial": null,
             "benchmark_version": 2,
@@ -545,11 +545,11 @@
           "complexity": {
             "benchmark_model": "n",
             "correctness": "neetcode-only",
-            "correctness_reason": "Arrival times are compared as floats, which is exact enough only because positions, speeds, and target are capped at 10^6 (cross-products stay under 2^53); in the generalized problem, e.g. target and distances near 10^17 with speeds differing in the 17th significant digit (such as (target-p1)/s1 = 10^17/1 versus (target-p2)/s2 = (10^17+1)/1), rounding merges or splits fleets incorrectly.",
+            "correctness_reason": "With caps lifted, two distinct arrival times can round to the same double (e.g. lead time 2^30 via distance 2^30/speed 1 and follower time 2^30 + 2^-30 via distance 2^60+1/speed 2^30), making a trailing car that should form its own fleet compare equal and get merged; within NeetCode's 10^6 caps the minimum gap between distinct times always exceeds the double ulp, so ordering is preserved.",
             "hash_dependent": false,
-            "notes": "The O(target) counting array is an unusual substitute for simply sorting by position (O(n log n), O(n) space); the pop()-driven while loop is also less readable than an indexed loop or a monotonic stack. Under the given scaling target ~ 2n+1, so the allocation stays linear.",
-            "space": "O(n + target)",
-            "summary": "Places each car into a counting array indexed by position, compacts it, then walks from the car nearest the target backward, merging any car whose float arrival time is at most the current lead fleet's time and counting a new fleet otherwise.",
+            "notes": "The float comparison (target-lead[0])/lead[1] >= (target-cars[-1][0])/cars[-1][1] is the standard idiom but is fragile for large values; cross-multiplying to integer arithmetic ((target-lead[0])*cars[-1][1] >= (target-cars[-1][0])*lead[1]) is exact. result is seeded with 1, which silently assumes n >= 1 (guaranteed by constraints). The stored tuples never use their position element after bucketing, so storing just the speed would suffice.",
+            "space": "O(target)",
+            "summary": "Buckets each car into a target-sized array indexed by position, compacts out the empty slots (which yields cars sorted by distance from the destination), then pops from the back, merging each car into the lead fleet if its arrival time is no later than the lead's, otherwise starting a new fleet.",
             "time_average": "O(n + target)",
             "time_worst": "O(n + target)"
           },
@@ -566,8 +566,8 @@
           "statement": "car-fleet"
         },
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:18:46.606464+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:41:16.947534+00:00",
           "benchmarks": {
             "adversarial": null,
             "benchmark_version": 2,
@@ -611,13 +611,13 @@
           "complexity": {
             "benchmark_model": "n",
             "correctness": "neetcode-only",
-            "correctness_reason": "Arrival times are compared with float division, which loses precision once position/target/speed magnitudes exceed about 2^53 (and overflows entirely near 1e308), so with the caps on target and speed lifted a pair of fleets whose true arrival-time ratio differs below float64 resolution can be merged or split incorrectly.",
+            "correctness_reason": "Arrival times are compared as Python floats, so once the magnitude cap is lifted and target/speed values exceed 2^53, quotients that differ by less than one ulp round to the same float and can flip a merge decision; within NeetCode's caps (values <= 1e6) the distinct rationals always differ by more than float64 rounding error, so it is safe there.",
             "hash_dependent": false,
-            "notes": "Clever branch selection keeps the counting-array strategy from ever being asymptotically worse than the sort. Comparing arrival times via float division is concise but cross-multiplication ((target - p1) * s2 >= (target - p2) * s1) would be exact; also, silently initializing result to 1 relies on the n >= 1 constraint.",
-            "space": "O(n + min(target, n log n))",
-            "summary": "Hybrid approach: it builds a position-indexed array when target is small relative to n log n, otherwise sorts the (position, speed) pairs. It then walks cars from nearest-to-target outward, merging each car into the lead fleet if its arrival time is no better, and counting a new fleet otherwise.",
-            "time_average": "O(min(target + n, n log n))",
-            "time_worst": "O(min(target + n, n log n))"
+            "notes": "The bit_length-based guard is a cheap stand-in for n log n and correctly picks the faster strategy; using it makes the whole algorithm O(min(n + target, n log n)) rather than a single fixed bound. Comparing arrival times via float division instead of cross-multiplication (target-p1)*s2 vs (target-p2)*s1 is concise but is what costs the solution generality. The inline 'I asked Claude' comment is not something to leave in submitted code.",
+            "space": "O(min(target, n log n))",
+            "summary": "Hybrid: it either bucket-places cars by position into an array of size target (when target < n*log n) or sorts the (position, speed) pairs, then scans from the car nearest the destination backward, merging each car into the fleet ahead if its arrival time is no later, and counting a new fleet otherwise.",
+            "time_average": "O(min(n + target, n log n))",
+            "time_worst": "O(min(n + target, n log n))"
           },
           "file": "Data Structures & Algorithms/car-fleet/submission-7.py",
           "golf": {
@@ -633,11 +633,41 @@
         }
       ]
     },
+    "copy-linked-list-with-random-pointer": {
+      "submissions": [
+        {
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:41:22.762122+00:00",
+          "complexity": {
+            "benchmark_model": "n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": true,
+            "notes": "Storing d[None] = None is a neat trick that lets the second pass assign pointers without null checks. Nodes are keyed by identity (the class defines no __hash__/__eq__), so dict operations are O(1) worst case since input cannot influence object addresses.",
+            "space": "O(n)",
+            "summary": "Two-pass hashmap approach: first pass creates a new node for every original node and stores the old-to-new mapping in a dict, second pass wires up next and random pointers via the mapping.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
+          "file": "Data Structures & Algorithms/copy-linked-list-with-random-pointer/submission-0.py",
+          "golf": {
+            "bytes": 667,
+            "characters": 667,
+            "non_blank_lines": 22,
+            "tokens": 90
+          },
+          "model": "k3",
+          "slug": "copy-linked-list-with-random-pointer",
+          "solved_at": "2026-08-14T18:19:15-07:00",
+          "statement": "copy-linked-list-with-random-pointer"
+        }
+      ]
+    },
     "daily-temperatures": {
       "submissions": [
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:18:52.949190+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:41:28.615566+00:00",
           "benchmarks": {
             "adversarial": null,
             "benchmark_version": 2,
@@ -683,9 +713,9 @@
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "Idiomatic monotonic stack; storing tuples works fine, though storing indices alone and comparing temperatures[stack[-1]] would be slightly cleaner.",
+            "notes": "Works but could be tightened idiomatically: use enumerate instead of range(len(...)), and store plain indices on the stack (comparing temperatures[stack[-1]]) rather than (temp, index) tuples. The scaling note about bounded temperature range does not change the bound: the stack invariant guarantees amortized O(1) per element regardless of value distribution.",
             "space": "O(n)",
-            "summary": "Monotonic decreasing stack of (temperature, index) pairs; each new temperature pops all cooler pending days and records the day difference. Each index is pushed and popped at most once, giving amortized O(1) per day.",
+            "summary": "Monotonic decreasing stack of (temperature, index) pairs; each new temperature pops all cooler pending days and records their wait. Each index is pushed and popped at most once, so total work is linear.",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },
@@ -706,8 +736,8 @@
     "duplicate-integer": {
       "submissions": [
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:19:05.402936+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:41:34.042141+00:00",
           "benchmarks": {
             "adversarial": {
               "best_fit": "n^2",
@@ -779,9 +809,9 @@
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": true,
-            "notes": "Shadows the builtin name 'dict'; the counting pass and second pass are both unnecessary \u2014 a single pass with a set (or early return when a key already exists) is simpler and avoids the extra loop.",
+            "notes": "Shadows the builtin name `dict` with a local variable; a set with early exit on first repeat (or collections.Counter / len(set(nums)) != len(nums)) would be more idiomatic and allow short-circuiting.",
             "space": "O(n)",
-            "summary": "Counts occurrences of each value in a dict, then scans again returning True on the first value with count greater than 1.",
+            "summary": "Counts occurrences of each value in a dict during a first pass, then returns True on the first value whose count exceeds 1 in a second pass.",
             "time_average": "O(n)",
             "time_worst": "O(n^2)"
           },
@@ -802,8 +832,8 @@
     "evaluate-reverse-polish-notation": {
       "submissions": [
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:20:40.346490+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:41:48.188334+00:00",
           "benchmarks": {
             "adversarial": null,
             "benchmark_version": 2,
@@ -847,11 +877,11 @@
           "complexity": {
             "benchmark_model": "n",
             "correctness": "neetcode-only",
-            "correctness_reason": "int(a/b) routes through a double, so once intermediate values exceed 2^53 (which the generalized problem allows, e.g. dividing 200^12 by 1 after a chain of multiplications) the truncation loses exactness or overflows, whereas NeetCode's tests keep intermediates small enough for float division to be exact.",
+            "correctness_reason": "int(a/b) converts to float first, so with generalized unbounded operands (e.g. tokens = [\"100000000000000000001\", \"1\", \"/\"]) the float conversion loses precision or raises OverflowError, whereas within NeetCode's capped value range the quotient always fits in float exactly.",
             "hash_dependent": false,
-            "notes": "The repeated if/elif chain could be replaced by a dispatch dict mapping operators to lambdas for readability. int(a/b) performs float division; a pure-integer truncating division (e.g., abs(a)//abs(b) with a sign fix, or math.trunc-free integer logic) would avoid any floating-point dependence.",
+            "notes": "The subtraction order is cleverly handled as -stack.pop()+stack.pop(). The division int(a/b) routes through a float, which silently loses precision or overflows for very large operands; under the generalized problem, an integer-only truncation (e.g. abs-based sign handling with //) would be required. `from typing import List` import is assumed.",
             "space": "O(n)",
-            "summary": "Classic stack evaluation of postfix notation: push parsed operands, and on each of the four operators pop the top two values, apply the operation (with truncation-toward-zero division via int(a/b)), and push the result.",
+            "summary": "Single pass with an explicit operand stack: operands are pushed as ints, each of the four operators pops two operands and pushes the result, with '/' handled via truncation toward zero using int(a/b).",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },
@@ -872,8 +902,8 @@
     "is-anagram": {
       "submissions": [
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:20:50.562593+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:41:54.882764+00:00",
           "benchmarks": {
             "adversarial": null,
             "benchmark_version": 2,
@@ -919,9 +949,9 @@
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "The bare except clause is unidiomatic and would swallow unrelated errors; comparing two collections.Counter objects (or dict.get with a default of 0) would be cleaner. The bidirectional comparison is redundant since equal multisets only need one direction plus a length check.",
+            "notes": "The bare `except` around the comparison loops is poor style and swallows unrelated errors; the entire comparison could be replaced by `return multiset_s == multiset_t` (or simply `return Counter(s) == Counter(t)`), since dict equality already handles missing keys. An early `len(s) != len(t)` check would also short-circuit obvious non-anagrams.",
             "space": "O(1)",
-            "summary": "Builds character-frequency dictionaries for both strings, then compares them in both directions, catching KeyError when a character appears in one string but not the other.",
+            "summary": "Builds per-character frequency dictionaries for both strings, then compares the two multisets key by key, treating a missing key (KeyError) as a mismatch. Since the alphabet is fixed at 26 lowercase letters, the dictionaries hold at most 26 entries, so counting is linear in the string length and extra space is constant.",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },
@@ -942,8 +972,8 @@
     "is-palindrome": {
       "submissions": [
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:21:00.858403+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:42:14.848321+00:00",
           "benchmarks": {
             "adversarial": null,
             "benchmark_version": 2,
@@ -989,9 +1019,9 @@
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "s.lower() copies the whole string, making space O(n); comparing characters case-insensitively in place would give O(1) extra space. The early 'return True' when a runs off the end correctly handles strings with no remaining alphanumerics.",
+            "notes": "s.lower() allocates an O(n) copy; space could be O(1) by lowercasing per-character (e.g. s[a].lower()) instead. The inner b-decrement loop needs no explicit bounds check because it is guaranteed to stop at s[a], which is alphanumeric. With the printable-ASCII character set, str.isalnum() coincides exactly with [A-Za-z0-9], so no Unicode-alnum pitfall arises here.",
             "space": "O(n)",
-            "summary": "Two-pointer scan from both ends, skipping non-alphanumeric characters and comparing lowercased characters until the pointers meet.",
+            "summary": "Two-pointer scan from both ends, skipping non-alphanumeric characters and comparing lowercased characters until the pointers meet. Each pointer moves monotonically inward, so the total work is linear.",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },
@@ -1008,8 +1038,8 @@
           "statement": "is-palindrome"
         },
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:21:06.711980+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:42:27.472696+00:00",
           "benchmarks": {
             "adversarial": null,
             "benchmark_version": 2,
@@ -1055,9 +1085,9 @@
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "Idiomatic and readable; allocates several intermediate strings (lower, join, reversed slice), but all are O(n). A two-pointer scan would reduce extra space to O(1).",
+            "notes": "A two-pointer approach over the original string would reduce space to O(1) by avoiding the filtered copy and reversed slice. Note str.isalnum() is Unicode-aware, but the problem restricts s to printable ASCII, where it matches exactly [A-Za-z0-9].",
             "space": "O(n)",
-            "summary": "Filters the lowercased string down to alphanumeric characters, then checks whether the result equals its reverse.",
+            "summary": "Builds a filtered, lowercased string of only alphanumeric characters, then checks whether it equals its reverse. One linear pass to filter plus a linear comparison.",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },
@@ -1078,8 +1108,8 @@
     "largest-rectangle-in-histogram": {
       "submissions": [
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:21:21.060040+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:42:53.782954+00:00",
           "benchmarks": {
             "adversarial": null,
             "benchmark_version": 2,
@@ -1111,11 +1141,11 @@
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "Reusing `largest` as both the sweep bound and the running answer is confusing but safe here because range() is materialized before the loop mutates it. Starting the sweep at i = 0 wastes one pass; range(1, largest+1) suffices.",
+            "notes": "Reusing `largest` as both the initial max-height bound and the running answer accumulator is confusing but harmless: the range() bound is fixed at loop creation, so updating `largest` inside the loop does not alter iteration, and max(heights) is a valid initial answer since a single tallest bar achieves that area. No hashing involved.",
             "space": "O(1)",
-            "summary": "Sweeps every integer height i from 0 to max(heights), and for each i scans the array once to find the widest run of bars with height >= i, tracking the best area i * width. Correct because the optimal rectangle's height equals some bar height, but it is O(n * H) instead of the O(n) monotonic-stack solution.",
-            "time_average": "O(n * H)",
-            "time_worst": "O(n * H)"
+            "summary": "Brute-force height sweep: for every level i from 0 to max(heights), it scans all bars to find the widest run of bars with height >= i and records i * width. The answer is the max over all levels, which correctly characterizes the largest rectangle (its height equals the minimum bar in its span).",
+            "time_average": "O(n * max(heights))",
+            "time_worst": "O(n * max(heights))"
           },
           "file": "Data Structures & Algorithms/largest-rectangle-in-histogram/submission-0.py",
           "golf": {
@@ -1134,16 +1164,16 @@
     "linked-list-cycle-detection": {
       "submissions": [
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:21:35.807741+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:43:16.788975+00:00",
           "complexity": {
-            "benchmark_model": "n",
+            "benchmark_model": "1",
             "correctness": "neetcode-only",
-            "correctness_reason": "Depends on the stated cap of 1000 nodes: an acyclic list longer than 1005 nodes would exhaust the loop and wrongly return true.",
+            "correctness_reason": "It hard-codes the constraint that the list has at most 1000 nodes; an acyclic list of length greater than 1005 would exhaust the loop without hitting null and wrongly return True.",
             "hash_dependent": false,
-            "notes": "A magic constant (1005) substitutes for a real algorithm; Floyd's tortoise-and-hare or a visited set would be the idiomatic approaches.",
+            "notes": "The hard-coded 1005 iteration limit is a non-idiomatic stand-in for proper cycle detection; Floyd's two-pointer algorithm would give a genuinely correct O(n) time, O(1) space solution. The constant-time bound reflects the hard-coded step limit, which is also what breaks correctness at scale.",
             "space": "O(1)",
-            "summary": "Walks the list for at most 1005 steps; if null is reached there is no cycle, otherwise it assumes a cycle exists. This exploits the statement's length cap of 1000 rather than actually detecting a cycle.",
+            "summary": "Walks at most 1005 nodes; if a null is reached it returns False, otherwise it assumes a cycle exists. This is a length-cap shortcut rather than a real cycle-detection algorithm like Floyd's tortoise-and-hare.",
             "time_average": "O(min(n, 1005))",
             "time_worst": "O(min(n, 1005))"
           },
@@ -1160,16 +1190,16 @@
           "statement": "linked-list-cycle-detection"
         },
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:21:42.312178+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:43:23.725832+00:00",
           "complexity": {
             "benchmark_model": "n",
             "correctness": "general",
             "correctness_reason": "",
-            "hash_dependent": true,
-            "notes": "Unused counter variable i can be removed. Node hashing relies on ListNode's default identity hash, which is safe here since input cannot steer object addresses into collisions.",
+            "hash_dependent": false,
+            "notes": "The counter variable i is incremented but never used and should be removed. The set stores ListNode objects, which use Python's default identity hash (based on object address), so lookups are O(1) even in the worst case; a Floyd's tortoise-and-hare approach would achieve O(1) space.",
             "space": "O(n)",
-            "summary": "Traverses the list while storing visited nodes in a set; if a node is revisited, a cycle exists, otherwise the walk terminates at null. Uses O(n) extra space rather than the O(1)-space Floyd's tortoise-and-hare alternative.",
+            "summary": "Traverses the list while storing each visited node in a set; returns True if a node is revisited (a cycle) and False if the traversal reaches null.",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },
@@ -1190,8 +1220,8 @@
     "longest-consecutive-sequence": {
       "submissions": [
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:21:53.569354+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:43:33.932371+00:00",
           "benchmarks": {
             "adversarial": {
               "best_fit": "n^2",
@@ -1263,9 +1293,9 @@
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": true,
-            "notes": "Works but is less idiomatic than the standard approach of iterating the set and only expanding from run starts (where x-1 is absent); the pop-and-expand-both-ways version is correct and still linear but does more membership probes per run.",
+            "notes": "Popping an arbitrary seed and expanding both ways avoids the usual `x-1 not in numset` start-of-run check; because each element is removed upon processing, total work stays linear. Clean and idiomatic.",
             "space": "O(n)",
-            "summary": "Builds a set of the numbers, then repeatedly pops an arbitrary element and expands both downward and upward to collect and remove its entire consecutive run, tracking the maximum run length. Each element is removed from the set exactly once, so total work is linear on average.",
+            "summary": "Builds a set of the numbers, then repeatedly pops an arbitrary element and expands outward in both directions, removing each consecutive element as it goes so every element is processed exactly once.",
             "time_average": "O(n)",
             "time_worst": "O(n^2)"
           },
@@ -1286,18 +1316,18 @@
     "merge-two-sorted-linked-lists": {
       "submissions": [
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:22:03.021582+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:43:42.707730+00:00",
           "complexity": {
             "benchmark_model": "n",
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "The root-selection preamble is verbose and duplicates the comparison logic; using a dummy head node would eliminate the special-casing and make the loop uniform. Minor spacing inconsistencies (current=next1).",
+            "notes": "Correct but the initialization is convoluted; computing root/next1/next2 via the same comparison twice is harder to read than the standard dummy-head pattern (dummy = ListNode(); tail = dummy) which also removes the early None checks and the duplicated return statements.",
             "space": "O(1)",
-            "summary": "Iterative two-pointer merge: picks the smaller head as the root, then walks both lists attaching the smaller node each step, and finally appends the non-empty remainder.",
-            "time_average": "O(n + m)",
-            "time_worst": "O(n + m)"
+            "summary": "Iterative two-pointer merge: picks the smaller head as root, then walks both lists appending the smaller current node, and finally splices on the non-empty remainder. Reuses the original nodes with O(1) extra space.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
           },
           "file": "Data Structures & Algorithms/merge-two-sorted-linked-lists/submission-0.py",
           "golf": {
@@ -1316,16 +1346,16 @@
     "minimum-stack": {
       "submissions": [
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:22:17.139142+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:43:55.484484+00:00",
           "complexity": {
-            "benchmark_model": "1",
+            "benchmark_model": "n",
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "Idiomatic and clean; initializing min_stack with float('inf') as a sentinel elegantly avoids empty checks in push. Each operation is worst-case O(1), satisfying the problem's requirement exactly.",
+            "notes": "The float('inf') sentinel avoids an empty-check in push/getMin; using a stack of (value, min-so-far) pairs is a common alternative with identical bounds. An n-operation sequence costs O(n) total.",
             "space": "O(n)",
-            "summary": "Maintains a main stack alongside a parallel min-stack that only pushes a value when it is less than or equal to the current minimum, so getMin is a constant-time peek at the min-stack's top. Pop mirrors the min-stack pop when the removed value equals the current minimum.",
+            "summary": "Maintains a main stack plus a parallel min-stack (seeded with +infinity) that records a new value only when it is <= the current minimum; pop mirrors the removal when the popped value equals the current min, so getMin is a constant-time peek. Duplicated minima are handled by the <= comparison.",
             "time_average": "O(1) per operation",
             "time_worst": "O(1) per operation"
           },
@@ -1346,8 +1376,8 @@
     "products-of-array-discluding-self": {
       "submissions": [
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:22:30.844567+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:44:09.786372+00:00",
           "benchmarks": {
             "adversarial": null,
             "benchmark_version": 2,
@@ -1393,9 +1423,9 @@
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "The nums[:zero] and nums[zero+1:] slices make unnecessary O(n) copies; a single loop skipping the zero index would suffice. The match statement is stylistically heavy for three simple branches, and the division approach ignores the follow-up's no-division challenge.",
+            "notes": "The slices nums[:zero] and nums[zero+1:] copy the list, costing extra O(n) time and space that a single loop with an index check would avoid. Uses division, so it does not satisfy the follow-up challenge; // is safe here only because the total product is exactly divisible by each nonzero element (floor division is exact when the remainder is zero).",
             "space": "O(n)",
-            "summary": "Counts zeros and branches: multiple zeros yield all zeros; exactly one zero yields the product of non-zero elements placed at the zero index; otherwise divides the total product by each element. Division is exact since every element divides the total product, so floor division is safe even with negatives.",
+            "summary": "Counts zeros and branches: more than one zero yields an all-zero answer; exactly one zero yields the product of all nonzero elements at the zero's index; otherwise it computes the total product and divides it by each element.",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },
@@ -1416,18 +1446,18 @@
     "remove-node-from-end-of-linked-list": {
       "submissions": [
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:22:40.452415+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:44:21.298569+00:00",
           "complexity": {
             "benchmark_model": "n",
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "The `size < 1` guard is dead code given the stated constraint sz >= 1, but harmless. A one-pass fast/slow-pointer version would avoid the second traversal but has the same asymptotics.",
+            "notes": "The `if size < 1` guard is dead code given the constraint n >= 1 implies a non-empty list, but harmless. A one-pass two-pointer (fast/slow) variant would be more idiomatic, though asymptotically identical.",
             "space": "O(1)",
-            "summary": "Two-pass approach: first count the list length L, then walk L-n steps from a dummy head to land on the node before the target and splice it out, handling head removal via the dummy.",
-            "time_average": "O(L)",
-            "time_worst": "O(L)"
+            "summary": "Two-pass approach: first count the list length, then walk to the (size - n)th node using a dummy pre-head and unlink the target node. The dummy node cleanly handles removing the original head.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
           },
           "file": "Data Structures & Algorithms/remove-node-from-end-of-linked-list/submission-2.py",
           "golf": {
@@ -1446,16 +1476,16 @@
     "reorder-linked-list": {
       "submissions": [
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:22:54.033024+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:44:39.466729+00:00",
           "complexity": {
             "benchmark_model": "n",
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "The O(n) array of node references is simple and correct, though the classic O(1)-space approach (find middle, reverse second half, merge) avoids the extra storage. The branching inside the pointer loop is slightly convoluted but handles both even and odd lengths correctly.",
+            "notes": "Correct but less space-efficient than the classic O(1)-space approach (find middle with slow/fast pointers, reverse the second half, then merge). The odd/even termination handling via the a==b check after the loop is a bit convoluted.",
             "space": "O(n)",
-            "summary": "Collect all nodes into an array, then use two pointers from both ends to rewire next pointers into the interleaved order, terminating the new tail with None.",
+            "summary": "Collects all nodes into an array via one traversal, then uses two pointers (front and back) to rewire next pointers into the interleaved order, handling both even and odd lengths.",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },
@@ -1476,16 +1506,16 @@
     "reverse-a-linked-list": {
       "submissions": [
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:23:01.076973+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:44:45.446685+00:00",
           "complexity": {
             "benchmark_model": "n",
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "Handles the 0/1-node base cases up front; the standard three-pointer while-loop formulation is slightly more idiomatic, but this variant is correct.",
+            "notes": "Correct but slightly verbose; the standard prev/curr loop with a uniform body (no special-casing of head or the final node) would be shorter and clearer.",
             "space": "O(1)",
-            "summary": "Iterative in-place reversal: walks the list once, redirecting each node's next pointer to its predecessor, with the final node becoming the new head.",
+            "summary": "Iterative in-place reversal: walks the list once, redirecting each node's next pointer to its predecessor while advancing three pointers.",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },
@@ -1502,16 +1532,16 @@
           "statement": "reverse-a-linked-list"
         },
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:23:07.042781+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:44:55.116858+00:00",
           "complexity": {
             "benchmark_model": "n",
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "Works but unidiomatic: the standard iterative reversal uses three pointers (prev, curr) in O(1) space, avoiding both the array and the clever-but-fragile nodes[-1]/nodes[-2] indexing. The O(n) extra space is unnecessary.",
+            "notes": "Correct but unidiomatic: the standard iterative reversal uses three pointers and O(1) extra space. Appending None into the list and relying on nodes[-1]/nodes[-2] indexing is a clever but convoluted way to get the base cases.",
             "space": "O(n)",
-            "summary": "Collects all nodes into an array by walking the list, then rewrites each node's next pointer to point at its predecessor by indexing the array, returning the former tail. The trailing None appended during the walk conveniently serves as the new tail's next via nodes[-1].",
+            "summary": "Collects all nodes into a Python list (with a trailing None sentinel), then rewrites each node's next pointer to the previous node and returns the former tail. Works but uses O(n) extra space.",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },
@@ -1532,8 +1562,8 @@
     "string-encode-and-decode": {
       "submissions": [
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:23:36.524375+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:45:38.704925+00:00",
           "benchmarks": {
             "adversarial": null,
             "benchmark_version": 2,
@@ -1579,9 +1609,9 @@
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "Concise and readable; correctness hinges on the delimiter lying outside the 256-character ASCII set, so it would not survive the follow-up's arbitrary-Unicode generalization. A length-prefixed encoding would be more robust.",
+            "notes": "The empty-list case is handled by returning an empty encoded string, and decode('') correctly yields []. Very concise, though the trailing-delimiter-plus-pop dance is a little subtle; an explicit length-prefix scheme would be more robust and self-documenting.",
             "space": "O(n)",
-            "summary": "Joins the strings with a non-ASCII emoji delimiter (appended after the last string too), then decodes via split and drops the trailing empty fragment; the empty-list case maps to the empty string, which decodes back to [].",
+            "summary": "Joins the strings with a non-ASCII emoji delimiter (with a trailing delimiter to mark the end) and decodes by splitting on that delimiter and dropping the final empty piece. Since the 256-character ASCII set is part of the problem, the delimiter can never appear in the input, making the round trip exact.",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },
@@ -1598,8 +1628,8 @@
           "statement": "string-encode-and-decode"
         },
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:23:20.694474+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:45:10.966230+00:00",
           "benchmarks": {
             "adversarial": null,
             "benchmark_version": 2,
@@ -1643,11 +1673,11 @@
           "complexity": {
             "benchmark_model": "n",
             "correctness": "incorrect",
-            "correctness_reason": "The delimiter is composed of ASCII characters that input strings may legally contain, so e.g. strs = [\"xpaysutdlfmywvaugplk49w87ky9v478y\"] encodes and then decodes into extra spurious segments, failing round-trip on a permitted input.",
+            "correctness_reason": "The delimiter 'paysutdlfmywvaugplk49w87ky9v478' consists of valid ASCII characters that the input is permitted to contain, so strs = [\"paysutdlfmywvaugplk49w87ky9v478\"] encodes to delimiter+delimiter and decodes to ['', ''] instead of the original list.",
             "hash_dependent": false,
-            "notes": "The delimiter trick is fragile; a length-prefixed encoding (e.g. 'len#str') is the standard robust approach and equally simple.",
+            "notes": "The algorithm relies on the delimiter never occurring in the data, but the delimiter is itself made of ASCII letters and digits, so it is not safe. A length-prefix scheme (e.g. 'len#string') would be robust for any character set. The empty-list special case in encode is redundant since join on an empty list already yields '', which decodes correctly.",
             "space": "O(n)",
-            "summary": "Joins the list with a hard-coded 'random' delimiter string (appending it at the end) and decodes via split plus a pop of the trailing empty segment. Time and space are linear in total character volume.",
+            "summary": "Encodes by joining the strings with a fixed 31-character magic delimiter (and appending one trailing delimiter), and decodes by splitting on that delimiter and dropping the empty tail.",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },
@@ -1664,8 +1694,8 @@
           "statement": "string-encode-and-decode"
         },
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:23:28.866665+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:45:23.090038+00:00",
           "benchmarks": {
             "adversarial": null,
             "benchmark_version": 2,
@@ -1711,9 +1741,9 @@
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "decode could be O(n) by keeping an integer index into s instead of repeatedly doing s = s[...:] (each slice copies the remainder, making the loop O(total^2)). Using str.index per step is also less idiomatic than scanning with a pointer. Encode itself is clean and O(total chars).",
+            "notes": "decode(s) copies the remaining suffix on every iteration (s = s[...:]), making it O(T^2) in the total encoded length; an index pointer into the original string would make it linear. Also 'List' requires 'from typing import List'.",
             "space": "O(n)",
-            "summary": "Length-prefix encoding: each string is written as `<len>|<content>`, and decode repeatedly finds the next `|`, parses the length, and slices out that many characters. Decode is quadratic because each iteration re-slices the entire remaining string.",
+            "summary": "Encode prefixes each string with its length and a '|' separator; decode repeatedly parses the length header and slices out that many characters. Decoding is quadratic because each iteration re-slices the entire remaining encoded string, copying it.",
             "time_average": "O(n^2)",
             "time_worst": "O(n^2)"
           },
@@ -1734,8 +1764,8 @@
     "top-k-elements-in-list": {
       "submissions": [
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:24:04.140534+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:46:33.996047+00:00",
           "benchmarks": {
             "adversarial": {
               "best_fit": "n^2",
@@ -1805,9 +1835,9 @@
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": true,
-            "notes": "The per-count linear scan over num_counts.items() plus the final set() dedup are awkward workarounds; collecting (count, key) pairs and taking the k largest directly (e.g. heapq.nlargest) would be cleaner and avoid both. Sorting all m counts is O(m log m) when only the top k are needed.",
+            "notes": "Counting is non-idiomatic (`num in num_counts` then a second lookup; `dict.get(num, 0) + 1` or `collections.Counter` is cleaner), and the O(k*m) reverse lookup plus list(set(...)) dedup is convoluted \u2014 sorting items by count or using a heap would be simpler and faster. Correctness hinges on the statement's unique-answer precondition: if a frequency tie straddled the k-th boundary, the value-based reverse lookup would emit more than k keys.",
             "space": "O(n)",
-            "summary": "Counts frequencies in a dict, sorts the frequency values and takes the k largest, then scans the dict once per selected count to collect matching keys, deduplicating via set at the end.",
+            "summary": "Builds a frequency dict, sorts the frequency values and keeps the top k, then reverse-looks-up every key whose count matches one of those frequencies and dedups via set().",
             "time_average": "O(n log n)",
             "time_worst": "O(n^2)"
           },
@@ -1828,8 +1858,8 @@
     "two-integer-sum": {
       "submissions": [
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:24:21.372851+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:47:07.456087+00:00",
           "benchmarks": {
             "adversarial": {
               "best_fit": "n",
@@ -1913,9 +1943,9 @@
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "Unidiomatic and convoluted: sorting loses the indices, forcing linear .index() calls and a fragile pop-and-shift trick for the duplicate-value case; sorting (value, index) pairs or a one-pass hash map would be cleaner, and the hash map version runs in O(n).",
+            "notes": "Correct but convoluted: it mutates the caller's input list via pop, relies on negative-index arithmetic for the high pointer, and does up to three O(n) linear scans with list.index. A single-pass hash map of value -> index would be O(n) average time and far more idiomatic.",
             "space": "O(n)",
-            "summary": "Sorts a copy of nums, then uses two pointers to find the pair of values summing to target, and recovers their original indices via nums.index (with a pop-based fixup when the two values are equal).",
+            "summary": "Sorts a copy of the array, runs a two-pointer scan to find the two values summing to target, then maps the values back to original indices via list.index (with a pop-and-shift trick for duplicate values).",
             "time_average": "O(n log n)",
             "time_worst": "O(n log n)"
           },
@@ -1936,8 +1966,8 @@
     "two-integer-sum-ii": {
       "submissions": [
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:24:35.956686+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:47:55.095663+00:00",
           "benchmarks": {
             "adversarial": {
               "best_fit": "n",
@@ -2017,15 +2047,15 @@
             ]
           },
           "complexity": {
-            "benchmark_model": "n log n",
+            "benchmark_model": "n",
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "Re-sorting ignores the given sorted precondition and violates the required O(1) extra space; a plain two-pointer pass on the original array would give O(n) time and O(1) space. The repeated nums.index() calls are O(n) each but only run a constant number of times, so they don't change the asymptotics.",
+            "notes": "Timsort on an already-sorted input is a single ascending run, so sorted() is O(n) here; the constant number of index()/pop() calls are each O(n), keeping the total linear. However, the solution violates the problem's O(1)-space requirement via the sorted copy, and the index-recovery dance (including mutation via pop) is needlessly convoluted \u2014 two pointers directly on the input would give O(n) time and O(1) space with 1-indexed positions for free.",
             "space": "O(n)",
-            "summary": "Sorts a copy of the array, runs a two-pointer scan on the sorted copy to find the two values, then recovers the original 1-indexed positions with index() lookups (with a pop-based fixup when both values are equal).",
-            "time_average": "O(n log n)",
-            "time_worst": "O(n log n)"
+            "summary": "Copies and re-sorts the array (redundant since the input is guaranteed sorted), then runs the classic two-pointer scan to find the pair of values summing to target, and finally recovers original indices with list.index(), handling the equal-values case by popping one occurrence and searching again.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
           },
           "file": "Data Structures & Algorithms/two-integer-sum-ii/submission-1.py",
           "golf": {
@@ -2044,16 +2074,16 @@
     "valid-sudoku": {
       "submissions": [
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:24:41.637693+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:48:06.512849+00:00",
           "complexity": {
             "benchmark_model": "1",
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "Using valid *= isValidLine(...) (boolean coercion through integer multiplication) instead of valid &= ... or an early return is an odd idiom, and it prevents short-circuiting; list.count inside a loop is also less clear than a set-based duplicate check, though both are constant here.",
+            "notes": "Accumulating with `valid *= isValidLine(...)` is cute but obscure; `and` or `all()` would be clearer. `line.count(num)` inside a loop is O(n^2) per line \u2014 irrelevant at length 9. The `List` annotation needs `from typing import List`; under CPython 3.14 (PEP 649) annotations are never evaluated, so the missing import is harmless at runtime but still worth adding.",
             "space": "O(1)",
-            "summary": "Extracts each of the 9 rows, 9 columns, and 9 sub-boxes as flat lists and validates each by checking that no non-'.' cell appears more than once via list.count. The board is structurally fixed at 9x9, so all work is constant.",
+            "summary": "Checks each of the 9 rows, 9 columns, and 9 boxes for duplicate non-empty cells using a helper that calls line.count(num) for every cell; all lines have fixed length 9, so everything is constant work.",
             "time_average": "O(1)",
             "time_worst": "O(1)"
           },
@@ -2074,8 +2104,8 @@
     "validate-parentheses": {
       "submissions": [
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:24:48.790688+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:48:31.218088+00:00",
           "benchmarks": {
             "adversarial": null,
             "benchmark_version": 2,
@@ -2121,9 +2151,9 @@
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "Membership test against a 3-element list is constant-time; a dict mapping closers to openers would be more idiomatic. Note each elif pops exactly once, so control flow is correct.",
+            "notes": "Relies on `and` short-circuiting so `stack.pop()` only executes when the closing bracket's type is being tested \u2014 correct but easy to misread; a dict mapping closers to openers would be cleaner. Membership test against a 3-element list is constant-time and fine.",
             "space": "O(n)",
-            "summary": "Classic stack-based validation: push each opening bracket, and on a closing bracket pop the stack and verify it matches the corresponding opener; the string is valid iff no mismatch occurs and the stack is empty at the end.",
+            "summary": "Classic stack-based validation: push each opening bracket, and on each closing bracket pop and verify the types match; the string is valid iff the stack is empty at the end.",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },
@@ -2140,8 +2170,8 @@
           "statement": "validate-parentheses"
         },
         {
-          "analysis_version": 7,
-          "analyzed_at": "2026-08-15T01:24:56.361248+00:00",
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T01:48:43.407711+00:00",
           "benchmarks": {
             "adversarial": null,
             "benchmark_version": 2,
@@ -2187,9 +2217,9 @@
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "Clean and idiomatic; the map keys come from a fixed 3-character set, so hashing is bounded and lookups are O(1) even in the worst case.",
+            "notes": "The dict is keyed by three fixed characters from a constant bracket alphabet, so lookups are O(1) even adversarially; 'bracket in \"({[\"' is a clean constant-time membership check on a 3-char string.",
             "space": "O(n)",
-            "summary": "Single pass with a stack: push opening brackets, and on each closing bracket pop and check it matches via a fixed close-to-open map; valid iff the stack is empty at the end and no mismatch occurred.",
+            "summary": "Classic stack solution: push opening brackets, and on a closing bracket pop and verify it matches via a fixed close-to-open map; the string is valid iff the stack empties with no mismatches.",
             "time_average": "O(n)",
             "time_worst": "O(n)"
           },

@@ -1,16 +1,16 @@
 {
-  "analysis_version": 7,
-  "analyzed_at": "2026-08-15T01:22:40.452415+00:00",
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-15T01:44:21.298569+00:00",
   "complexity": {
     "benchmark_model": "n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "The `size < 1` guard is dead code given the stated constraint sz >= 1, but harmless. A one-pass fast/slow-pointer version would avoid the second traversal but has the same asymptotics.",
+    "notes": "The `if size < 1` guard is dead code given the constraint n >= 1 implies a non-empty list, but harmless. A one-pass two-pointer (fast/slow) variant would be more idiomatic, though asymptotically identical.",
     "space": "O(1)",
-    "summary": "Two-pass approach: first count the list length L, then walk L-n steps from a dummy head to land on the node before the target and splice it out, handling head removal via the dummy.",
-    "time_average": "O(L)",
-    "time_worst": "O(L)"
+    "summary": "Two-pass approach: first count the list length, then walk to the (size - n)th node using a dummy pre-head and unlink the target node. The dummy node cleanly handles removing the original head.",
+    "time_average": "O(n)",
+    "time_worst": "O(n)"
   },
   "file": "Data Structures & Algorithms/remove-node-from-end-of-linked-list/submission-2.py",
   "golf": {

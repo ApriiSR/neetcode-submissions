@@ -1,14 +1,14 @@
 {
-  "analysis_version": 7,
-  "analyzed_at": "2026-08-15T01:21:00.858403+00:00",
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-15T01:42:14.848321+00:00",
   "complexity": {
     "benchmark_model": "n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "s.lower() copies the whole string, making space O(n); comparing characters case-insensitively in place would give O(1) extra space. The early 'return True' when a runs off the end correctly handles strings with no remaining alphanumerics.",
+    "notes": "s.lower() allocates an O(n) copy; space could be O(1) by lowercasing per-character (e.g. s[a].lower()) instead. The inner b-decrement loop needs no explicit bounds check because it is guaranteed to stop at s[a], which is alphanumeric. With the printable-ASCII character set, str.isalnum() coincides exactly with [A-Za-z0-9], so no Unicode-alnum pitfall arises here.",
     "space": "O(n)",
-    "summary": "Two-pointer scan from both ends, skipping non-alphanumeric characters and comparing lowercased characters until the pointers meet.",
+    "summary": "Two-pointer scan from both ends, skipping non-alphanumeric characters and comparing lowercased characters until the pointers meet. Each pointer moves monotonically inward, so the total work is linear.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },

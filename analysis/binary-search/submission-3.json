@@ -1,14 +1,14 @@
 {
-  "analysis_version": 7,
-  "analyzed_at": "2026-08-15T01:12:35.805561+00:00",
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-15T01:36:22.788263+00:00",
   "complexity": {
     "benchmark_model": "log n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "Using mid = start + (end - start) // 2 and a half-open interval is clean and avoids off-by-one errors; the empty-array case is also handled correctly by the start == end check.",
+    "notes": "The loop invariant (target, if present, lies in [start, end)) is maintained correctly, and start can never exceed len(nums) before the final guard `start == end` short-circuits the index access. The bare `List[int]` annotation is safe on CPython 3.14 since PEP 649 defers annotation evaluation, though importing List from typing would be cleaner style.",
     "space": "O(1)",
-    "summary": "Classic iterative binary search over the half-open interval [start, end), narrowing the range each iteration and returning the index on equality; after the loop at most one candidate remains and it is checked explicitly. The final guard handles both the exhausted (start == end) case and a lone non-matching element.",
+    "summary": "Classic iterative binary search over the half-open interval [start, end), narrowing on comparison with nums[mid]; after the loop collapses the range to one index, it verifies nums[start] against target.",
     "time_average": "O(log n)",
     "time_worst": "O(log n)"
   },

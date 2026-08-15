@@ -1,14 +1,14 @@
 {
-  "analysis_version": 7,
-  "analyzed_at": "2026-08-15T01:24:21.372851+00:00",
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-15T01:47:07.456087+00:00",
   "complexity": {
     "benchmark_model": "n log n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "Unidiomatic and convoluted: sorting loses the indices, forcing linear .index() calls and a fragile pop-and-shift trick for the duplicate-value case; sorting (value, index) pairs or a one-pass hash map would be cleaner, and the hash map version runs in O(n).",
+    "notes": "Correct but convoluted: it mutates the caller's input list via pop, relies on negative-index arithmetic for the high pointer, and does up to three O(n) linear scans with list.index. A single-pass hash map of value -> index would be O(n) average time and far more idiomatic.",
     "space": "O(n)",
-    "summary": "Sorts a copy of nums, then uses two pointers to find the pair of values summing to target, and recovers their original indices via nums.index (with a pop-based fixup when the two values are equal).",
+    "summary": "Sorts a copy of the array, runs a two-pointer scan to find the two values summing to target, then maps the values back to original indices via list.index (with a pop-and-shift trick for duplicate values).",
     "time_average": "O(n log n)",
     "time_worst": "O(n log n)"
   },

@@ -1,0 +1,26 @@
+{
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-15T01:41:22.762122+00:00",
+  "complexity": {
+    "benchmark_model": "n",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": true,
+    "notes": "Storing d[None] = None is a neat trick that lets the second pass assign pointers without null checks. Nodes are keyed by identity (the class defines no __hash__/__eq__), so dict operations are O(1) worst case since input cannot influence object addresses.",
+    "space": "O(n)",
+    "summary": "Two-pass hashmap approach: first pass creates a new node for every original node and stores the old-to-new mapping in a dict, second pass wires up next and random pointers via the mapping.",
+    "time_average": "O(n)",
+    "time_worst": "O(n)"
+  },
+  "file": "Data Structures & Algorithms/copy-linked-list-with-random-pointer/submission-0.py",
+  "golf": {
+    "bytes": 667,
+    "characters": 667,
+    "non_blank_lines": 22,
+    "tokens": 90
+  },
+  "model": "k3",
+  "slug": "copy-linked-list-with-random-pointer",
+  "solved_at": "2026-08-14T18:19:15-07:00",
+  "statement": "copy-linked-list-with-random-pointer"
+}

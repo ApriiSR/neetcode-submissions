@@ -1,14 +1,14 @@
 {
-  "analysis_version": 7,
-  "analyzed_at": "2026-08-15T01:12:51.501935+00:00",
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-15T01:36:45.945169+00:00",
   "complexity": {
     "benchmark_model": "n",
     "correctness": "neetcode-only",
-    "correctness_reason": "best_buy is hard-coded to 100, so once the price cap is lifted an input like [1000, 2000] yields 1900 instead of the correct 1000.",
+    "correctness_reason": "With the price cap lifted, e.g. prices = [200, 300], best_buy starts at 100 (never an actual price) and the code returns 200 instead of the true maximum profit of 100.",
     "hash_dependent": false,
-    "notes": "Initializing best_buy to the constant 100 instead of prices[0] or infinity is a subtle correctness hazard that only works because of the stated price cap.",
+    "notes": "Hard-coding best_buy = 100 only works because the statement caps prices at 100; initializing to prices[0] or float('inf') would be correct and equally idiomatic.",
     "space": "O(1)",
-    "summary": "Single pass tracking the minimum price seen so far (best_buy) and the maximum profit of selling at each day against that minimum.",
+    "summary": "Single pass tracking the minimum buy price seen so far and the best profit achievable by selling at each day, returning the maximum (floored at 0 since best_profit starts at 0).",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },

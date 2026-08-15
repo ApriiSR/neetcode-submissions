@@ -1,14 +1,14 @@
 {
-  "analysis_version": 7,
-  "analyzed_at": "2026-08-15T01:21:06.711980+00:00",
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-15T01:42:27.472696+00:00",
   "complexity": {
     "benchmark_model": "n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "Idiomatic and readable; allocates several intermediate strings (lower, join, reversed slice), but all are O(n). A two-pointer scan would reduce extra space to O(1).",
+    "notes": "A two-pointer approach over the original string would reduce space to O(1) by avoiding the filtered copy and reversed slice. Note str.isalnum() is Unicode-aware, but the problem restricts s to printable ASCII, where it matches exactly [A-Za-z0-9].",
     "space": "O(n)",
-    "summary": "Filters the lowercased string down to alphanumeric characters, then checks whether the result equals its reverse.",
+    "summary": "Builds a filtered, lowercased string of only alphanumeric characters, then checks whether it equals its reverse. One linear pass to filter plus a linear comparison.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },
