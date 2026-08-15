@@ -4,7 +4,8 @@
   "complexity": {
     "benchmark_model": "n^2",
     "correctness": "incorrect",
-    "correctness_reason": "Crashes with AttributeError on input lists = [[]] (explicitly allowed by Example 3), because vals = [node.val for node in lists] dereferences None for an empty list; the main loop would also call lists[j].val on None.",
+    "correctness_note": "Unreachable through NeetCode's own judge, which drops empty lists while deserializing: Example 3 arrives as [] rather than [None], so the submission passes. That serializer bug is reported at https://github.com/neetcode-gh/leetcode/issues/5798 . Probed directly \u2014 a solution returning len(lists) answers 0 for lists=[[]].",
+    "correctness_reason": "Crashes with AttributeError on any input containing an empty list among the k \u2014 e.g. lists = [[1,2],[],[3]] \u2014 because vals = [node.val for node in lists] dereferences the None head, and the main loop reads lists[j].val on it too. The constraints permit this (0 <= lists[i].length <= 500), and Example 3 is lists = [[]].",
     "hash_dependent": false,
     "notes": "The vals list is built and maintained but never read, making it dead code (and it is what crashes on empty lists). The tie-break on prev.val is an unnecessary micro-optimization. A heap or divide-and-conquer merge would give O(n log k).",
     "space": "O(k)",
