@@ -73,6 +73,42 @@ class SettleRelationTests(unittest.TestCase):
         }
         self.assertEqual(analyze.settle_relation(complexity, self.PREV), "new-approach")
 
+    def test_changed_correctness_overrides_a_revision_verdict(self):
+        # A fix must not quietly delete the broken version it supersedes.
+        previous = {
+            "complexity": {
+                "time_average": "O(n)", "time_worst": "O(n)", "space": "O(1)",
+                "correctness": "incorrect",
+            }
+        }
+        complexity = {
+            "time_average": "O(n)", "time_worst": "O(n)", "space": "O(1)",
+            "correctness": "general", "relation_to_previous": "revision",
+        }
+        self.assertEqual(analyze.settle_relation(complexity, previous), "new-approach")
+
+    def test_same_correctness_stays_a_revision(self):
+        previous = {
+            "complexity": {
+                "time_average": "O(n)", "time_worst": "O(n)", "space": "O(1)",
+                "correctness": "incorrect",
+            }
+        }
+        complexity = {
+            "time_average": "O(n)", "time_worst": "O(n)", "space": "O(1)",
+            "correctness": "incorrect", "relation_to_previous": "revision",
+        }
+        self.assertEqual(analyze.settle_relation(complexity, previous), "revision")
+
+    def test_missing_correctness_on_either_side_does_not_force(self):
+        # Records predating the field can't be compared; don't invent a split.
+        previous = {"complexity": {"time_average": "O(n)", "time_worst": "O(n)", "space": "O(1)"}}
+        complexity = {
+            "time_average": "O(n)", "time_worst": "O(n)", "space": "O(1)",
+            "correctness": "general", "relation_to_previous": "revision",
+        }
+        self.assertEqual(analyze.settle_relation(complexity, previous), "revision")
+
     def test_new_approach_is_left_alone(self):
         complexity = {
             "time_average": "O(n)", "time_worst": "O(n)", "space": "O(1)",

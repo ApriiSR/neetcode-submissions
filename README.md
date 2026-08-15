@@ -559,10 +559,14 @@ rewritten more neatly) or `"new-approach"` (different means, different data
 structure, different shape). That is a judgement about intent, which is why
 it goes to the model rather than a diff-similarity threshold.
 
-`settle_relation()` then applies the rule the model doesn't get a vote on:
-**if the asymptotics moved, it is a new approach**, whatever K3 said. A
-one-line change that swaps a scan for a set lookup is a submission in its
-own right. An unrecognized value also falls back to `"new-approach"`, so a
+`settle_relation()` then applies the two rules the model doesn't get a
+vote on. **If the asymptotics moved, it is a new approach**, whatever K3
+said — a one-line change that swaps a scan for a set lookup is a
+submission in its own right. **If the correctness moved, likewise**: a fix
+that takes a solution from `incorrect` to `general` must not quietly
+delete the broken version from the page that recorded it. Either side
+missing the field (records predating it) means no comparison and no
+override. An unrecognized value also falls back to `"new-approach"`, so a
 confused response can never silently swallow a submission.
 
 A revision records `"supersedes": "submission-N"`, which has two effects:

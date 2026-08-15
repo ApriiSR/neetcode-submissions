@@ -441,14 +441,22 @@ def _asymptotics(complexity) -> tuple | None:
     )
 
 
+def _correctness(complexity) -> str | None:
+    if not isinstance(complexity, dict):
+        return None
+    return complexity.get("correctness")
+
+
 def settle_relation(complexity: dict | None, previous_record: dict | None) -> str | None:
     """Decide whether this submission supersedes the previous one.
 
     K3 judges whether the approach changed, since that is a judgement about
-    intent that no diff ratio captures — but a change in asymptotics settles
-    it outright, whatever K3 said. April's rule: tidying (a dead line
-    removed, a line rewritten shorter) is a revision; anything that moves the
-    complexity is a submission in its own right.
+    intent that no diff ratio captures — but two things settle it outright,
+    whatever K3 said. April's rule: tidying (a dead line removed, a line
+    rewritten shorter) is a revision, while anything that moves the
+    COMPLEXITY is a submission in its own right; and so is anything that
+    moves the CORRECTNESS, so that fixing a bug never quietly deletes the
+    broken version from the page it was recorded on.
     """
     if not isinstance(complexity, dict):
         return None
@@ -458,9 +466,20 @@ def settle_relation(complexity: dict | None, previous_record: dict | None) -> st
     if relation not in ("revision", "new-approach"):
         return "new-approach"
     if relation == "revision" and previous_record is not None:
-        before = _asymptotics((previous_record or {}).get("complexity"))
+        previous_complexity = (previous_record or {}).get("complexity")
+
+        before = _asymptotics(previous_complexity)
         after = _asymptotics(complexity)
         if before is not None and after is not None and before != after:
+            return "new-approach"
+
+        before_status = _correctness(previous_complexity)
+        after_status = _correctness(complexity)
+        if (
+            before_status is not None
+            and after_status is not None
+            and before_status != after_status
+        ):
             return "new-approach"
     return relation
 
