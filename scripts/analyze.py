@@ -71,8 +71,11 @@ SUBMISSION_RE = re.compile(r"^submission-(\d+)\.py$")
 # kept — see generators.py's generalized_note) and the correctness field was
 # added: a cap on n was being used to call solutions O(1), and a capped value
 # range to rule out hash collisions, which left the page's claims resting on
-# limits the code itself doesn't have.
-ANALYSIS_VERSION = 7
+# limits the code itself doesn't have. Bumped to 8 to state the runtime is
+# CPython 3.14: a `-> tuple(int)` annotation got graded 'incorrect' for
+# raising at definition time, which PEP 649 means it no longer does — the
+# very reason the workflow pins 3.14.
+ANALYSIS_VERSION = 8
 
 # Per-request read timeout. Raised from 120s when the prompt grew (statement
 # + generalized note + a longer system prompt all push response latency up)
@@ -142,6 +145,12 @@ SYSTEM_PROMPT = (
     "26-letter alphabet, a 9x9 board) is a genuine constant and should be "
     "folded in. Arithmetic counts as unit cost even where generalizing "
     "removes a machine-word guarantee. "
+    "Solutions run on CPython 3.14, where PEP 649 defers annotation "
+    "evaluation: an annotation that would raise if evaluated eagerly "
+    "(e.g. `-> tuple(int)`, which older Pythons would call at "
+    "definition time) is simply never evaluated and cannot affect "
+    "correctness. Say so in notes if it is worth a style remark, but "
+    "never grade it as incorrect. "
     "Then judge CORRECTNESS on two levels, and report it in "
     '"correctness": "general" if the solution is right for every input to '
     'the generalized problem; "neetcode-only" if it is right for every '
