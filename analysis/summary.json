@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-15T06:57:25.829361+00:00",
+  "generated_at": "2026-08-15T07:37:00.022126+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -1648,6 +1648,36 @@
           "slug": "longest-consecutive-sequence",
           "solved_at": "2026-08-12T19:11:24-07:00",
           "statement": "longest-consecutive-sequence"
+        }
+      ]
+    },
+    "lru-cache": {
+      "submissions": [
+        {
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T07:36:59.863174+00:00",
+          "complexity": {
+            "benchmark_model": "n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": true,
+            "notes": "Membership test `key in self.stored`, `list.remove`, and `del self.stored[0]` are all O(n); the standard O(1) approach is a dict plus a doubly-linked list (or collections.OrderedDict). Also, eviction removes the key from `stored` but never from `self.cache`, so the dict leaks memory, growing with the total number of distinct keys ever inserted rather than staying bounded by capacity. The double `key in self.stored` in get is redundant.",
+            "space": "O(n)",
+            "summary": "Uses a plain list `stored` to track recency order (front = least recent) plus a dict for values. Each get/put does a linear membership test and list.remove, so every operation is O(n) in the number of cached keys rather than the required O(1) average.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
+          "file": "Data Structures & Algorithms/lru-cache/submission-5.py",
+          "golf": {
+            "bytes": 595,
+            "characters": 595,
+            "non_blank_lines": 17,
+            "tokens": 147
+          },
+          "model": "k3",
+          "slug": "lru-cache",
+          "solved_at": "2026-08-15T00:36:10-07:00",
+          "statement": "lru-cache"
         }
       ]
     },
