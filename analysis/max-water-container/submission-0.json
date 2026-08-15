@@ -1,0 +1,26 @@
+{
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-15T19:56:22.614692+00:00",
+  "complexity": {
+    "benchmark_model": "n^2",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "Correct but quadratic; the classic two-pointer approach solves this in O(n) time with the same O(1) space.",
+    "space": "O(1)",
+    "summary": "Brute-force enumeration of all pairs of bars, computing (end - start) * min(heights[start], heights[end]) for each and keeping the maximum.",
+    "time_average": "O(n^2)",
+    "time_worst": "O(n^2)"
+  },
+  "file": "Data Structures & Algorithms/max-water-container/submission-0.py",
+  "golf": {
+    "bytes": 279,
+    "characters": 279,
+    "non_blank_lines": 7,
+    "tokens": 76
+  },
+  "model": "k3",
+  "slug": "max-water-container",
+  "solved_at": "2026-08-15T12:37:57-07:00",
+  "statement": "max-water-container"
+}
