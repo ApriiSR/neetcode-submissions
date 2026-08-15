@@ -1,12 +1,14 @@
 {
-  "analysis_version": 6,
-  "analyzed_at": "2026-08-14T22:23:03.219703+00:00",
+  "analysis_version": 7,
+  "analyzed_at": "2026-08-15T01:13:50.123335+00:00",
   "complexity": {
     "benchmark_model": "n log n",
+    "correctness": "neetcode-only",
+    "correctness_reason": "Arrival times are compared with floating-point division, which is exact enough under NeetCode's caps (target, speeds, positions <= 10^6) but with the generalized unbounded magnitudes two distinct arrival times can round to the same float and be wrongly merged into one fleet.",
     "hash_dependent": false,
-    "notes": "The 'import math' is unused. Initializing result to 1 relies on the stated constraint n >= 1, which is a guaranteed precondition, so it is safe.",
+    "notes": "Building the pairs via sorted(zip(position, speed)) would be cleaner than the indexed list comprehension; popping from the end keeps each step O(1). Comparing arrival times via cross-multiplication ((target - p1) * s2 vs (target - p2) * s1) would avoid floating point entirely and stay exact for arbitrarily large integers.",
     "space": "O(n)",
-    "summary": "Sorts cars by position and scans from the car closest to the target backward, popping any car whose arrival time is no greater than the current lead fleet's (it merges into that fleet) and starting a new fleet otherwise.",
+    "summary": "Sorts the cars by position and scans from the car nearest the target backward, using arrival time (target - position) / speed: a car forms a new fleet only if its arrival time exceeds that of the fleet ahead, otherwise it merges into that fleet.",
     "time_average": "O(n log n)",
     "time_worst": "O(n log n)"
   },

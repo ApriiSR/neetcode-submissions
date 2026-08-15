@@ -1,12 +1,14 @@
 {
-  "analysis_version": 6,
-  "analyzed_at": "2026-08-14T22:22:51.912693+00:00",
+  "analysis_version": 7,
+  "analyzed_at": "2026-08-15T01:12:51.501935+00:00",
   "complexity": {
     "benchmark_model": "n",
+    "correctness": "neetcode-only",
+    "correctness_reason": "best_buy is hard-coded to 100, so once the price cap is lifted an input like [1000, 2000] yields 1900 instead of the correct 1000.",
     "hash_dependent": false,
-    "notes": "Initializing best_buy = 100 relies on the stated constraint prices[i] <= 100, which is a guaranteed precondition and correct; using math.inf or prices[0] would be more robust to constraint changes but is not required here.",
+    "notes": "Initializing best_buy to the constant 100 instead of prices[0] or infinity is a subtle correctness hazard that only works because of the stated price cap.",
     "space": "O(1)",
-    "summary": "Single pass tracking the minimum price seen so far and the best profit achievable by selling at the current day. Returns the maximum of these profits, floored at 0 via the initial best_profit = 0.",
+    "summary": "Single pass tracking the minimum price seen so far (best_buy) and the maximum profit of selling at each day against that minimum.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },

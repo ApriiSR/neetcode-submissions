@@ -1,12 +1,14 @@
 {
-  "analysis_version": 6,
-  "analyzed_at": "2026-08-14T22:22:43.844217+00:00",
+  "analysis_version": 7,
+  "analyzed_at": "2026-08-15T01:12:45.535258+00:00",
   "complexity": {
     "benchmark_model": "n^2",
+    "correctness": "general",
+    "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "The best_buy variable is computed but never used; it hints at the intended O(n) single-pass solution (track minimum price so far and update profit at each day). The inner loop is also redundant since the maximum sell price after i could be tracked incrementally, making this unnecessarily O(n^2).",
+    "notes": "best_buy is dead code \u2014 a leftover from the intended O(n) running-minimum approach; removing it (or actually using it) would clarify the solution. The initial value 100 leans on the NeetCode price cap but is harmless since the variable is unused.",
     "space": "O(1)",
-    "summary": "Brute force: for each buy day i, scan all later sell days j and track the maximum price difference, returning 0 if no profit exists.",
+    "summary": "Brute-force: for every buy day i, scan every later sell day j and track the maximum profit, never going below 0. The best_buy variable is computed but never actually used in the profit calculation.",
     "time_average": "O(n^2)",
     "time_worst": "O(n^2)"
   },

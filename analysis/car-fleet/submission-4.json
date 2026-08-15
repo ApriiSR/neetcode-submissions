@@ -1,12 +1,14 @@
 {
-  "analysis_version": 6,
-  "analyzed_at": "2026-08-14T22:22:58.970784+00:00",
+  "analysis_version": 7,
+  "analyzed_at": "2026-08-15T01:13:09.398950+00:00",
   "complexity": {
     "benchmark_model": "n log n",
+    "correctness": "neetcode-only",
+    "correctness_reason": "Once the value caps are lifted, float division of unbounded ints loses precision (distinct times past 2^53 compare equal, merging fleets that should be separate) and can even raise OverflowError converting huge ints to float; within NeetCode's 10^6 caps the double arithmetic is exact enough to be correct.",
     "hash_dependent": false,
-    "notes": "A debug print with math.ceil is left inside the loop and should be removed; it also wastes work since the raw float division below it is sufficient for the comparison. Popping from the end works but iterating the sorted list in reverse with an index would be more idiomatic and avoids mutating the list.",
+    "notes": "The debug print (with math.ceil) should be removed; it adds I/O per iteration and the ceil values aren't even used in the comparison. Comparing (target - p)/s as floats is fragile \u2014 cross-multiplication (target-p1)*s2 vs (target-p2)*s1 keeps everything in exact integer arithmetic.",
     "space": "O(n)",
-    "summary": "Sorts cars by position, then pops from the back (closest to target first) comparing each car's arrival time to the current lead fleet's; a car with a strictly smaller arrival time starts a new fleet, otherwise it merges into the fleet ahead. Sorting dominates the running time.",
+    "summary": "Sorts cars by position, then scans from the car nearest the target backward: a trailing car merges into the lead fleet if its arrival time is no greater than the leader's, otherwise it starts a new fleet. Arrival times are compared as floats via division.",
     "time_average": "O(n log n)",
     "time_worst": "O(n log n)"
   },

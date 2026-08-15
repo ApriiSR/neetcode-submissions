@@ -1,14 +1,16 @@
 {
-  "analysis_version": 6,
-  "analyzed_at": "2026-08-14T22:22:20.212130+00:00",
+  "analysis_version": 7,
+  "analyzed_at": "2026-08-15T01:11:57.550711+00:00",
   "complexity": {
     "benchmark_model": "n",
+    "correctness": "incorrect",
+    "correctness_reason": "The return annotation `tuple(int)` is a function call evaluated at definition time, and since `int` is not iterable it raises TypeError ('type' object is not iterable), so the module fails to load on every permitted input.",
     "hash_dependent": true,
-    "notes": "The signature is a bounded computed signature (26 counters over lowercase letters with bounded word length), so adversarial hash-collision degradation does not apply and the worst case stays linear. Inefficiency: word_tuple is computed twice per word (once building the dict, once appending); a single pass with collections.defaultdict(list) would halve the signature work. The annotation 'tuple(int)' is not valid typing syntax \u2014 'tuple[int, ...]' was intended.",
-    "space": "O(n)",
-    "summary": "Each word is mapped to a 26-element character-count tuple used as a dictionary key; words sharing a signature are appended to the same list. Word length is bounded (\u2264100 per constraints, 3-8 per scaling note), so each signature costs O(1) effectively and total work is O(n).",
-    "time_average": "O(n)",
-    "time_worst": "O(n)"
+    "notes": "The two-pass construction recomputes every signature twice; a single pass with dict.setdefault or a collections.defaultdict(list) would be cleaner and half the hashing work. The intended annotation was presumably tuple[int, ...] rather than the call tuple(int).",
+    "space": "O(n * L)",
+    "summary": "Computes a 26-element character-count tuple as the anagram signature for each word, builds a dict mapping signatures to groups, then appends each word to its group in a second pass and returns the dict's values.",
+    "time_average": "O(n * L)",
+    "time_worst": "O(n*L + n^2)"
   },
   "file": "Data Structures & Algorithms/anagram-groups/submission-1.py",
   "golf": {

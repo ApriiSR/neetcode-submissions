@@ -1,12 +1,14 @@
 {
-  "analysis_version": 6,
-  "analyzed_at": "2026-08-14T22:23:13.180235+00:00",
+  "analysis_version": 7,
+  "analyzed_at": "2026-08-15T01:14:10.836930+00:00",
   "complexity": {
     "benchmark_model": "n",
+    "correctness": "neetcode-only",
+    "correctness_reason": "Arrival times are compared as floats, which is exact enough only because positions, speeds, and target are capped at 10^6 (cross-products stay under 2^53); in the generalized problem, e.g. target and distances near 10^17 with speeds differing in the 17th significant digit (such as (target-p1)/s1 = 10^17/1 versus (target-p2)/s2 = (10^17+1)/1), rounding merges or splits fleets incorrectly.",
     "hash_dependent": false,
-    "notes": "Per the scaling note target = 2n+1, so the O(target) allocation and filtering stay linear in n. Initializing result = 1 relies on the stated n >= 1 constraint, which is valid. Using floats for arrival-time comparison is fine here given the small integer ranges, but a cross-multiplication comparison would avoid any floating-point concern.",
-    "space": "O(target)",
-    "summary": "Places cars into a counting array indexed by position (so they come out sorted), then scans from the car nearest the target, comparing arrival times to merge followers into the lead fleet and counting a new fleet whenever a car would arrive later than the lead.",
+    "notes": "The O(target) counting array is an unusual substitute for simply sorting by position (O(n log n), O(n) space); the pop()-driven while loop is also less readable than an indexed loop or a monotonic stack. Under the given scaling target ~ 2n+1, so the allocation stays linear.",
+    "space": "O(n + target)",
+    "summary": "Places each car into a counting array indexed by position, compacts it, then walks from the car nearest the target backward, merging any car whose float arrival time is at most the current lead fleet's time and counting a new fleet otherwise.",
     "time_average": "O(n + target)",
     "time_worst": "O(n + target)"
   },
