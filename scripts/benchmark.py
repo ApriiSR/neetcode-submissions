@@ -5,7 +5,16 @@ For each submission of each scalable problem in `generators.PROBLEMS`,
 times the entry method (best-of-3, `time.perf_counter`) across a
 geometric size ladder, fits log(time) vs log(n) by least squares, and —
 where the problem has an `adversarial()` generator — repeats on a
-smaller ladder built from worst-case hash-collision input. Writes
+smaller ladder built from worst-case hash-collision input.
+
+Problems whose entry takes live objects rather than plain data (the
+linked-list ones, which take ListNode/Node heads) carry a `build` hook in
+their spec: `generate` returns a plain description and `build` turns it
+into real arguments, fresh before every timed repeat and outside the
+timer. That is what makes in-place solutions measurable — a reversal or a
+splice gets an untouched chain each repeat instead of re-timing its own
+output — and the classes those solutions construct by name are injected
+into the loader namespace from `generators`. Writes
 `analysis/benchmarks/<slug>.json`, then regenerates `analysis/summary.json`
 via `analyze.build_summary`, which merges the benchmark data in under a
 `"benchmarks"` key per submission.
@@ -55,6 +64,11 @@ ADVERSARIAL_CAP_SECONDS = 1.5
 BENCHMARK_VERSION = 2
 CORRECTNESS_N = 8
 SEED = 20260813
+
+# Fewest ladder sizes that make a fit worth reporting. Two points determine
+# a line exactly, so slope/r^2 from two points describe nothing; a ladder
+# that short is reported as unmeasured rather than as a confident result.
+MIN_LADDER_POINTS = 3
 
 # Above this size, drop from best-of-3 to best-of-2 to keep the denser,
 # wider ladder's total wall time sane.
@@ -115,7 +129,16 @@ def parse_benchmark_model(text):
 
 
 def load_solution(path):
-    namespace = {"List": List, "Optional": Optional}
+    # ListNode/Node arrive from generators so a submission's `ListNode(...)`
+    # resolves to the same class the build hooks construct. NeetCode ships
+    # those definitions as a commented-out header, so every linked-list
+    # solution constructs a name its own file never defines.
+    namespace = {
+        "List": List,
+        "Optional": Optional,
+        "ListNode": generators.ListNode,
+        "Node": generators.Node,
+    }
     source = path.read_text(encoding="utf-8")
     exec(compile(source, str(path), "exec"), namespace)
     return namespace["Solution"]()
@@ -131,10 +154,24 @@ def _copy_args(args):
     return tuple(_copy_one(a) for a in args)
 
 
-def time_call(fn, args, repeats=3):
+def make_call_args(args, build=None):
+    """Fresh arguments for one call. Without a `build` hook that's the
+    existing deep-copy of the generated args; with one, `args` is a plain
+    description and the hook constructs the real objects from scratch. Both
+    paths must produce something a solution can mutate freely, since the
+    next repeat has to start from an untouched input.
+    """
+    if build is not None:
+        return build(*args)
+    return _copy_args(args)
+
+
+def time_call(fn, args, repeats=3, build=None):
     best = None
     for _ in range(repeats):
-        call_args = _copy_args(args)
+        # Built outside the timer: constructing a million-node chain is not
+        # part of what we're measuring.
+        call_args = make_call_args(args, build)
         start = time.perf_counter()
         fn(*call_args)
         elapsed = time.perf_counter() - start
@@ -193,18 +230,57 @@ def fit_best_model(sizes, times_ms, candidates=CANDIDATE_MODELS):
     return best_name, best_r2
 
 
-def run_ladder(fn, args_fn, sizes, cap_seconds, deadline, k3_model_name=None, k3_model_fn=None):
+def run_ladder(
+    fn, args_fn, sizes, cap_seconds, deadline, k3_model_name=None, k3_model_fn=None, build=None
+):
     sizes_out, times_out = [], []
+    truncated_by = None
     for n in sizes:
         if time.perf_counter() >= deadline:
             break
         repeats = 2 if n > BEST_OF_2_THRESHOLD else 3
+        # Deliberately outside the guard below: a generator that blows up at
+        # some size is our bug and should fail the run loudly, not be filed
+        # as a fact about the submission.
         args = args_fn(n)
-        elapsed = time_call(fn, args, repeats=repeats)
+        # A solution that dies partway up the ladder, though, is a fact about
+        # that solution -- the recursive add-two-numbers submissions exhaust
+        # the stack somewhere past n = 512. Keep the sizes that did complete,
+        # record why the rest didn't, and let the run carry on. (A failure
+        # inside a `build` hook lands here too, since it runs per repeat;
+        # the builders are covered by unit tests instead.)
+        try:
+            elapsed = time_call(fn, args, repeats=repeats, build=build)
+        except Exception as exc:
+            truncated_by = f"{type(exc).__name__}: {exc}"
+            break
         sizes_out.append(n)
         times_out.append(elapsed * 1000.0)
         if elapsed > cap_seconds:
             break
+
+    k3_model = k3_model_name if k3_model_fn is not None else None
+    if len(sizes_out) < MIN_LADDER_POINTS:
+        # Two points fit any one-parameter model perfectly (r^2 = 1.0 by
+        # construction), which would read as a confident measurement rather
+        # than the near-total absence of one. Report the reason instead, and
+        # leave the series empty so consumers treat it as no benchmark.
+        return {
+            "sizes": [],
+            "times_ms": [],
+            "slope": None,
+            "r2": None,
+            "best_fit": None,
+            "best_fit_r2": None,
+            "k3_model": k3_model,
+            "k3_model_r2": None,
+            "truncated_by": truncated_by,
+            "unmeasured": (
+                f"only {len(sizes_out)} ladder size(s) completed; "
+                f"a fit needs at least {MIN_LADDER_POINTS}"
+            ),
+        }
+
     slope, r2 = fit_loglog(sizes_out, times_out)
 
     candidates = list(CANDIDATE_MODELS)
@@ -221,8 +297,10 @@ def run_ladder(fn, args_fn, sizes, cap_seconds, deadline, k3_model_name=None, k3
         "r2": r2,
         "best_fit": best_fit,
         "best_fit_r2": best_fit_r2,
-        "k3_model": k3_model_name if k3_model_fn is not None else None,
+        "k3_model": k3_model,
         "k3_model_r2": k3_model_r2,
+        "truncated_by": truncated_by,
+        "unmeasured": None,
     }
 
 
@@ -258,12 +336,13 @@ def benchmark_submission(slug, spec, path):
     rng = random.Random(f"{SEED}-{slug}-{path.name}")
     solution = load_solution(path)
     entry = getattr(solution, spec["entry"])
+    build = spec.get("build")
 
     small_args = spec["generate"](CORRECTNESS_N, rng)
     try:
-        entry(*_copy_args(small_args))
+        entry(*make_call_args(small_args, build))
         if spec["adversarial"] is not None:
-            entry(*_copy_args(spec["adversarial"](CORRECTNESS_N)))
+            entry(*make_call_args(spec["adversarial"](CORRECTNESS_N), build))
     except Exception as exc:
         return {"error": f"{type(exc).__name__}: {exc}"}
 
@@ -282,6 +361,7 @@ def benchmark_submission(slug, spec, path):
         deadline,
         k3_model_name,
         k3_model_fn,
+        build,
     )
 
     if spec["adversarial"] is not None:
@@ -293,6 +373,7 @@ def benchmark_submission(slug, spec, path):
             deadline,
             k3_model_name,
             k3_model_fn,
+            build,
         )
         adversarial["note"] = spec["adversarial_note"]
         result["adversarial"] = adversarial

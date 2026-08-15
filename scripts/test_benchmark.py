@@ -395,5 +395,162 @@ class HasGoodBenchmarkTests(unittest.TestCase):
         self.assertFalse(benchmark.has_good_benchmark({"sizes": [1], "times_ms": [1.0]}))
 
 
+class BuildHookTests(unittest.TestCase):
+    def test_every_repeat_gets_an_untouched_chain(self):
+        # The whole point of the hook: reverseList and reorderList destroy the
+        # chain they're handed, so repeats 2 and 3 would otherwise be timing
+        # an already-consumed list.
+        walked = []
+
+        def consume_in_place(head):
+            count = 0
+            while head:
+                nxt = head.next
+                head.next = None
+                head = nxt
+                count += 1
+            walked.append(count)
+
+        benchmark.time_call(
+            consume_in_place, ([1, 2, 3, 4, 5],), repeats=3, build=generators._build_one_list
+        )
+        self.assertEqual(walked, [5, 5, 5])
+
+    def test_no_hook_falls_back_to_the_deep_copy_path(self):
+        args = ([1, 2, 3],)
+        call_args = benchmark.make_call_args(args)
+        call_args[0].append(4)
+        self.assertEqual(args[0], [1, 2, 3])
+
+    def test_builders_reproduce_the_generated_values(self):
+        for slug, spec in generators.PROBLEMS.items():
+            build = spec.get("build")
+            if build is None:
+                continue
+            description = spec["generate"](16, random.Random(3))
+            for value_list, head in zip(
+                [a for a in description if isinstance(a, list)],
+                [a for a in build(*description) if a is not None and not isinstance(a, int)],
+            ):
+                walked, node, guard = [], head, 0
+                while node is not None and guard <= len(value_list):
+                    walked.append(node.val)
+                    node = node.next
+                    guard += 1
+                self.assertEqual(walked[: len(value_list)], value_list, slug)
+
+    def test_cycle_builder_links_the_tail_to_the_named_index(self):
+        head = generators._build_linked_list_cycle_detection([10, 20, 30, 40], 1)[0]
+        nodes, node = [], head
+        for _ in range(4):
+            nodes.append(node)
+            node = node.next
+        self.assertIs(nodes[-1].next, nodes[1])
+
+    def test_random_pointer_builder_targets_the_named_indices(self):
+        head = generators._build_copy_linked_list_with_random_pointer(
+            [7, 8, 9], [2, None, 0]
+        )[0]
+        nodes, node = [], head
+        while node is not None:
+            nodes.append(node)
+            node = node.next
+        self.assertEqual([n.val for n in nodes], [7, 8, 9])
+        self.assertIs(nodes[0].random, nodes[2])
+        self.assertIsNone(nodes[1].random)
+        self.assertIs(nodes[2].random, nodes[0])
+
+    def test_generate_stays_comparable_where_a_build_hook_exists(self):
+        # generate has to keep returning plain data even for these problems --
+        # nodes compare by identity, so a generate that returned them could
+        # never be checked for determinism at all.
+        for slug, spec in generators.PROBLEMS.items():
+            if spec.get("build") is None:
+                continue
+            self.assertEqual(
+                spec["generate"](12, random.Random(9)),
+                spec["generate"](12, random.Random(9)),
+                slug,
+            )
+
+
+class SubmissionsRunUnderTheHarnessTests(unittest.TestCase):
+    def test_every_scalable_submission_loads_and_runs(self):
+        # Guards the gap that kept the linked-list problems unbenchmarked:
+        # solutions construct ListNode/Node by a name their own file never
+        # defines, so the loader has to supply it. A registry entry marked
+        # scalable that raises on its own input is the failure this catches.
+        checked = 0
+        for slug, spec in generators.PROBLEMS.items():
+            if not spec["scalable"]:
+                continue
+            for _found, _number, path in analyze.iter_submissions(slug):
+                solution = benchmark.load_solution(path)
+                entry = getattr(solution, spec["entry"])
+                args = spec["generate"](benchmark.CORRECTNESS_N, random.Random(5))
+                entry(*benchmark.make_call_args(args, spec.get("build")))
+                checked += 1
+        self.assertGreater(checked, 0)
+
+
+class LadderTruncationTests(unittest.TestCase):
+    @staticmethod
+    def _args_fn(n):
+        return ([0] * n,)
+
+    def test_ladder_keeps_completed_sizes_and_records_why_it_stopped(self):
+        def dies_past_128(values):
+            if len(values) > 128:
+                raise RecursionError("maximum recursion depth exceeded")
+            return sum(values)
+
+        result = benchmark.run_ladder(
+            dies_past_128,
+            self._args_fn,
+            (16, 32, 64, 128, 256, 512),
+            10.0,
+            time.perf_counter() + 10,
+        )
+        self.assertEqual(result["sizes"], [16, 32, 64, 128])
+        self.assertIn("RecursionError", result["truncated_by"])
+        self.assertIsNone(result["unmeasured"])
+
+    def test_ladder_too_short_to_fit_reports_no_measurement(self):
+        def dies_past_32(values):
+            if len(values) > 32:
+                raise ValueError("nope")
+            return sum(values)
+
+        result = benchmark.run_ladder(
+            dies_past_32, self._args_fn, (16, 32, 64, 128), 10.0, time.perf_counter() + 10
+        )
+        self.assertEqual(result["sizes"], [])
+        self.assertEqual(result["times_ms"], [])
+        self.assertIsNone(result["slope"])
+        self.assertIsNone(result["best_fit"])
+        self.assertIn("ValueError", result["truncated_by"])
+        self.assertIn("2 ladder size(s)", result["unmeasured"])
+
+    def test_a_short_ladder_is_not_usable_by_summary_consumers(self):
+        # sizes must come back empty rather than holding two points, since a
+        # two-point fit is exact by construction and would read as a result.
+        result = benchmark.run_ladder(
+            lambda values: 1 / 0, self._args_fn, (16, 32, 64), 10.0, time.perf_counter() + 10
+        )
+        self.assertFalse(result["sizes"])
+
+    def test_a_complete_ladder_carries_no_truncation_marker(self):
+        result = benchmark.run_ladder(
+            lambda values: sum(values),
+            self._args_fn,
+            (16, 32, 64, 128),
+            10.0,
+            time.perf_counter() + 10,
+        )
+        self.assertEqual(result["sizes"], [16, 32, 64, 128])
+        self.assertIsNone(result["truncated_by"])
+        self.assertIsNotNone(result["slope"])
+
+
 if __name__ == "__main__":
     unittest.main()

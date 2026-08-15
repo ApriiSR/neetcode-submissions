@@ -3,14 +3,25 @@
 Each problem in `PROBLEMS` maps to:
 - `entry`: the Solution method to call, or None for a design problem
   whose submission defines no Solution class at all (minimum-stack).
-- `scalable`: False for problems benchmark.py can't time -- fixed-shape
-  inputs (valid-sudoku is a fixed 9x9 board) and shapes its loader can't
-  construct (minimum-stack and every linked-list problem; see their
-  scaling_note); benchmark.py skips scaling curves for these, so their
-  `generate` documents the input shape rather than feeding a timing run.
+- `scalable`: False for problems benchmark.py can't time -- valid-sudoku
+  is a fixed 9x9 board, and minimum-stack is a design problem whose
+  submission defines no Solution class at all; benchmark.py skips scaling
+  curves for these, so their `generate` documents the input shape rather
+  than feeding a timing run.
 - `generate(n, rng)`: returns a positional-args tuple (excluding `self`)
   for `entry`, sized around n. Uses only the passed-in random.Random, so
   it's deterministic for a given seed.
+- `build(*description)`: optional, and present only where `entry` takes
+  live objects rather than plain data -- the linked-list problems, whose
+  entries take ListNode/Node heads. There `generate` returns a plain,
+  comparable *description* (the values a chain would be built from) and
+  `build` turns that into the real args tuple. benchmark.py calls it
+  fresh before each timed repeat, outside the timer, which is what lets
+  in-place solutions be timed at all: every repeat gets an untouched
+  chain instead of re-timing the previous repeat's output. Keeping
+  `generate` on plain data is also what keeps it comparable, which is
+  what the determinism tests check -- node objects compare by identity,
+  so a generate that returned them could never be checked that way.
 - `adversarial(n)`: returns an args tuple built to trigger the worst case
   of the dict/set the entry method is expected to use, or None if the
   problem has no meaningful adversarial-hash story.
@@ -43,8 +54,39 @@ MERSENNE61 = 2**61 - 1
 RPN_VALUE_LIMIT = 10**6
 
 
+class ListNode:
+    """The singly-linked node NeetCode hands the linked-list problems, whose
+    definition their submissions carry as a commented-out header and then
+    construct by name. benchmark.py injects this class under that name when
+    it loads a submission, so `ListNode(...)` in solution code resolves to
+    the same class the `build` hooks below use.
+    """
+
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+
+class Node:
+    """The copy-linked-list-with-random-pointer variant: same idea as
+    ListNode, plus the extra `random` pointer, and injected the same way.
+    """
+
+    def __init__(self, x, next=None, random=None):
+        self.val = int(x)
+        self.next = next
+        self.random = random
+
+
 def _int_collisions(n):
     return [k * MERSENNE61 for k in range(n)]
+
+
+def _chain(values):
+    head = None
+    for value in reversed(values):
+        head = ListNode(value, head)
+    return head
 
 
 def _random_word(rng, min_len=3, max_len=10):
@@ -59,6 +101,10 @@ def _gen_add_two_numbers(n, rng):
     l1 = [rng.randint(0, 9) for _ in range(length - 1)] + [rng.randint(1, 9)]
     l2 = [rng.randint(0, 9) for _ in range(length - 1)] + [rng.randint(1, 9)]
     return (l1, l2)
+
+
+def _build_add_two_numbers(l1, l2):
+    return (_chain(l1), _chain(l2))
 
 
 def _gen_anagram_groups(n, rng):
@@ -91,6 +137,14 @@ def _gen_copy_linked_list_with_random_pointer(n, rng):
     values = [rng.randint(-1000, 1000) for _ in range(n)]
     randoms = [rng.randrange(n) if rng.random() < 0.75 else None for _ in range(n)]
     return (values, randoms)
+
+
+def _build_copy_linked_list_with_random_pointer(values, randoms):
+    nodes = [Node(value) for value in values]
+    for i, node in enumerate(nodes):
+        node.next = nodes[i + 1] if i + 1 < len(nodes) else None
+        node.random = None if randoms[i] is None else nodes[randoms[i]]
+    return (nodes[0] if nodes else None,)
 
 
 def _gen_daily_temperatures(n, rng):
@@ -167,6 +221,15 @@ def _gen_linked_list_cycle_detection(n, rng):
     return (values, n // 2)
 
 
+def _build_linked_list_cycle_detection(values, cycle_index):
+    nodes = [ListNode(value) for value in values]
+    for i in range(len(nodes) - 1):
+        nodes[i].next = nodes[i + 1]
+    if nodes:
+        nodes[-1].next = nodes[cycle_index]
+    return (nodes[0] if nodes else None,)
+
+
 def _gen_longest_consecutive_sequence(n, rng):
     nums = list(range(n))
     rng.shuffle(nums)
@@ -182,6 +245,10 @@ def _gen_merge_two_sorted_linked_lists(n, rng):
     list1 = sorted(rng.randint(-1000, 1000) for _ in range(half))
     list2 = sorted(rng.randint(-1000, 1000) for _ in range(n - half))
     return (list1, list2)
+
+
+def _build_merge_two_sorted_linked_lists(list1, list2):
+    return (_chain(list1), _chain(list2))
 
 
 def _gen_minimum_stack(n, rng):
@@ -206,12 +273,22 @@ def _gen_remove_node_from_end_of_linked_list(n, rng):
     return (values, rng.randint(1, n) if n else 1)
 
 
+def _build_remove_node_from_end_of_linked_list(values, position):
+    return (_chain(values), position)
+
+
 def _gen_reorder_linked_list(n, rng):
     return ([rng.randint(-1000, 1000) for _ in range(n)],)
 
 
 def _gen_reverse_a_linked_list(n, rng):
     return ([rng.randint(-1000, 1000) for _ in range(n)],)
+
+
+def _build_one_list(values):
+    # Shared by reorder-linked-list and reverse-a-linked-list: both entries
+    # take a single head and both rewire it in place.
+    return (_chain(values),)
 
 
 def _gen_string_encode_and_decode(n, rng):
@@ -287,11 +364,12 @@ def _gen_valid_sudoku(n, rng):
 PROBLEMS = {
     "add-two-numbers": {
         "entry": "addTwoNumbers",
-        "scalable": False,
+        "scalable": True,
         "generate": _gen_add_two_numbers,
+        "build": _build_add_two_numbers,
         "adversarial": None,
         "adversarial_note": None,
-        "scaling_note": "not benchmarked: n = number of digits in each addend, and the generator returns the two digit lists (least-significant first, leading digit never 0) the linked lists would be built from, but the entry takes two ListNode heads. Building real nodes here wouldn't be enough either: every submission allocates result nodes with `ListNode(...)`, a name benchmark.py's loader never defines -- its exec namespace holds only List and Optional -- so the call raises NameError before any timing",
+        "scaling_note": "n = number of digits in each addend; both linked lists are exactly n digits long (stored least-significant first, leading digit never 0), so the two addends always have equal length and the sum has n or n+1 digits. Digits are drawn uniformly from 0..9, so digit values are independent of n and carries propagate at the usual ~50% rate rather than being forced",
         "generalized_note": "uncapped: both lists any length. The digit alphabet is part of the problem, not a cap — still 0-9, least-significant first, with no leading zero. Per-digit arithmetic is unit cost, but a solution that decodes a whole list into a single integer is then operating on n-digit numbers, whose arithmetic is not unit cost, and one that recurses once per node needs stack depth proportional to n.",
     },
     "anagram-groups": {
@@ -332,11 +410,12 @@ PROBLEMS = {
     },
     "copy-linked-list-with-random-pointer": {
         "entry": "copyRandomList",
-        "scalable": False,
+        "scalable": True,
         "generate": _gen_copy_linked_list_with_random_pointer,
+        "build": _build_copy_linked_list_with_random_pointer,
         "adversarial": None,
         "adversarial_note": None,
-        "scaling_note": "not benchmarked: n = number of nodes, and the generator returns the n values plus, for each node, the index its random pointer targets (None ~25% of the time, for a null random), but the entry takes a Node head. Building real nodes here wouldn't be enough either: the submission allocates each copy with `Node(...)`, a name benchmark.py's loader never defines -- its exec namespace holds only List and Optional -- so the call raises NameError before any timing",
+        "scaling_note": "n = number of nodes; each node's random pointer targets a uniformly chosen node ~75% of the time and is null the other ~25%, so the number of random pointers to follow scales linearly with n and their targets are spread across the whole list rather than clustered. Values are drawn from the fixed range -1000..1000, independent of n",
         "generalized_note": "uncapped: any number of nodes, values any ints. The pointer structure is part of the problem, not a cap — each random pointer still targets some node in the list or null. The dict here is keyed on node objects, so its hashes come from CPython's identity hash and the input cannot choose them.",
     },
     "daily-temperatures": {
@@ -395,11 +474,12 @@ PROBLEMS = {
     },
     "linked-list-cycle-detection": {
         "entry": "hasCycle",
-        "scalable": False,
+        "scalable": True,
         "generate": _gen_linked_list_cycle_detection,
+        "build": _build_linked_list_cycle_detection,
         "adversarial": None,
         "adversarial_note": None,
-        "scaling_note": "not benchmarked: n = number of nodes, and the generator returns the n values plus the index the tail links back to (always n // 2, so every generated list does contain a cycle), but the entry takes a ListNode head. Unlike the other linked-list problems neither submission allocates or rewires nodes, so the blocker here is only that generate cannot hand over the nodes themselves: freshly built node objects compare by identity, and the test suite asserts that two same-seed generate calls return equal args",
+        "scaling_note": "n = number of nodes; the tail always links back to the node at index n // 2, so every generated list contains a cycle, with both the tail leading into it (n // 2 nodes) and the loop itself (n - n // 2 nodes) growing linearly with n. A traversal that stops on the first repeated node therefore still visits all n nodes first, so the answer is always True and the work is proportional to n rather than to where the cycle happens to sit",
         "generalized_note": "uncapped: any number of nodes, values any ints. The structure is part of the problem, not a cap — the list is still either acyclic or ends in a cycle back to one of its own nodes. Note the stated 1000-node maximum is a cap, so it goes: a solution that walks a fixed number of steps and then declares a cycle is correct only under that cap, and uncapped it reports a cycle on any longer acyclic list. The visited set is keyed on node objects, so its hashes come from CPython's identity hash and the input cannot choose them.",
     },
     "longest-consecutive-sequence": {
@@ -413,11 +493,12 @@ PROBLEMS = {
     },
     "merge-two-sorted-linked-lists": {
         "entry": "mergeTwoLists",
-        "scalable": False,
+        "scalable": True,
         "generate": _gen_merge_two_sorted_linked_lists,
+        "build": _build_merge_two_sorted_linked_lists,
         "adversarial": None,
         "adversarial_note": None,
-        "scaling_note": "not benchmarked: n = total number of nodes, and the generator returns the two ascending value lists (n // 2 and n - n // 2 values, each drawn independently from the fixed range -1000..1000 and then sorted, so the two genuinely interleave) the linked lists would be built from, but the entry takes two ListNode heads. Building real nodes here wouldn't be enough either: the submission splices the two chains together in place, and benchmark.py's _copy_args only deep-copies lists, so best-of-3 would re-time an already-merged chain on repeats 2 and 3",
+        "scaling_note": "n = total number of nodes across both lists, split n // 2 and n - n // 2; each list's values are drawn independently from the fixed range -1000..1000 and then sorted, so the two interleave throughout instead of one being entirely below the other -- meaning the merge alternates between the chains rather than exhausting one and splicing the rest",
         "generalized_note": "uncapped: both lists any length, node values any ints. Sortedness is part of the problem, not a cap — both inputs are still ascending, and the result must be too.",
     },
     "minimum-stack": {
@@ -440,29 +521,32 @@ PROBLEMS = {
     },
     "remove-node-from-end-of-linked-list": {
         "entry": "removeNthFromEnd",
-        "scalable": False,
+        "scalable": True,
         "generate": _gen_remove_node_from_end_of_linked_list,
+        "build": _build_remove_node_from_end_of_linked_list,
         "adversarial": None,
         "adversarial_note": None,
-        "scaling_note": "not benchmarked: n = number of nodes, and the generator returns the n values the list would be built from plus the 1-based position from the end to remove (drawn uniformly from 1..n, so the removal point is not pinned to either end), but the entry takes a ListNode head. Building real nodes here wouldn't be enough either: the submission allocates a sentinel with `ListNode(next=head)`, a name benchmark.py's loader never defines -- its exec namespace holds only List and Optional -- so the call raises NameError before any timing",
+        "scaling_note": "n = number of nodes; the 1-based position from the end to remove is drawn uniformly from 1..n, so it is not pinned to either end and scales with n. Both shapes of solution therefore traverse a number of nodes proportional to n -- a length count followed by a second walk, or a two-pointer pass whose gap is the position itself",
         "generalized_note": "uncapped: any list length, node values any ints. The precondition is part of the problem, not a cap — the position removed is still between 1 and the list length.",
     },
     "reorder-linked-list": {
         "entry": "reorderList",
-        "scalable": False,
+        "scalable": True,
         "generate": _gen_reorder_linked_list,
+        "build": _build_one_list,
         "adversarial": None,
         "adversarial_note": None,
-        "scaling_note": "not benchmarked: n = number of nodes, and the generator returns the n values the list would be built from, but the entry takes a ListNode head. Building real nodes here wouldn't be enough either: the submission rewires the list in place and returns None, and benchmark.py's _copy_args only deep-copies lists, so best-of-3 would re-time an already-reordered chain on repeats 2 and 3",
+        "scaling_note": "n = number of nodes; values are drawn from the fixed range -1000..1000, independent of n, and the reordering work depends only on the node count, not the values. The submission rewires in place, so the `build` hook hands it a freshly built, un-reordered chain before each timed repeat",
         "generalized_note": "uncapped: any list length, node values any ints. The interleaving order is part of the problem, not a cap, and the reordering is still done by rewiring nodes rather than by moving values.",
     },
     "reverse-a-linked-list": {
         "entry": "reverseList",
-        "scalable": False,
+        "scalable": True,
         "generate": _gen_reverse_a_linked_list,
+        "build": _build_one_list,
         "adversarial": None,
         "adversarial_note": None,
-        "scaling_note": "not benchmarked: n = number of nodes, and the generator returns the n values the list would be built from, but the entry takes a linked-list head -- passing the list straight through raises AttributeError on `.next`. Building real nodes here wouldn't be enough either: both submissions reverse in place, and benchmark.py's _copy_args only deep-copies lists, so best-of-3 would re-time an already-reversed chain (O(1) from the old head) on repeats 2 and 3",
+        "scaling_note": "n = number of nodes; values are drawn from the fixed range -1000..1000, independent of n. Both submissions reverse in place, so the `build` hook hands each timed repeat a freshly built, un-reversed chain -- without that, repeats 2 and 3 would be measuring an already-reversed list, which is O(1) work from the old head",
         "generalized_note": "uncapped: any list length, node values any ints. A solution that assumes a maximum length is correct only under NeetCode's constraints.",
     },
     "string-encode-and-decode": {

@@ -262,7 +262,8 @@ dry run, so mocked records always have `"statement": null`.
 Every push to `main` that touches `Data Structures & Algorithms/**` also
 runs `scripts/benchmark.py`, after `analyze.py`, via the same workflow.
 For each submission of each **scalable** problem (see
-`scripts/generators.py`; `valid-sudoku` is a fixed 9x9 board and is
+`scripts/generators.py`; `valid-sudoku` is a fixed 9x9 board and
+`minimum-stack` is a design problem with no `Solution` class, so both are
 skipped), it:
 
 1. Runs the entry method once on a small generated input, and once on
@@ -293,7 +294,16 @@ skipped), it:
    neighboring exponents (1.1 vs 1.0 is noise-level over a 64x range),
    which is why the ladder got wider — `best_fit` is the categorical
    answer that names an actual complexity class instead of leaving you
-   to eyeball the slope.
+   to eyeball the slope. A submission that dies partway up the ladder
+   keeps the sizes that did complete and records why the rest didn't in
+   `truncated_by` — that's a fact about the solution, not a harness
+   failure, and the rest of the run carries on. Below
+   `MIN_LADDER_POINTS` (3) completed sizes there's nothing worth fitting
+   — two points determine a line exactly, so slope and r² would come out
+   looking like a confident result — so the series is emptied, the fits
+   are `null`, and `unmeasured` says how many sizes got through. The
+   recursive `add-two-numbers` submissions land here: they exhaust the
+   stack past `n = 512`.
 3. Where `generators.py` defines an `adversarial(n)` input for the
    problem, repeats the same procedure (including `best_fit`) on an
    input built to trigger worst-case dict/set behavior — over the *same*
@@ -320,6 +330,39 @@ everything on its own, rather than leaving numbers taken under two
 different regimes side by side in the same summary. It plays the same
 role `ANALYSIS_VERSION` does in `analyze.py`.
 
+### Linked-list problems and the `build` hook
+
+Most entry methods take plain data, so a generated args tuple can be
+handed straight to them and deep-copied per repeat. The linked-list
+problems can't work that way, for two reasons that pull in opposite
+directions: their entries take live `ListNode`/`Node` heads, and the
+determinism tests need `generate` to return something that compares
+equal across two same-seed calls — which node objects, comparing by
+identity, never will.
+
+So those problems split the job. `generate(n, rng)` returns a plain
+*description* (the values a chain would be built from, plus whatever
+shape the problem needs — a cycle index, the random-pointer targets, a
+position from the end), and an optional `build(*description)` hook turns
+that description into the real arguments. `benchmark.py` calls `build`
+fresh before every timed repeat, **outside** the timer, which is what
+makes in-place solutions measurable at all: `reverseList` and
+`reorderList` destroy the chain they're given, so without a rebuild
+repeats 2 and 3 would be timing an already-consumed list — O(1) work
+from the old head — and reporting the result as if it meant something.
+
+The solutions also construct `ListNode(...)`/`Node(...)` by a name their
+own file never defines (NeetCode ships those definitions as a
+commented-out header), so `load_solution` injects both classes from
+`generators.py` into the exec namespace. They're the same classes the
+build hooks construct.
+
+One consequence worth stating: the dicts and sets in these solutions are
+keyed on **node objects**, whose hashes come from CPython's identity
+hash. The input can't choose them, so there's no adversarial generator
+for any of these — the same distinction `ANALYSIS_VERSION = 6` was
+bumped for.
+
 ### Adversarial inputs
 
 `generators.py` builds worst-case-hash-collision inputs for integer-keyed
@@ -341,7 +384,7 @@ output group" (worst case for group-construction/output-building work)
 without stressing dict lookup itself. The `adversarial_note` field on
 that problem's benchmark record says as much.
 
-None of the 11 problems currently hash raw, unbounded *strings* in a way
+No problem here currently hashes raw, unbounded *strings* in a way
 that's worth attacking (`is-anagram` keys on individual characters — a
 26-symbol alphabet; `string-encode-and-decode` doesn't hash at all), so
 there's no PYTHONHASHSEED-dependent string-collision generator in use
@@ -371,6 +414,8 @@ it's missing, so local runs don't need to remember the flag.
       "best_fit_r2": 0.9997,
       "k3_model": "n",
       "k3_model_r2": 0.9996,
+      "truncated_by": null,
+      "unmeasured": null,
       "adversarial": {
         "note": "n distinct multiples of 2**61-1, all hashing to 0, so every dict insert/lookup collides",
         "sizes": [256, 512, 1024, ..., 16384],
@@ -390,6 +435,13 @@ it's missing, so local runs don't need to remember the flag.
 `adversarial` is `null` when the problem has no adversarial generator.
 A submission that failed the correctness guard is `{"error": "..."}`
 instead of the above shape.
+
+`truncated_by` is a `"TypeName: message"` string when the ladder stopped
+because the solution raised, and `null` otherwise. `unmeasured` is a
+string when too few sizes completed to fit anything — in that case
+`sizes`/`times_ms` come back empty and every fit is `null`, so a
+consumer checking for a non-empty `sizes` treats it as "no benchmark"
+without needing to know about either field.
 
 ### Noisy runners
 
