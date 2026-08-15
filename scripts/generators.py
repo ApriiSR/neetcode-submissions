@@ -254,6 +254,7 @@ PROBLEMS = {
         "adversarial": _adv_anagram_groups,
         "adversarial_note": "every word is a rotation of the same 10-letter multiset, so all n words share one anagram signature (one exact dict key, not merely one hash bucket) and land in a single group; empirically this does NOT degrade to O(n^2) the way distinct-but-colliding keys do, since CPython dicts resolve a repeated exact key by direct slot lookup rather than probing a chain — see README",
         "scaling_note": "n = number of words; each word's length is drawn from a fixed small range (3-8 chars) independent of n, so total character volume scales linearly with n",
+        "generalized_note": "uncapped: any number of words, each of any length. The alphabet is part of the problem, not a cap \u2014 words stay lowercase English letters, so the 26-letter signature space does not grow with n.",
     },
     "binary-search": {
         "entry": "search",
@@ -262,6 +263,7 @@ PROBLEMS = {
         "adversarial": None,
         "adversarial_note": None,
         "scaling_note": "n = array length; values are sampled without replacement from a range that scales with n (-10n..10n) and then sorted ascending, and the target is always one of the n values (never absent), so every run finds its target",
+        "generalized_note": "uncapped: any array length, values any ints. Sortedness and uniqueness are part of the problem, not caps, and the target stays one of the values.",
     },
     "buy-and-sell-crypto": {
         "entry": "maxProfit",
@@ -270,6 +272,7 @@ PROBLEMS = {
         "adversarial": None,
         "adversarial_note": None,
         "scaling_note": "n = array length; each price is drawn uniformly from the fixed range 1..1000, independent of n",
+        "generalized_note": "uncapped: any array length, prices any non-negative ints. Chronological order is part of the problem.",
     },
     "car-fleet": {
         "entry": "carFleet",
@@ -278,6 +281,7 @@ PROBLEMS = {
         "adversarial": None,
         "adversarial_note": None,
         "scaling_note": "n = number of cars; target (the finish line) is set to 2n+1 and the n distinct positions are sampled without replacement from range(target), so both the target and the position range scale linearly with n -- meaning the counting-array submissions, which allocate a list of length target, stay O(n) rather than being dominated by a fixed target; speeds are drawn from the fixed range 1..100, independent of n",
+        "generalized_note": "uncapped: any number of cars, and target/speed/position any positive ints. The invariants stay: positions are distinct and all below target, speeds are positive. Note this makes target independent of n, so a solution that allocates an array of size target is no longer O(n).",
     },
     "daily-temperatures": {
         "entry": "dailyTemperatures",
@@ -286,6 +290,7 @@ PROBLEMS = {
         "adversarial": None,
         "adversarial_note": None,
         "scaling_note": "n = array length; each temperature is drawn uniformly from the fixed range 30..100, independent of n, so long monotonic runs (the monotonic stack's worst case) do not grow with n",
+        "generalized_note": "uncapped: any array length, temperatures any ints. Nothing bounds the run lengths a monotonic stack can face.",
     },
     "duplicate-integer": {
         "entry": "hasDuplicate",
@@ -294,6 +299,7 @@ PROBLEMS = {
         "adversarial": _adv_duplicate_integer,
         "adversarial_note": "n distinct multiples of 2**61-1, all hashing to 0, so every dict insert/lookup collides",
         "scaling_note": "n = array length; values are sampled without replacement from range(4n+1), so the value range scales with n too",
+        "generalized_note": "uncapped: any array length, values any ints \u2014 including values an adversary picks to collide in CPython's hash (multiples of 2**61-1), which the stated -10^9..10^9 range would have made impossible.",
     },
     "evaluate-reverse-polish-notation": {
         "entry": "evalRPN",
@@ -302,6 +308,7 @@ PROBLEMS = {
         "adversarial": None,
         "adversarial_note": None,
         "scaling_note": "n = number of tokens; the expression is a valid postfix expression with (n+1)//2 operands and one fewer operator, so token count scales linearly with n; operands are drawn from the fixed range 1..100 and operators are picked so intermediate values stay bounded by ~10**6 (no bignum growth), meaning per-token arithmetic cost is constant and independent of n",
+        "generalized_note": "uncapped: any number of tokens, operands any ints. The token grammar is part of the problem, not a cap \u2014 still the four operators over a valid postfix expression. Intermediate values may exceed machine words; arithmetic is still counted as unit cost.",
     },
     "is-anagram": {
         "entry": "isAnagram",
@@ -310,6 +317,7 @@ PROBLEMS = {
         "adversarial": None,
         "adversarial_note": None,
         "scaling_note": "n = length of each input string; both strings are always the same length n",
+        "generalized_note": "uncapped: both strings any length. The alphabet is part of the problem, not a cap \u2014 still lowercase English letters, so the 26-letter counting space does not grow with n.",
     },
     "is-palindrome": {
         "entry": "isPalindrome",
@@ -318,6 +326,7 @@ PROBLEMS = {
         "adversarial": None,
         "adversarial_note": None,
         "scaling_note": "n = length of the input string",
+        "generalized_note": "uncapped: any string length. The character set is part of the problem, not a cap \u2014 still printable ASCII.",
     },
     "largest-rectangle-in-histogram": {
         "entry": "largestRectangleArea",
@@ -326,6 +335,7 @@ PROBLEMS = {
         "adversarial": None,
         "adversarial_note": None,
         "scaling_note": "n = number of bars; each height is drawn uniformly from 0..10000, NeetCode's full stated range for heights[i], independent of n -- so a submission that sweeps every height value from 0 to max(heights) does a bounded (<=10001) number of linear passes: still O(n) in n, but with a constant large enough that the size ladder hits its per-size time cap around n = 2**13 to 2**14, depending on machine speed",
+        "generalized_note": "uncapped: any number of bars, heights any non-negative ints. Note the stated 0..10000 height cap is what makes a height-indexed sweep O(n); without it such a solution scales with the largest height instead.",
     },
     "longest-consecutive-sequence": {
         "entry": "longestConsecutive",
@@ -334,6 +344,7 @@ PROBLEMS = {
         "adversarial": _adv_longest_consecutive_sequence,
         "adversarial_note": "n distinct multiples of 2**61-1, all hashing to 0, so every set insert/lookup collides",
         "scaling_note": "n = array length; values are a shuffled permutation of range(n), so the value range scales with n too",
+        "generalized_note": "uncapped: any array length, values any ints \u2014 including adversarially colliding ones, which the stated -10^9..10^9 range would have made impossible.",
     },
     "minimum-stack": {
         "entry": None,
@@ -342,6 +353,7 @@ PROBLEMS = {
         "adversarial": None,
         "adversarial_note": None,
         "scaling_note": "not benchmarked: this is a design problem -- the submission defines a MinStack class with push/pop/top/getMin rather than a Solution class with one entry method, so benchmark.py's loader has nothing to drive; the generator builds an n-operation sequence (~60% push, ~40% pop, never popping an empty stack) purely as documentation of the input shape",
+        "generalized_note": "uncapped: any number of operations, values any ints. The preconditions are part of the problem \u2014 pop/top/getMin are still only called on a non-empty stack.",
     },
     "products-of-array-discluding-self": {
         "entry": "productExceptSelf",
@@ -350,6 +362,7 @@ PROBLEMS = {
         "adversarial": None,
         "adversarial_note": None,
         "scaling_note": "n = array length; each element is drawn from the fixed set {1, -1}, independent of n",
+        "generalized_note": "uncapped: any array length, values any ints. The 32-bit-product guarantee is a cap, so it goes: products may be arbitrarily large, though arithmetic is still counted as unit cost. Division-by-zero handling remains the solution's problem.",
     },
     "reverse-a-linked-list": {
         "entry": "reverseList",
@@ -358,6 +371,7 @@ PROBLEMS = {
         "adversarial": None,
         "adversarial_note": None,
         "scaling_note": "not benchmarked: n = number of nodes, and the generator returns the n values the list would be built from, but the entry takes a linked-list head -- passing the list straight through raises AttributeError on `.next`. Building real nodes here wouldn't be enough either: both submissions reverse in place, and benchmark.py's _copy_args only deep-copies lists, so best-of-3 would re-time an already-reversed chain (O(1) from the old head) on repeats 2 and 3",
+        "generalized_note": "uncapped: any list length, node values any ints. A solution that assumes a maximum length is correct only under NeetCode's constraints.",
     },
     "string-encode-and-decode": {
         "entry": "encode",
@@ -366,6 +380,7 @@ PROBLEMS = {
         "adversarial": None,
         "adversarial_note": None,
         "scaling_note": "n = number of strings; each string's length is drawn from a fixed small range (3-12 chars) independent of n, so total character volume scales linearly with n",
+        "generalized_note": "uncapped: any number of strings, each of any length. The character set is part of the problem, not a cap \u2014 input is still drawn from the 256 ASCII characters, so a delimiter outside that set remains safe. Widening to arbitrary Unicode is the statement's separate follow-up, not this generalization.",
     },
     "top-k-elements-in-list": {
         "entry": "topKFrequent",
@@ -374,6 +389,7 @@ PROBLEMS = {
         "adversarial": _adv_top_k_elements_in_list,
         "adversarial_note": "n distinct multiples of 2**61-1, all hashing to 0, so every dict insert/lookup collides",
         "scaling_note": "n = array length; k (the count requested) is capped at min(5, n), so k stays bounded by a constant and does not grow with n",
+        "generalized_note": "uncapped: any array length, values any ints \u2014 including adversarially colliding ones, which the stated -1000..1000 range would have made impossible. k stays between 1 and the number of distinct elements.",
     },
     "two-integer-sum": {
         "entry": "twoSum",
@@ -382,6 +398,7 @@ PROBLEMS = {
         "adversarial": _adv_two_integer_sum,
         "adversarial_note": "n distinct multiples of 2**61-1, all hashing to 0, so every dict insert/lookup collides",
         "scaling_note": "n = array length; values are sampled from a range that scales with n (-10n..10n)",
+        "generalized_note": "uncapped: any array length, values and target any ints \u2014 including adversarially colliding ones. Exactly one valid answer still exists.",
     },
     "two-integer-sum-ii": {
         "entry": "twoSum",
@@ -390,6 +407,7 @@ PROBLEMS = {
         "adversarial": _adv_two_integer_sum_ii,
         "adversarial_note": "n distinct multiples of 2**61-1 (already ascending), all hashing to 0, so every dict insert/lookup collides",
         "scaling_note": "n = array length (input is pre-sorted); values are sampled from a range that scales with n (-10n..10n)",
+        "generalized_note": "uncapped: any array length, values and target any ints \u2014 including adversarially colliding ones. The input is still sorted ascending and exactly one valid answer exists.",
     },
     "validate-parentheses": {
         "entry": "isValid",
@@ -398,6 +416,7 @@ PROBLEMS = {
         "adversarial": None,
         "adversarial_note": None,
         "scaling_note": "n = string length; a uniformly random balanced bracket sequence over ()[]{}",
+        "generalized_note": "uncapped: any string length. The bracket alphabet is part of the problem, not a cap.",
     },
     "valid-sudoku": {
         "entry": "isValidSudoku",
@@ -406,5 +425,6 @@ PROBLEMS = {
         "adversarial": None,
         "adversarial_note": None,
         "scaling_note": "not scalable: input is always a fixed 9x9 board",
+        "generalized_note": "nothing to uncap: the 9x9 board is the problem's structure, not a size limit, so the generalized problem is the stated one. Any solution here is constant-work by construction.",
     },
 }

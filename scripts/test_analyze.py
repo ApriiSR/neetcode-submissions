@@ -43,13 +43,13 @@ class GolfStatsTests(unittest.TestCase):
 
 class JsonParsingTests(unittest.TestCase):
     def test_plain_json(self):
-        raw = '{"time_average": "O(n)", "time_worst": "O(n)", "space": "O(1)", "hash_dependent": false, "benchmark_model": "n", "summary": "s"}'
+        raw = '{"time_average": "O(n)", "time_worst": "O(n)", "space": "O(1)", "hash_dependent": false, "benchmark_model": "n", "summary": "s", "correctness": "general"}'
         data = analyze.parse_complexity_response(raw)
         self.assertEqual(data["time_average"], "O(n)")
         self.assertEqual(data["notes"], "")
 
     def test_fenced_json(self):
-        raw = '```json\n{"time_average": "O(n)", "time_worst": "O(n^2)", "space": "O(1)", "hash_dependent": true, "benchmark_model": "n^2", "summary": "s", "notes": "n"}\n```'
+        raw = '```json\n{"time_average": "O(n)", "time_worst": "O(n^2)", "space": "O(1)", "hash_dependent": true, "benchmark_model": "n^2", "summary": "s", "notes": "n", "correctness": "incorrect", "correctness_reason": "breaks on an empty list"}\n```'
         data = analyze.parse_complexity_response(raw)
         self.assertEqual(data["time_worst"], "O(n^2)")
         self.assertTrue(data["hash_dependent"])
@@ -58,11 +58,25 @@ class JsonParsingTests(unittest.TestCase):
         raw = (
             "Sure, here's the analysis:\n"
             '{"time_average": "O(n log n)", "time_worst": "O(n^2)", "space": "O(n)", '
-            '"hash_dependent": false, "benchmark_model": "n log n", "summary": "sorts then scans"}\n'
+            '"hash_dependent": false, "benchmark_model": "n log n", "summary": "sorts then scans", "correctness": "general"}\n'
             "Let me know if you need more detail."
         )
         data = analyze.parse_complexity_response(raw)
         self.assertEqual(data["space"], "O(n)")
+
+    def test_unrecognized_correctness_is_a_parse_failure(self):
+        # A status nothing can render is worse than a retry.
+        raw = ('{"time_average": "O(n)", "time_worst": "O(n)", "space": "O(1)", '
+               '"hash_dependent": false, "benchmark_model": "n", "summary": "s", '
+               '"correctness": "probably fine"}')
+        with self.assertRaises(ValueError):
+            analyze.parse_complexity_response(raw)
+
+    def test_correctness_reason_defaults_to_empty(self):
+        raw = ('{"time_average": "O(n)", "time_worst": "O(n)", "space": "O(1)", '
+               '"hash_dependent": false, "benchmark_model": "n", "summary": "s", '
+               '"correctness": "general"}')
+        self.assertEqual(analyze.parse_complexity_response(raw)["correctness_reason"], "")
 
     def test_missing_required_field_raises(self):
         raw = '{"time_average": "O(n)", "time_worst": "O(n)", "space": "O(1)", "hash_dependent": false}'
@@ -75,7 +89,7 @@ class JsonParsingTests(unittest.TestCase):
             analyze.parse_complexity_response(raw)
 
     def test_retry_once_then_succeed(self):
-        good = '{"time_average": "O(n)", "time_worst": "O(n)", "space": "O(1)", "hash_dependent": false, "benchmark_model": "n", "summary": "s"}'
+        good = '{"time_average": "O(n)", "time_worst": "O(n)", "space": "O(1)", "hash_dependent": false, "benchmark_model": "n", "summary": "s", "correctness": "general"}'
         with mock.patch.object(analyze, "MOONSHOT_API_KEY", "fake-key"):
             with mock.patch.object(
                 analyze, "call_moonshot", side_effect=["not json", good]

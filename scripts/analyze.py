@@ -66,8 +66,13 @@ SUBMISSION_RE = re.compile(r"^submission-(\d+)\.py$")
 # input-controlled key space" to "hash values the input can actually choose":
 # it was rating a set() of ListNode objects as O(n^2) worst case, but those
 # use Python's default identity hash, so the addresses the allocator hands
-# out — not the input — decide the hash values.
-ANALYSIS_VERSION = 6
+# out — not the input — decide the hash values. Bumped to 7 when complexity
+# moved to the GENERALIZED problem (NeetCode's numeric caps removed, domain
+# kept — see generators.py's generalized_note) and the correctness field was
+# added: a cap on n was being used to call solutions O(1), and a capped value
+# range to rule out hash collisions, which left the page's claims resting on
+# limits the code itself doesn't have.
+ANALYSIS_VERSION = 7
 
 # Defensive cap on how much of a fetched problem statement goes into the
 # prompt. NeetCode statements observed so far top out well under this; it
@@ -107,17 +112,45 @@ SYSTEM_PROMPT = (
     '"n^1.5 log n", "n^2", "n^2 log n", "n^3", "n^3 log n" — no other '
     'symbols, variables, or constants), "summary" (string, 1-2 sentences '
     'describing the approach), "notes" (string, optional remarks on '
-    "idiomatic style or readability; empty string if none). "
+    'idiomatic style or readability; empty string if none), "correctness" '
+    '(string, exactly one of "general", "neetcode-only", or "incorrect" — '
+    "see the correctness rule below), and \"correctness_reason\" (string, "
+    "one sentence naming the input that breaks it, or how it depends on a "
+    "stated cap; empty string when \"general\"). "
     "When a solution branches between strategies (e.g. picks an algorithm "
     "based on input sizes), report the TIGHTEST correct bound, using min(...) "
     "or multi-variable forms if needed, rather than collapsing to a weaker "
     "single form — O(min(n + k, n log n)) is a stronger and better answer "
     "than O(n log n) for a guarded hybrid. "
-    "When a problem statement is provided, treat every constraint it states "
-    "(bounds on input size, value ranges, uniqueness guarantees, etc.) as a "
-    "guaranteed precondition of the input, not an assumption made by the "
-    "solution — relying on a stated constraint is correct and should not be "
-    "flagged in notes as an unjustified assumption."
+    "Analyze COMPLEXITY against the GENERALIZED problem, not NeetCode's "
+    "capped one. The generalized problem removes the statement's numeric "
+    "limits — on input size and on the magnitude of values — while keeping "
+    "everything that is part of the problem rather than a limit on it: the "
+    "alphabet or character set, structural invariants (sortedness, "
+    "uniqueness, a fixed-size board), and stated preconditions. A "
+    "'Generalized problem' line gives the specifics when one is available; "
+    "otherwise apply that rule to the stated constraints yourself. So never "
+    "collapse a complexity to O(1) because the statement caps the input size "
+    "— O(min(n, 1005)) = O(1) is exactly the wrong answer — and do not treat "
+    "a capped value range as bounding the key space for hashing. A bound on "
+    "something OTHER than input size that survives generalization (a "
+    "26-letter alphabet, a 9x9 board) is a genuine constant and should be "
+    "folded in. Arithmetic counts as unit cost even where generalizing "
+    "removes a machine-word guarantee. "
+    "Then judge CORRECTNESS on two levels, and report it in "
+    '"correctness": "general" if the solution is right for every input to '
+    'the generalized problem; "neetcode-only" if it is right for every '
+    "input NeetCode's constraints permit but breaks once a cap is lifted "
+    "(e.g. it hard-codes a maximum length, or indexes an array sized by a "
+    'capped value); "incorrect" if some input NeetCode itself permits '
+    "already breaks it — a delimiter drawn from the statement's own "
+    "character set, an unhandled empty or duplicate case. Reserve "
+    '"incorrect" for real counterexamples you can name in '
+    '"correctness_reason", not for style or for relying on a stated '
+    "precondition, which is legitimate. A solution being accepted by "
+    "NeetCode is not evidence of correctness: its tests are not exhaustive, "
+    'and "incorrect" here means the code is wrong on some permitted input '
+    "regardless of what the judge said."
 )
 
 
@@ -211,7 +244,12 @@ REQUIRED_FIELDS = (
     "hash_dependent",
     "benchmark_model",
     "summary",
+    "correctness",
 )
+
+# Anything else means the model invented a value; treated as a parse failure
+# so the run retries rather than writing a status nothing can render.
+VALID_CORRECTNESS = ("general", "neetcode-only", "incorrect")
 
 
 def parse_complexity_response(raw_text: str) -> dict:
@@ -222,31 +260,45 @@ def parse_complexity_response(raw_text: str) -> dict:
     for field in REQUIRED_FIELDS:
         if field not in data:
             raise ValueError(f"missing required field: {field}")
+    if data["correctness"] not in VALID_CORRECTNESS:
+        raise ValueError(f"unrecognized correctness: {data['correctness']!r}")
     data.setdefault("notes", "")
+    data.setdefault("correctness_reason", "")
     return data
 
 
 def build_user_prompt(
-    slug: str, source: str, scaling_note: str | None, statement: str | None = None
+    slug: str,
+    source: str,
+    scaling_note: str | None,
+    statement: str | None = None,
+    generalized_note: str | None = None,
 ) -> str:
     statement_line = ""
     if statement:
         truncated = statement[:STATEMENT_MAX_CHARS]
         statement_line = f"Problem statement (from NeetCode):\n{truncated}\n\n"
     scaling_line = f"Scaling: {scaling_note}\n\n" if scaling_note else ""
+    generalized_line = (
+        f"Generalized problem: {generalized_note}\n\n" if generalized_note else ""
+    )
     return (
-        f"Problem slug: {slug}\n\n{statement_line}{scaling_line}"
+        f"Problem slug: {slug}\n\n{statement_line}{generalized_line}{scaling_line}"
         f"Solution:\n```python\n{source}\n```"
     )
 
 
 def call_moonshot(
-    slug: str, source: str, scaling_note: str | None = None, statement: str | None = None
+    slug: str,
+    source: str,
+    scaling_note: str | None = None,
+    statement: str | None = None,
+    generalized_note: str | None = None,
 ) -> dict:
     if not MOONSHOT_API_KEY:
         raise RuntimeError("MOONSHOT_API_KEY is not set")
 
-    user_prompt = build_user_prompt(slug, source, scaling_note, statement)
+    user_prompt = build_user_prompt(slug, source, scaling_note, statement, generalized_note)
     payload = {
         "model": MOONSHOT_MODEL,
         "messages": [
@@ -274,6 +326,7 @@ def get_complexity(
     mock: bool,
     scaling_note: str | None = None,
     statement: str | None = None,
+    generalized_note: str | None = None,
 ) -> tuple[dict | None, str | None]:
     if mock:
         return (
@@ -285,6 +338,8 @@ def get_complexity(
                 "benchmark_model": "n",
                 "summary": "Mock analysis placeholder (no LLM call was made).",
                 "notes": "",
+                "correctness": "general",
+                "correctness_reason": "",
             },
             None,
         )
@@ -292,7 +347,7 @@ def get_complexity(
     last_error = None
     for attempt in range(2):
         try:
-            raw_text = call_moonshot(slug, source, scaling_note, statement)
+            raw_text = call_moonshot(slug, source, scaling_note, statement, generalized_note)
             return parse_complexity_response(raw_text), None
         except (
             urllib.error.URLError,
@@ -318,6 +373,7 @@ def analyze_submission(slug: str, number: int, path: Path, mock: bool) -> tuple[
     # without a benchmark generator yet); tolerate that and fall back to
     # no scaling note rather than raising.
     scaling_note = generators.PROBLEMS.get(slug, {}).get("scaling_note")
+    generalized_note = generators.PROBLEMS.get(slug, {}).get("generalized_note")
 
     # Mock mode never touches the network — including for the problem
     # statement fetch, which is otherwise best-effort and cached
@@ -327,7 +383,9 @@ def analyze_submission(slug: str, number: int, path: Path, mock: bool) -> tuple[
     else:
         statement_slug, statement_text = statements.get_statement(slug)
 
-    complexity, error = get_complexity(slug, source, mock, scaling_note, statement_text)
+    complexity, error = get_complexity(
+        slug, source, mock, scaling_note, statement_text, generalized_note
+    )
 
     record = {
         "file": str(path.relative_to(REPO_ROOT)),
