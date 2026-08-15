@@ -1,0 +1,26 @@
+{
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-15T19:28:13.449751+00:00",
+  "complexity": {
+    "benchmark_model": "n^2",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "Correct but slow: the `(tuple) not in result` membership test is a linear scan over an output list that can hold Theta(n^2) triplets, and there can be Theta(n^2) match events, degrading the worst case to O(n^4). Standard fixes are skipping duplicate values by index or storing seen triplets in a set, both restoring O(n^2). Space is O(n) auxiliary for the sorted copy (Theta(n^2) including output).",
+    "space": "O(n)",
+    "summary": "Sorts the array and runs the classic outer-loop plus two-pointer scan; each time a summing pair is found, it deduplicates by linearly scanning the result list for the tuple before appending.",
+    "time_average": "O(n^2)",
+    "time_worst": "O(n^4)"
+  },
+  "file": "Data Structures & Algorithms/three-integer-sum/submission-0.py",
+  "golf": {
+    "bytes": 675,
+    "characters": 675,
+    "non_blank_lines": 18,
+    "tokens": 157
+  },
+  "model": "k3",
+  "slug": "three-integer-sum",
+  "solved_at": "2026-08-15T12:27:33-07:00",
+  "statement": "three-integer-sum"
+}
