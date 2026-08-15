@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-15T02:24:24.683830+00:00",
+  "generated_at": "2026-08-15T02:36:59.480511+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -53,6 +53,32 @@
           "model": "k3",
           "slug": "add-two-numbers",
           "solved_at": "2026-08-14T19:23:59-07:00",
+          "statement": "add-two-numbers"
+        },
+        {
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T02:36:59.341672+00:00",
+          "complexity": {
+            "benchmark_model": "n",
+            "correctness": "neetcode-only",
+            "correctness_reason": "Lists longer than CPython's recursion limit (~1000 nodes) make decode/encode raise RecursionError; NeetCode caps list length at 100, so it is safe only under that cap.",
+            "hash_dependent": false,
+            "notes": "Treating arithmetic as unit cost, decode/encode are single linear passes, but each uses recursion depth equal to the list length, so the recursion stack dominates the O(n) space. The idiomatic approach is an iterative one-pass carry propagation; `encode(a+b) or ListNode(0)` is a slightly cute way to handle the zero case since encode(0) returns None.",
+            "space": "O(n)",
+            "summary": "Recursively decodes both linked lists into integers, adds them, then recursively re-encodes the sum into a linked list (with a special case for 0).",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
+          "file": "Data Structures & Algorithms/add-two-numbers/submission-3.py",
+          "golf": {
+            "bytes": 535,
+            "characters": 535,
+            "non_blank_lines": 18,
+            "tokens": 101
+          },
+          "model": "k3",
+          "slug": "add-two-numbers",
+          "solved_at": "2026-08-14T19:36:25-07:00",
           "statement": "add-two-numbers"
         }
       ]
