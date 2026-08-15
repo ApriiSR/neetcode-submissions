@@ -5,7 +5,7 @@ Each problem in `PROBLEMS` maps to:
   whose submission defines no Solution class at all (minimum-stack).
 - `scalable`: False for problems benchmark.py can't time -- fixed-shape
   inputs (valid-sudoku is a fixed 9x9 board) and shapes its loader can't
-  construct (minimum-stack, reverse-a-linked-list; see their
+  construct (minimum-stack and every linked-list problem; see their
   scaling_note); benchmark.py skips scaling curves for these, so their
   `generate` documents the input shape rather than feeding a timing run.
 - `generate(n, rng)`: returns a positional-args tuple (excluding `self`)
@@ -26,7 +26,9 @@ None of the problems here have a dict/set keyed on raw, unbounded
 input strings (is-anagram keys on single characters — a 26-symbol
 alphabet, too small to stress; anagram-groups keys on a computed
 26-int signature tuple, not the input strings; string-encode-and-decode
-doesn't hash at all). So there's currently no PYTHONHASHSEED=0-dependent
+doesn't hash at all; the linked-list problems that hash at all key on
+node objects, whose hashes come from CPython's identity hash, so the
+input can't choose them). So there's currently no PYTHONHASHSEED=0-dependent
 string-collision generator in use. benchmark.py still forces
 PYTHONHASHSEED=0 for the whole run as a forward-looking default, since
 str/bytes hashing is otherwise randomized per-process and any future
@@ -48,6 +50,15 @@ def _int_collisions(n):
 def _random_word(rng, min_len=3, max_len=10):
     length = rng.randint(min_len, max_len)
     return "".join(rng.choice(string.ascii_lowercase) for _ in range(length))
+
+
+def _gen_add_two_numbers(n, rng):
+    # Digits are stored least-significant first, so the last element is the
+    # leading digit and is never 0.
+    length = max(1, n)
+    l1 = [rng.randint(0, 9) for _ in range(length - 1)] + [rng.randint(1, 9)]
+    l2 = [rng.randint(0, 9) for _ in range(length - 1)] + [rng.randint(1, 9)]
+    return (l1, l2)
 
 
 def _gen_anagram_groups(n, rng):
@@ -74,6 +85,12 @@ def _gen_car_fleet(n, rng):
     position = rng.sample(range(target), n)
     speed = [rng.randint(1, 100) for _ in range(n)]
     return (target, position, speed)
+
+
+def _gen_copy_linked_list_with_random_pointer(n, rng):
+    values = [rng.randint(-1000, 1000) for _ in range(n)]
+    randoms = [rng.randrange(n) if rng.random() < 0.75 else None for _ in range(n)]
+    return (values, randoms)
 
 
 def _gen_daily_temperatures(n, rng):
@@ -145,6 +162,11 @@ def _gen_largest_rectangle_in_histogram(n, rng):
     return ([rng.randint(0, 10000) for _ in range(n)],)
 
 
+def _gen_linked_list_cycle_detection(n, rng):
+    values = [rng.randint(-1000, 1000) for _ in range(n)]
+    return (values, n // 2)
+
+
 def _gen_longest_consecutive_sequence(n, rng):
     nums = list(range(n))
     rng.shuffle(nums)
@@ -153,6 +175,13 @@ def _gen_longest_consecutive_sequence(n, rng):
 
 def _adv_longest_consecutive_sequence(n):
     return (_int_collisions(n),)
+
+
+def _gen_merge_two_sorted_linked_lists(n, rng):
+    half = n // 2
+    list1 = sorted(rng.randint(-1000, 1000) for _ in range(half))
+    list2 = sorted(rng.randint(-1000, 1000) for _ in range(n - half))
+    return (list1, list2)
 
 
 def _gen_minimum_stack(n, rng):
@@ -170,6 +199,15 @@ def _gen_minimum_stack(n, rng):
 
 def _gen_products_of_array_discluding_self(n, rng):
     return ([rng.choice((1, -1)) for _ in range(n)],)
+
+
+def _gen_remove_node_from_end_of_linked_list(n, rng):
+    values = [rng.randint(-1000, 1000) for _ in range(n)]
+    return (values, rng.randint(1, n) if n else 1)
+
+
+def _gen_reorder_linked_list(n, rng):
+    return ([rng.randint(-1000, 1000) for _ in range(n)],)
 
 
 def _gen_reverse_a_linked_list(n, rng):
@@ -247,6 +285,15 @@ def _gen_valid_sudoku(n, rng):
 
 
 PROBLEMS = {
+    "add-two-numbers": {
+        "entry": "addTwoNumbers",
+        "scalable": False,
+        "generate": _gen_add_two_numbers,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "not benchmarked: n = number of digits in each addend, and the generator returns the two digit lists (least-significant first, leading digit never 0) the linked lists would be built from, but the entry takes two ListNode heads. Building real nodes here wouldn't be enough either: every submission allocates result nodes with `ListNode(...)`, a name benchmark.py's loader never defines -- its exec namespace holds only List and Optional -- so the call raises NameError before any timing",
+        "generalized_note": "uncapped: both lists any length. The digit alphabet is part of the problem, not a cap — still 0-9, least-significant first, with no leading zero. Per-digit arithmetic is unit cost, but a solution that decodes a whole list into a single integer is then operating on n-digit numbers, whose arithmetic is not unit cost, and one that recurses once per node needs stack depth proportional to n.",
+    },
     "anagram-groups": {
         "entry": "groupAnagrams",
         "scalable": True,
@@ -282,6 +329,15 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "n = number of cars; target (the finish line) is set to 2n+1 and the n distinct positions are sampled without replacement from range(target), so both the target and the position range scale linearly with n -- meaning the counting-array submissions, which allocate a list of length target, stay O(n) rather than being dominated by a fixed target; speeds are drawn from the fixed range 1..100, independent of n",
         "generalized_note": "uncapped: any number of cars, and target/speed/position any positive ints. The invariants stay: positions are distinct and all below target, speeds are positive. Note this makes target independent of n, so a solution that allocates an array of size target is no longer O(n).",
+    },
+    "copy-linked-list-with-random-pointer": {
+        "entry": "copyRandomList",
+        "scalable": False,
+        "generate": _gen_copy_linked_list_with_random_pointer,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "not benchmarked: n = number of nodes, and the generator returns the n values plus, for each node, the index its random pointer targets (None ~25% of the time, for a null random), but the entry takes a Node head. Building real nodes here wouldn't be enough either: the submission allocates each copy with `Node(...)`, a name benchmark.py's loader never defines -- its exec namespace holds only List and Optional -- so the call raises NameError before any timing",
+        "generalized_note": "uncapped: any number of nodes, values any ints. The pointer structure is part of the problem, not a cap — each random pointer still targets some node in the list or null. The dict here is keyed on node objects, so its hashes come from CPython's identity hash and the input cannot choose them.",
     },
     "daily-temperatures": {
         "entry": "dailyTemperatures",
@@ -337,6 +393,15 @@ PROBLEMS = {
         "scaling_note": "n = number of bars; each height is drawn uniformly from 0..10000, NeetCode's full stated range for heights[i], independent of n -- so a submission that sweeps every height value from 0 to max(heights) does a bounded (<=10001) number of linear passes: still O(n) in n, but with a constant large enough that the size ladder hits its per-size time cap around n = 2**13 to 2**14, depending on machine speed",
         "generalized_note": "uncapped: any number of bars, heights any non-negative ints. Note the stated 0..10000 height cap is what makes a height-indexed sweep O(n); without it such a solution scales with the largest height instead.",
     },
+    "linked-list-cycle-detection": {
+        "entry": "hasCycle",
+        "scalable": False,
+        "generate": _gen_linked_list_cycle_detection,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "not benchmarked: n = number of nodes, and the generator returns the n values plus the index the tail links back to (always n // 2, so every generated list does contain a cycle), but the entry takes a ListNode head. Unlike the other linked-list problems neither submission allocates or rewires nodes, so the blocker here is only that generate cannot hand over the nodes themselves: freshly built node objects compare by identity, and the test suite asserts that two same-seed generate calls return equal args",
+        "generalized_note": "uncapped: any number of nodes, values any ints. The structure is part of the problem, not a cap — the list is still either acyclic or ends in a cycle back to one of its own nodes. Note the stated 1000-node maximum is a cap, so it goes: a solution that walks a fixed number of steps and then declares a cycle is correct only under that cap, and uncapped it reports a cycle on any longer acyclic list. The visited set is keyed on node objects, so its hashes come from CPython's identity hash and the input cannot choose them.",
+    },
     "longest-consecutive-sequence": {
         "entry": "longestConsecutive",
         "scalable": True,
@@ -345,6 +410,15 @@ PROBLEMS = {
         "adversarial_note": "n distinct multiples of 2**61-1, all hashing to 0, so every set insert/lookup collides",
         "scaling_note": "n = array length; values are a shuffled permutation of range(n), so the value range scales with n too",
         "generalized_note": "uncapped: any array length, values any ints \u2014 including adversarially colliding ones, which the stated -10^9..10^9 range would have made impossible.",
+    },
+    "merge-two-sorted-linked-lists": {
+        "entry": "mergeTwoLists",
+        "scalable": False,
+        "generate": _gen_merge_two_sorted_linked_lists,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "not benchmarked: n = total number of nodes, and the generator returns the two ascending value lists (n // 2 and n - n // 2 values, each drawn independently from the fixed range -1000..1000 and then sorted, so the two genuinely interleave) the linked lists would be built from, but the entry takes two ListNode heads. Building real nodes here wouldn't be enough either: the submission splices the two chains together in place, and benchmark.py's _copy_args only deep-copies lists, so best-of-3 would re-time an already-merged chain on repeats 2 and 3",
+        "generalized_note": "uncapped: both lists any length, node values any ints. Sortedness is part of the problem, not a cap — both inputs are still ascending, and the result must be too.",
     },
     "minimum-stack": {
         "entry": None,
@@ -363,6 +437,24 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "n = array length; each element is drawn from the fixed set {1, -1}, independent of n",
         "generalized_note": "uncapped: any array length, values any ints. The 32-bit-product guarantee is a cap, so it goes: products may be arbitrarily large, though arithmetic is still counted as unit cost. Division-by-zero handling remains the solution's problem.",
+    },
+    "remove-node-from-end-of-linked-list": {
+        "entry": "removeNthFromEnd",
+        "scalable": False,
+        "generate": _gen_remove_node_from_end_of_linked_list,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "not benchmarked: n = number of nodes, and the generator returns the n values the list would be built from plus the 1-based position from the end to remove (drawn uniformly from 1..n, so the removal point is not pinned to either end), but the entry takes a ListNode head. Building real nodes here wouldn't be enough either: the submission allocates a sentinel with `ListNode(next=head)`, a name benchmark.py's loader never defines -- its exec namespace holds only List and Optional -- so the call raises NameError before any timing",
+        "generalized_note": "uncapped: any list length, node values any ints. The precondition is part of the problem, not a cap — the position removed is still between 1 and the list length.",
+    },
+    "reorder-linked-list": {
+        "entry": "reorderList",
+        "scalable": False,
+        "generate": _gen_reorder_linked_list,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "not benchmarked: n = number of nodes, and the generator returns the n values the list would be built from, but the entry takes a ListNode head. Building real nodes here wouldn't be enough either: the submission rewires the list in place and returns None, and benchmark.py's _copy_args only deep-copies lists, so best-of-3 would re-time an already-reordered chain on repeats 2 and 3",
+        "generalized_note": "uncapped: any list length, node values any ints. The interleaving order is part of the problem, not a cap, and the reordering is still done by rewiring nodes rather than by moving values.",
     },
     "reverse-a-linked-list": {
         "entry": "reverseList",
