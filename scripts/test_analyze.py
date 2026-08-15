@@ -83,6 +83,29 @@ class JsonParsingTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             analyze.parse_complexity_response(raw)
 
+    def test_read_timeout_is_retried_not_fatal(self):
+        # One slow response used to abort the whole pass, losing every
+        # submission after it.
+        good = ('{"time_average": "O(n)", "time_worst": "O(n)", "space": "O(1)", '
+                '"hash_dependent": false, "benchmark_model": "n", "summary": "s", '
+                '"correctness": "general"}')
+        with mock.patch.object(analyze, "MOONSHOT_API_KEY", "fake-key"):
+            with mock.patch.object(
+                analyze, "call_moonshot", side_effect=[TimeoutError("read timed out"), good]
+            ):
+                data, error = analyze.get_complexity("slug", "src", mock=False)
+        self.assertIsNone(error)
+        self.assertEqual(data["time_average"], "O(n)")
+
+    def test_persistent_timeout_reports_an_error_instead_of_raising(self):
+        with mock.patch.object(analyze, "MOONSHOT_API_KEY", "fake-key"):
+            with mock.patch.object(
+                analyze, "call_moonshot", side_effect=TimeoutError("read timed out")
+            ):
+                data, error = analyze.get_complexity("slug", "src", mock=False)
+        self.assertIsNone(data)
+        self.assertIn("TimeoutError", error)
+
     def test_invalid_json_raises(self):
         raw = "not json at all"
         with self.assertRaises(json.JSONDecodeError):

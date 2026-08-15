@@ -74,6 +74,11 @@ SUBMISSION_RE = re.compile(r"^submission-(\d+)\.py$")
 # limits the code itself doesn't have.
 ANALYSIS_VERSION = 7
 
+# Per-request read timeout. Raised from 120s when the prompt grew (statement
+# + generalized note + a longer system prompt all push response latency up)
+# and a single slow response started tripping it.
+REQUEST_TIMEOUT_SECONDS = 240
+
 # Defensive cap on how much of a fetched problem statement goes into the
 # prompt. NeetCode statements observed so far top out well under this; it
 # exists to bound prompt size/cost if a future fetch returns something huge.
@@ -315,7 +320,7 @@ def call_moonshot(
         },
         method="POST",
     )
-    with urllib.request.urlopen(request, timeout=120) as resp:
+    with urllib.request.urlopen(request, timeout=REQUEST_TIMEOUT_SECONDS) as resp:
         body = json.loads(resp.read().decode("utf-8"))
     return body["choices"][0]["message"]["content"]
 
@@ -352,6 +357,11 @@ def get_complexity(
         except (
             urllib.error.URLError,
             urllib.error.HTTPError,
+            # socket.timeout is an alias of TimeoutError since 3.10 and is NOT a
+            # URLError subclass, so it used to escape and kill the whole run —
+            # every submission after the slow one lost, on one slow response.
+            TimeoutError,
+            OSError,
             KeyError,
             IndexError,
             ValueError,
