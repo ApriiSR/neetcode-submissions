@@ -1,0 +1,24 @@
+{
+  "analysis_version": 6,
+  "analyzed_at": "2026-08-15T00:19:57.017731+00:00",
+  "complexity": {
+    "benchmark_model": "n",
+    "hash_dependent": false,
+    "notes": "Clean and correct; a one-pass two-pointer (fast/slow with a gap of n) variant would avoid the length count but has the same asymptotic complexity. The `if size < 1` check is dead code given the constraint 1 <= sz.",
+    "space": "O(1)",
+    "summary": "Two-pass approach: first count the list length, then use a dummy pre-head node to walk to the node just before the (size-n)th position and unlink the target node, correctly handling removal of the head.",
+    "time_average": "O(n)",
+    "time_worst": "O(n)"
+  },
+  "file": "Data Structures & Algorithms/remove-node-from-end-of-linked-list/submission-2.py",
+  "golf": {
+    "bytes": 647,
+    "characters": 647,
+    "non_blank_lines": 22,
+    "tokens": 92
+  },
+  "model": "k3",
+  "slug": "remove-node-from-end-of-linked-list",
+  "solved_at": "2026-08-14T17:19:39-07:00",
+  "statement": "remove-node-from-end-of-linked-list"
+}
