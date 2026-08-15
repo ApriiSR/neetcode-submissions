@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-15T06:38:17.891097+00:00",
+  "generated_at": "2026-08-15T06:57:25.829361+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -1121,6 +1121,34 @@
           "model": "k3",
           "slug": "find-duplicate-integer",
           "solved_at": "2026-08-14T23:37:55-07:00",
+          "statement": "find-duplicate-integer"
+        },
+        {
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T06:57:25.707856+00:00",
+          "complexity": {
+            "benchmark_model": "n^2",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "O(1) extra space and no mutation, so it technically satisfies the follow-up's space constraint, but the intended follow-up solution is Floyd's cycle detection in O(n) time. Missing return path is fine only because a duplicate is guaranteed to exist.",
+            "relation_to_previous": "new-approach",
+            "space": "O(1)",
+            "summary": "Brute-force pairwise comparison: for each index i, scan all later indices j and return the first value that appears twice, which is guaranteed to be the unique duplicate.",
+            "time_average": "O(n^2)",
+            "time_worst": "O(n^2)"
+          },
+          "file": "Data Structures & Algorithms/find-duplicate-integer/submission-1.py",
+          "golf": {
+            "bytes": 221,
+            "characters": 221,
+            "non_blank_lines": 6,
+            "tokens": 60
+          },
+          "model": "k3",
+          "relation_to_previous": "new-approach",
+          "slug": "find-duplicate-integer",
+          "solved_at": "2026-08-14T23:57:08-07:00",
           "statement": "find-duplicate-integer"
         }
       ]
