@@ -1,6 +1,36 @@
 {
-  "generated_at": "2026-08-15T01:48:43.519818+00:00",
+  "generated_at": "2026-08-15T02:12:08.432242+00:00",
   "problems": {
+    "add-two-numbers": {
+      "submissions": [
+        {
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-15T02:12:08.278232+00:00",
+          "complexity": {
+            "benchmark_model": "n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Clean and idiomatic: dummy head avoids edge-case handling, and the missing-list-as-zero idiom is standard. Single pass with constant per-node work.",
+            "space": "O(n)",
+            "summary": "Simultaneously traverses both lists digit-by-digit with a running carry, building the result list via a dummy head node. A final carry node is appended if one remains after the longer list is exhausted.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
+          "file": "Data Structures & Algorithms/add-two-numbers/submission-0.py",
+          "golf": {
+            "bytes": 809,
+            "characters": 809,
+            "non_blank_lines": 23,
+            "tokens": 126
+          },
+          "model": "k3",
+          "slug": "add-two-numbers",
+          "solved_at": "2026-08-14T19:11:53-07:00",
+          "statement": "add-two-numbers"
+        }
+      ]
+    },
     "anagram-groups": {
       "submissions": [
         {
