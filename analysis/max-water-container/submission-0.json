@@ -1,0 +1,26 @@
+{
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-15T19:38:41.737763+00:00",
+  "complexity": {
+    "benchmark_model": "n^2",
+    "correctness": "incorrect",
+    "correctness_reason": "It computes 3Sum triples instead of the maximum container area: on heights=[1,7,2,5,4,7,3,6] it returns [] rather than 36.",
+    "hash_dependent": false,
+    "notes": "Wrong problem entirely: this is a 3Sum implementation (method named threeSum) pasted into max-water-container; the correct solution is a two-pointer scan moving the shorter side inward in O(n). Even as 3Sum it is poor: `x not in result` is a linear scan over up to O(n^2) tuples (use a set, which here hashes input-derived ints so average-case only), and it also misses duplicate-skipping logic and relies on List being imported.",
+    "space": "O(n^2)",
+    "summary": "The submitted code solves 3Sum (sort + two-pointer sweep collecting triples that sum to zero), not Container With Most Water \u2014 it never computes any area. Within its own logic, it sorts, then for each anchor scans with two pointers, deduplicating via a linear `in` check on the result list, which is O(k) per match and drives the worst case to O(n^4).",
+    "time_average": "O(n^2)",
+    "time_worst": "O(n^4)"
+  },
+  "file": "Data Structures & Algorithms/max-water-container/submission-0.py",
+  "golf": {
+    "bytes": 676,
+    "characters": 676,
+    "non_blank_lines": 18,
+    "tokens": 157
+  },
+  "model": "k3",
+  "slug": "max-water-container",
+  "solved_at": "2026-08-15T12:37:57-07:00",
+  "statement": "max-water-container"
+}
