@@ -300,7 +300,15 @@ def load_new_records() -> list:
         return []
     # Re-analyses (version bumps, error retries) regenerate records for old
     # solves — announcing those would flood the channel with stale problems.
-    return [r for r in data if not r.get("reanalysis")]
+    # Revisions are skipped for a different reason: NeetCode writes every
+    # re-submission as a new file, so editing a solved problem to drop a dead
+    # line looks identical to solving it again. analyze.py marks those, and
+    # the channel only wants the ones that are actually news.
+    return [
+        r
+        for r in data
+        if not r.get("reanalysis") and r.get("relation_to_previous") != "revision"
+    ]
 
 
 def main():

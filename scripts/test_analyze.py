@@ -41,6 +41,55 @@ class GolfStatsTests(unittest.TestCase):
         self.assertGreater(stats["bytes"], stats["characters"])
 
 
+class SettleRelationTests(unittest.TestCase):
+    """April's rule: tidying is a revision, changed asymptotics never is."""
+
+    PREV = {"complexity": {"time_average": "O(n)", "time_worst": "O(n)", "space": "O(1)"}}
+
+    def test_no_relation_when_the_model_did_not_report_one(self):
+        # No previous submission was supplied, so the field is absent.
+        self.assertIsNone(analyze.settle_relation({"time_average": "O(n)"}, None))
+
+    def test_revision_survives_when_asymptotics_match(self):
+        complexity = {
+            "time_average": "O(n)", "time_worst": "O(n)", "space": "O(1)",
+            "relation_to_previous": "revision",
+        }
+        self.assertEqual(analyze.settle_relation(complexity, self.PREV), "revision")
+
+    def test_changed_asymptotics_overrides_a_revision_verdict(self):
+        # K3 called it a tidy-up, but the complexity moved — that is a
+        # submission in its own right regardless of how small the diff was.
+        complexity = {
+            "time_average": "O(n)", "time_worst": "O(n^2)", "space": "O(1)",
+            "relation_to_previous": "revision",
+        }
+        self.assertEqual(analyze.settle_relation(complexity, self.PREV), "new-approach")
+
+    def test_changed_space_also_overrides(self):
+        complexity = {
+            "time_average": "O(n)", "time_worst": "O(n)", "space": "O(n)",
+            "relation_to_previous": "revision",
+        }
+        self.assertEqual(analyze.settle_relation(complexity, self.PREV), "new-approach")
+
+    def test_new_approach_is_left_alone(self):
+        complexity = {
+            "time_average": "O(n)", "time_worst": "O(n)", "space": "O(1)",
+            "relation_to_previous": "new-approach",
+        }
+        self.assertEqual(analyze.settle_relation(complexity, self.PREV), "new-approach")
+
+    def test_unrecognized_relation_falls_back_to_new_approach(self):
+        # Never silently swallow a submission on a value we don't understand.
+        complexity = {"relation_to_previous": "sort of similar"}
+        self.assertEqual(analyze.settle_relation(complexity, self.PREV), "new-approach")
+
+    def test_missing_previous_record_keeps_the_models_verdict(self):
+        complexity = {"relation_to_previous": "revision"}
+        self.assertEqual(analyze.settle_relation(complexity, None), "revision")
+
+
 class JsonParsingTests(unittest.TestCase):
     def test_plain_json(self):
         raw = '{"time_average": "O(n)", "time_worst": "O(n)", "space": "O(1)", "hash_dependent": false, "benchmark_model": "n", "summary": "s", "correctness": "general"}'

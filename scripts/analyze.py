@@ -151,6 +151,17 @@ SYSTEM_PROMPT = (
     "definition time) is simply never evaluated and cannot affect "
     "correctness. Say so in notes if it is worth a style remark, but "
     "never grade it as incorrect. "
+    "When a 'Previous submission' is supplied, also report "
+    '"relation_to_previous": "revision" if the new solution is the same '
+    "approach as the previous one with only incidental changes — dead code "
+    "removed, a line rewritten more neatly or more briefly, renaming, "
+    'reformatting, a redundant lookup collapsed — or "new-approach" if it '
+    "solves the problem by different means, uses a different data "
+    "structure, or changes the shape of the algorithm. Judge the approach, "
+    "not the diff size: a one-line change that swaps a list scan for a set "
+    "lookup is a new approach, while ten lines of pure tidying is a "
+    "revision. Omit the field entirely when no previous submission is "
+    "given. "
     "Then judge CORRECTNESS on two levels, and report it in "
     '"correctness": "general" if the solution is right for every input to '
     'the generalized problem; "neetcode-only" if it is right for every '
@@ -287,6 +298,7 @@ def build_user_prompt(
     scaling_note: str | None,
     statement: str | None = None,
     generalized_note: str | None = None,
+    previous_source: str | None = None,
 ) -> str:
     statement_line = ""
     if statement:
@@ -296,9 +308,14 @@ def build_user_prompt(
     generalized_line = (
         f"Generalized problem: {generalized_note}\n\n" if generalized_note else ""
     )
+    previous_block = (
+        f"Previous submission for this problem:\n```python\n{previous_source}\n```\n\n"
+        if previous_source
+        else ""
+    )
     return (
         f"Problem slug: {slug}\n\n{statement_line}{generalized_line}{scaling_line}"
-        f"Solution:\n```python\n{source}\n```"
+        f"{previous_block}Solution:\n```python\n{source}\n```"
     )
 
 
@@ -308,11 +325,14 @@ def call_moonshot(
     scaling_note: str | None = None,
     statement: str | None = None,
     generalized_note: str | None = None,
+    previous_source: str | None = None,
 ) -> dict:
     if not MOONSHOT_API_KEY:
         raise RuntimeError("MOONSHOT_API_KEY is not set")
 
-    user_prompt = build_user_prompt(slug, source, scaling_note, statement, generalized_note)
+    user_prompt = build_user_prompt(
+        slug, source, scaling_note, statement, generalized_note, previous_source
+    )
     payload = {
         "model": MOONSHOT_MODEL,
         "messages": [
@@ -341,6 +361,7 @@ def get_complexity(
     scaling_note: str | None = None,
     statement: str | None = None,
     generalized_note: str | None = None,
+    previous_source: str | None = None,
 ) -> tuple[dict | None, str | None]:
     if mock:
         return (
@@ -361,7 +382,9 @@ def get_complexity(
     last_error = None
     for attempt in range(2):
         try:
-            raw_text = call_moonshot(slug, source, scaling_note, statement, generalized_note)
+            raw_text = call_moonshot(
+                slug, source, scaling_note, statement, generalized_note, previous_source
+            )
             return parse_complexity_response(raw_text), None
         except (
             urllib.error.URLError,
@@ -386,6 +409,62 @@ def get_complexity(
     return None, last_error
 
 
+def previous_submission(slug: str, number: int) -> tuple[Path | None, dict | None]:
+    """The highest-numbered submission below `number` that has an analysis
+    record, with that record. NeetCode's sync never edits a file in place —
+    re-submitting a problem writes a new submission-N+1.py — so this is the
+    only handle on "what did the last attempt look like"."""
+    best = None
+    for found_slug, found_number, found_path in iter_submissions(slug):
+        if found_number >= number:
+            continue
+        if best is None or found_number > best[0]:
+            best = (found_number, found_path)
+    if best is None:
+        return None, None
+    record_path = ANALYSIS_ROOT / slug / f"submission-{best[0]}.json"
+    if not record_path.is_file():
+        return best[1], None
+    try:
+        return best[1], json.loads(record_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return best[1], None
+
+
+def _asymptotics(complexity) -> tuple | None:
+    if not isinstance(complexity, dict):
+        return None
+    return (
+        complexity.get("time_average"),
+        complexity.get("time_worst"),
+        complexity.get("space"),
+    )
+
+
+def settle_relation(complexity: dict | None, previous_record: dict | None) -> str | None:
+    """Decide whether this submission supersedes the previous one.
+
+    K3 judges whether the approach changed, since that is a judgement about
+    intent that no diff ratio captures — but a change in asymptotics settles
+    it outright, whatever K3 said. April's rule: tidying (a dead line
+    removed, a line rewritten shorter) is a revision; anything that moves the
+    complexity is a submission in its own right.
+    """
+    if not isinstance(complexity, dict):
+        return None
+    relation = complexity.get("relation_to_previous")
+    if relation is None:
+        return None
+    if relation not in ("revision", "new-approach"):
+        return "new-approach"
+    if relation == "revision" and previous_record is not None:
+        before = _asymptotics((previous_record or {}).get("complexity"))
+        after = _asymptotics(complexity)
+        if before is not None and after is not None and before != after:
+            return "new-approach"
+    return relation
+
+
 def analyze_submission(slug: str, number: int, path: Path, mock: bool) -> tuple[dict, bool]:
     source = path.read_text(encoding="utf-8")
     # generators.PROBLEMS may not have every slug (e.g. a problem added
@@ -402,8 +481,13 @@ def analyze_submission(slug: str, number: int, path: Path, mock: bool) -> tuple[
     else:
         statement_slug, statement_text = statements.get_statement(slug)
 
+    previous_path, previous_record = previous_submission(slug, number)
+    previous_source = (
+        previous_path.read_text(encoding="utf-8") if previous_path is not None else None
+    )
+
     complexity, error = get_complexity(
-        slug, source, mock, scaling_note, statement_text, generalized_note
+        slug, source, mock, scaling_note, statement_text, generalized_note, previous_source
     )
 
     record = {
@@ -421,6 +505,13 @@ def analyze_submission(slug: str, number: int, path: Path, mock: bool) -> tuple[
         "model": MOONSHOT_MODEL if not mock else "mock",
         "analyzed_at": datetime.now(timezone.utc).isoformat(),
     }
+    relation = settle_relation(complexity, previous_record)
+    if relation is not None:
+        record["relation_to_previous"] = relation
+        if relation == "revision" and previous_path is not None:
+            # The page hides a superseded submission and the announcer stays
+            # quiet about the one superseding it: a tidy-up is not news.
+            record["supersedes"] = previous_path.stem
     if error is not None:
         record["error"] = error
     return record, error is not None
@@ -548,6 +639,9 @@ def main():
                     "file": str(path.relative_to(REPO_ROOT)),
                     "analysis_file": str(out_path.relative_to(REPO_ROOT)),
                     "reanalysis": reanalysis,
+                    # Carried here so announce.py can filter without reopening
+                    # the record; absent when there was no previous submission.
+                    "relation_to_previous": record.get("relation_to_previous"),
                 }
             )
 

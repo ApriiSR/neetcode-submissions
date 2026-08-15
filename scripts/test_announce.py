@@ -2,6 +2,7 @@ import json
 import re
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -237,6 +238,19 @@ class MainQuietPathTests(unittest.TestCase):
     def test_missing_new_this_run_file_is_quiet_noop(self):
         with mock.patch.object(analyze, "new_this_run_path", return_value=Path("/nonexistent/x.json")):
             self.assertEqual(announce.load_new_records(), [])
+
+    def test_revisions_are_not_announced(self):
+        records = [
+            {"slug": "a", "number": 1, "relation_to_previous": "revision"},
+            {"slug": "a", "number": 2, "relation_to_previous": "new-approach"},
+            {"slug": "b", "number": 0},
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "new.json"
+            path.write_text(json.dumps(records))
+            with mock.patch.object(announce.analyze, "new_this_run_path", return_value=path):
+                kept = announce.load_new_records()
+        self.assertEqual([r["number"] for r in kept], [2, 0])
 
     def test_reanalysis_records_are_not_announced(self):
         # A version bump re-analyzes every existing record; announcing those

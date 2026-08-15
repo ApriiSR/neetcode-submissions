@@ -475,6 +475,8 @@ pipeline:
   analysis and benchmarking are unaffected either way.
 - **Nothing new this run** — an empty (or missing) `.new-this-run.json`
   is also a quiet no-op.
+- **A revision of an already-solved problem** — analyzed and shown on the
+  site, but not announced. See "Revisions vs. new approaches" below.
 - **`freeze` missing or fails to render** — the message still posts, just
   without the source screenshot (the embed's stats are unaffected). This
   one is the exception to "quietly": the screenshot *is* the
@@ -489,6 +491,34 @@ pipeline:
   skipped entirely (see the workflow's step condition), since that step
   is what produces both the new-submissions list and the source records
   announce.py reads.
+
+### Revisions vs. new approaches
+
+NeetCode's GitHub Sync never edits a file in place — every re-submission
+arrives as a new `submission-N+1.py` (36 additions and zero modifications
+over this repo's history so far). So editing a solved problem to delete a
+dead line looks, to the pipeline, exactly like solving it a second time:
+new file, no analysis record, announce it.
+
+To tell those apart, `analyze.py` passes the problem's previous submission
+alongside the new one and asks K3 for a `relation_to_previous` of
+`"revision"` (same approach, incidental changes — dead code removed, a line
+rewritten more neatly) or `"new-approach"` (different means, different data
+structure, different shape). That is a judgement about intent, which is why
+it goes to the model rather than a diff-similarity threshold.
+
+`settle_relation()` then applies the rule the model doesn't get a vote on:
+**if the asymptotics moved, it is a new approach**, whatever K3 said. A
+one-line change that swaps a scan for a set lookup is a submission in its
+own right. An unrecognized value also falls back to `"new-approach"`, so a
+confused response can never silently swallow a submission.
+
+A revision records `"supersedes": "submission-N"`, which has two effects:
+`announce.py` skips it (a tidy-up is not news), and the progress page drops
+the submission it names, so the card shows the latest version rather than
+accumulating near-duplicates. Revisions chain — if 2 supersedes 1 and 3
+supersedes 2, only 3 is displayed. Records without the field, including
+every submission analyzed before this existed, are unaffected.
 
 ### Spoiler behavior
 
