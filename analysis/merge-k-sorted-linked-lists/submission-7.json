@@ -1,0 +1,28 @@
+{
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-15T08:55:05.043817+00:00",
+  "complexity": {
+    "benchmark_model": "n^2",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "Selecting each of the N output nodes by an O(k) head scan costs O(N*k) overall; a heap or divide-and-conquer merge would give O(N log k). The ListNode(NotImplemented) sentinel works (int == NotImplemented is False) but is obscure compared to a plain None/dummy check. Merging the explicit '< min_val' test with the min() call is redundant bookkeeping.",
+    "relation_to_previous": "revision",
+    "space": "O(1)",
+    "summary": "Repeatedly linear-scans the current list heads to find the minimum-valued node, appends it to the result, and advances that list, dropping empty lists as they are exhausted; a shortcut breaks the scan early when a head equals the previously appended value.",
+    "time_average": "O(n^2)",
+    "time_worst": "O(n^2)"
+  },
+  "file": "Data Structures & Algorithms/merge-k-sorted-linked-lists/submission-7.py",
+  "golf": {
+    "bytes": 914,
+    "characters": 914,
+    "non_blank_lines": 26,
+    "tokens": 151
+  },
+  "model": "k3",
+  "relation_to_previous": "new-approach",
+  "slug": "merge-k-sorted-linked-lists",
+  "solved_at": "2026-08-15T01:54:18-07:00",
+  "statement": "merge-k-sorted-linked-lists"
+}
