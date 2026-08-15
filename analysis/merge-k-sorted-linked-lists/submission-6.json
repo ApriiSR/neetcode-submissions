@@ -1,0 +1,29 @@
+{
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-15T08:44:25.115068+00:00",
+  "complexity": {
+    "benchmark_model": "n^2",
+    "correctness": "incorrect",
+    "correctness_reason": "On lists=[[]] (Example 3, explicitly permitted), the inner loop skips the only None head, so `i` is never assigned and `lists[i]` raises UnboundLocalError instead of returning an empty list.",
+    "hash_dependent": false,
+    "notes": "The added `if lists[j]:` guard skips empty lists during the scan but never removes them or pre-filters them, leaving `i` unbound when every head is empty. The sentinel ListNode(-10000) combined with the equality early-break also silently depends on the statement's -10000 value floor: with generalized values, a head smaller than -10000 could be emitted after -10000, breaking sortedness.",
+    "relation_to_previous": "revision",
+    "space": "O(1)",
+    "summary": "Selection-merge: for each output node it linearly scans all k list heads to find the minimum value, with an early break when a head equals the last emitted value. Since k can grow linearly with the total number of nodes n, this degrades to O(n^2).",
+    "time_average": "O(n*k)",
+    "time_worst": "O(n*k)"
+  },
+  "file": "Data Structures & Algorithms/merge-k-sorted-linked-lists/submission-6.py",
+  "golf": {
+    "bytes": 902,
+    "characters": 902,
+    "non_blank_lines": 26,
+    "tokens": 144
+  },
+  "model": "k3",
+  "relation_to_previous": "revision",
+  "slug": "merge-k-sorted-linked-lists",
+  "solved_at": "2026-08-15T01:43:37-07:00",
+  "statement": "merge-k-sorted-linked-lists",
+  "supersedes": "submission-5"
+}
