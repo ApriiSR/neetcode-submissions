@@ -4,7 +4,8 @@
   "complexity": {
     "benchmark_model": "n^2",
     "correctness": "incorrect",
-    "correctness_reason": "Crashes with AttributeError on lists[j].val when the array contains an empty list, e.g. lists = [[]] (heads arrive as None) \u2014 an input the statement explicitly permits (Example 3); the code never filters out None heads before dereferencing them.",
+    "correctness_note": "Unreachable through NeetCode's own judge, which drops empty lists while deserializing: Example 3 arrives as [] rather than [None], so the submission passes. That serializer bug is reported at https://github.com/neetcode-gh/leetcode/issues/5798 . Probed directly \u2014 a solution returning len(lists) answers 0 for lists=[[]].",
+    "correctness_reason": "Crashes with AttributeError on any input containing an empty list among the k \u2014 e.g. lists = [[1,2],[],[3]] \u2014 because the main loop reads lists[j].val on a None head without filtering. The constraints permit this (0 <= lists[i].length <= 500), and Example 3 is lists = [[]].",
     "hash_dependent": false,
     "notes": "The early break on lists[j].val == prev.val is sound because the merged sequence is non-decreasing, so any head equal to prev.val is a global minimum of the remaining values. The dummy node's value is never relied upon for ordering, so the -10000 literal is harmless. List/Optional are used without a typing import, which works on LeetCode/NeetCode's harness but not in bare Python. The vals bookkeeping from the previous version (which was dead state) has been removed.",
     "relation_to_previous": "revision",
