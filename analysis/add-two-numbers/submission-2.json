@@ -1,0 +1,26 @@
+{
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-15T02:24:24.541890+00:00",
+  "complexity": {
+    "benchmark_model": "n",
+    "correctness": "neetcode-only",
+    "correctness_reason": "Both decode and encode recurse to depth proportional to the list length, so lists longer than CPython's recursion limit (~1000 frames, minus interpreter overhead) raise RecursionError \u2014 impossible under the stated 100-node cap but reachable once it is lifted.",
+    "hash_dependent": false,
+    "notes": "Correct but unidiomatic: the standard solution is a single iterative pass with a carry, avoiding both the intermediate big integers and recursion. The triple decode/encode traversal also does ~3x the work of the one-pass approach.",
+    "space": "O(n)",
+    "summary": "Recursively decodes both lists into integers, adds them, and recursively re-encodes the sum as a linked list, special-casing zero.",
+    "time_average": "O(n)",
+    "time_worst": "O(n)"
+  },
+  "file": "Data Structures & Algorithms/add-two-numbers/submission-2.py",
+  "golf": {
+    "bytes": 544,
+    "characters": 544,
+    "non_blank_lines": 18,
+    "tokens": 105
+  },
+  "model": "k3",
+  "slug": "add-two-numbers",
+  "solved_at": "2026-08-14T19:23:59-07:00",
+  "statement": "add-two-numbers"
+}
