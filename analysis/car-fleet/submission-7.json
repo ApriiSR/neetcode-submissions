@@ -1,14 +1,16 @@
 {
-  "analysis_version": 6,
-  "analyzed_at": "2026-08-14T22:23:59.511542+00:00",
+  "analysis_version": 7,
+  "analyzed_at": "2026-08-15T01:18:46.606464+00:00",
   "complexity": {
     "benchmark_model": "n",
+    "correctness": "neetcode-only",
+    "correctness_reason": "Arrival times are compared with float division, which loses precision once position/target/speed magnitudes exceed about 2^53 (and overflows entirely near 1e308), so with the caps on target and speed lifted a pair of fleets whose true arrival-time ratio differs below float64 resolution can be merged or split incorrectly.",
     "hash_dependent": false,
-    "notes": "Starting result at 1 and unconditionally popping relies on n >= 1, which the constraints guarantee. Sorting ascending and popping from the end is a neat way to process cars nearest the target first; the float division comparison is fine within the given constraints. Under the stated scaling (target = 2n+1) the counting-array branch is essentially always taken for nontrivial n, giving linear time, and its O(target) memory stays O(n). The stray 'I asked Claude' comment should be removed.",
-    "space": "O(min(target, n log n))",
-    "summary": "Hybrid strategy: bucket cars into a target-length counting array when target < n log n (effectively counting sort), otherwise sort by position. Then it greedily scans cars from closest-to-target outward, merging any car whose arrival time is no better than the fleet ahead of it and counting a new fleet otherwise.",
-    "time_average": "O(min(n + target, n log n))",
-    "time_worst": "O(min(n + target, n log n))"
+    "notes": "Clever branch selection keeps the counting-array strategy from ever being asymptotically worse than the sort. Comparing arrival times via float division is concise but cross-multiplication ((target - p1) * s2 >= (target - p2) * s1) would be exact; also, silently initializing result to 1 relies on the n >= 1 constraint.",
+    "space": "O(n + min(target, n log n))",
+    "summary": "Hybrid approach: it builds a position-indexed array when target is small relative to n log n, otherwise sorts the (position, speed) pairs. It then walks cars from nearest-to-target outward, merging each car into the lead fleet if its arrival time is no better, and counting a new fleet otherwise.",
+    "time_average": "O(min(target + n, n log n))",
+    "time_worst": "O(min(target + n, n log n))"
   },
   "file": "Data Structures & Algorithms/car-fleet/submission-7.py",
   "golf": {

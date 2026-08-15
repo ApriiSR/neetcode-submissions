@@ -1,12 +1,14 @@
 {
-  "analysis_version": 6,
-  "analyzed_at": "2026-08-14T22:25:51.451601+00:00",
+  "analysis_version": 7,
+  "analyzed_at": "2026-08-15T01:21:53.569354+00:00",
   "complexity": {
     "benchmark_model": "n",
+    "correctness": "general",
+    "correctness_reason": "",
     "hash_dependent": true,
-    "notes": "Average-case linearity depends on set hashing; adversarial integer keys can make collisions degrade lookups/removals to quadratic worst case.",
+    "notes": "Works but is less idiomatic than the standard approach of iterating the set and only expanding from run starts (where x-1 is absent); the pop-and-expand-both-ways version is correct and still linear but does more membership probes per run.",
     "space": "O(n)",
-    "summary": "Build a set of the numbers, then repeatedly pop a value and expand in both directions to remove its entire consecutive run. Each distinct value is removed once, giving linear average time.",
+    "summary": "Builds a set of the numbers, then repeatedly pops an arbitrary element and expands both downward and upward to collect and remove its entire consecutive run, tracking the maximum run length. Each element is removed from the set exactly once, so total work is linear on average.",
     "time_average": "O(n)",
     "time_worst": "O(n^2)"
   },

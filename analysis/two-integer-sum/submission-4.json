@@ -1,12 +1,14 @@
 {
-  "analysis_version": 6,
-  "analyzed_at": "2026-08-14T22:27:41.490917+00:00",
+  "analysis_version": 7,
+  "analyzed_at": "2026-08-15T01:24:21.372851+00:00",
   "complexity": {
     "benchmark_model": "n log n",
+    "correctness": "general",
+    "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "No hashing is used, so worst case is genuinely O(n log n) from the sort; the index() calls are O(n) each but only a constant number of them. The index-recovery logic is convoluted and fragile \u2014 storing (value, index) pairs before sorting or using a hash map would be both simpler and O(n) average time. Also note nums.index may misidentify which of two equal-valued elements was picked, though the single-solution guarantee prevents wrong output.",
+    "notes": "Unidiomatic and convoluted: sorting loses the indices, forcing linear .index() calls and a fragile pop-and-shift trick for the duplicate-value case; sorting (value, index) pairs or a one-pass hash map would be cleaner, and the hash map version runs in O(n).",
     "space": "O(n)",
-    "summary": "Copies and sorts the array, then uses a two-pointer scan from both ends to find the pair summing to target, and finally recovers the original indices via linear index() lookups (with a pop workaround for duplicate values).",
+    "summary": "Sorts a copy of nums, then uses two pointers to find the pair of values summing to target, and recovers their original indices via nums.index (with a pop-based fixup when the two values are equal).",
     "time_average": "O(n log n)",
     "time_worst": "O(n log n)"
   },

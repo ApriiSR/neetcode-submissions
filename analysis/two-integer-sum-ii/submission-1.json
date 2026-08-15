@@ -1,12 +1,14 @@
 {
-  "analysis_version": 6,
-  "analyzed_at": "2026-08-14T22:27:51.479493+00:00",
+  "analysis_version": 7,
+  "analyzed_at": "2026-08-15T01:24:35.956686+00:00",
   "complexity": {
     "benchmark_model": "n log n",
+    "correctness": "general",
+    "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "The input is guaranteed sorted, so sorting is wasted work and forces an awkward value-to-index remapping; a direct two-pointer scan on nums would be O(n) time and O(1) space. As written, nums2 is an O(n) copy, violating the problem's O(1) extra-space requirement, and mutating nums with pop is poor style. The O(n) index/pop calls are dominated by the sort, so the bound stands.",
+    "notes": "Re-sorting ignores the given sorted precondition and violates the required O(1) extra space; a plain two-pointer pass on the original array would give O(n) time and O(1) space. The repeated nums.index() calls are O(n) each but only run a constant number of times, so they don't change the asymptotics.",
     "space": "O(n)",
-    "summary": "Needlessly copies and sorts the already-sorted array (Timsort O(n log n)), then runs an O(n) two-pointer scan on the copy, and finally maps values back to original indices with O(n) list.index calls (plus an O(n) pop to disambiguate duplicates).",
+    "summary": "Sorts a copy of the array, runs a two-pointer scan on the sorted copy to find the two values, then recovers the original 1-indexed positions with index() lookups (with a pop-based fixup when both values are equal).",
     "time_average": "O(n log n)",
     "time_worst": "O(n log n)"
   },

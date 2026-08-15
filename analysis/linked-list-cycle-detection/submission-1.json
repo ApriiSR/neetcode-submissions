@@ -1,14 +1,16 @@
 {
-  "analysis_version": 6,
-  "analyzed_at": "2026-08-14T22:25:09.273525+00:00",
+  "analysis_version": 7,
+  "analyzed_at": "2026-08-15T01:21:35.807741+00:00",
   "complexity": {
-    "benchmark_model": "1",
+    "benchmark_model": "n",
+    "correctness": "neetcode-only",
+    "correctness_reason": "Depends on the stated cap of 1000 nodes: an acyclic list longer than 1005 nodes would exhaust the loop and wrongly return true.",
     "hash_dependent": false,
-    "notes": "Correct given the problem's length bound, but non-general and unidiomatic; Floyd's tortoise-and-hare is the standard O(n) time, O(1) space solution that works for any length.",
+    "notes": "A magic constant (1005) substitutes for a real algorithm; Floyd's tortoise-and-hare or a visited set would be the idiomatic approaches.",
     "space": "O(1)",
-    "summary": "Exploits the stated constraint that the list has at most 1000 nodes: it walks at most 1005 steps, returning False if it reaches null and True (cycle must exist) otherwise. Runs in constant time and space.",
-    "time_average": "O(1)",
-    "time_worst": "O(1)"
+    "summary": "Walks the list for at most 1005 steps; if null is reached there is no cycle, otherwise it assumes a cycle exists. This exploits the statement's length cap of 1000 rather than actually detecting a cycle.",
+    "time_average": "O(min(n, 1005))",
+    "time_worst": "O(min(n, 1005))"
   },
   "file": "Data Structures & Algorithms/linked-list-cycle-detection/submission-1.py",
   "golf": {

@@ -1,14 +1,16 @@
 {
-  "analysis_version": 6,
-  "analyzed_at": "2026-08-14T22:27:34.639763+00:00",
+  "analysis_version": 7,
+  "analyzed_at": "2026-08-15T01:24:04.140534+00:00",
   "complexity": {
-    "benchmark_model": "n",
+    "benchmark_model": "n log n",
+    "correctness": "general",
+    "correctness_reason": "",
     "hash_dependent": true,
-    "notes": "The input range -1000..1000 bounds the distinct keys to a constant 2001, so the sort, the per-count dict scans, and any hash collisions are all constant-bounded; space is likewise O(1). Style-wise the reverse lookup (scanning items for each top count and deduping with set()) is fragile and unidiomatic; heapq.nlargest or Counter.most_common on (key, count) pairs would be clearer and avoid the repeated scans.",
-    "space": "O(1)",
-    "summary": "Counts frequencies in a dict, sorts the distinct frequency values, takes the top k counts, then finds the keys matching those counts by scanning the dict for each of the k counts, deduplicating via a set.",
-    "time_average": "O(n)",
-    "time_worst": "O(n)"
+    "notes": "The per-count linear scan over num_counts.items() plus the final set() dedup are awkward workarounds; collecting (count, key) pairs and taking the k largest directly (e.g. heapq.nlargest) would be cleaner and avoid both. Sorting all m counts is O(m log m) when only the top k are needed.",
+    "space": "O(n)",
+    "summary": "Counts frequencies in a dict, sorts the frequency values and takes the k largest, then scans the dict once per selected count to collect matching keys, deduplicating via set at the end.",
+    "time_average": "O(n log n)",
+    "time_worst": "O(n^2)"
   },
   "file": "Data Structures & Algorithms/top-k-elements-in-list/submission-2.py",
   "golf": {
