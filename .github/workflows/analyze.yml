@@ -77,8 +77,28 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add analysis
           # --cached: new analysis files are untracked, plain `git diff` misses them
-          if ! git diff --cached --quiet -- analysis/; then
-            git commit -m "Analyze: update analysis/"
-            # a NeetCode export may have pushed while we ran
-            git push || (git pull --rebase && git push)
+          if git diff --cached --quiet -- analysis/; then
+            exit 0
           fi
+          git commit -m "Analyze: update analysis/"
+
+          # A NeetCode export, or another run, may have pushed while we ran.
+          # -X theirs resolves in favour of the commit being replayed — this
+          # run's own freshly generated analysis. That matters after an
+          # ANALYSIS_VERSION bump, when every run rewrites every file and two
+          # overlapping runs conflict on all of them: both sides are equally
+          # valid regenerated output, so picking one is right and stopping is
+          # not. Failing here loses the whole pass, and silently: the
+          # announcement has already gone out by this point, so the channel
+          # says a submission landed while the site never sees it.
+          for attempt in 1 2 3; do
+            if git push; then
+              exit 0
+            fi
+            echo "push rejected (attempt $attempt); rebasing onto origin/main"
+            git pull --rebase -X theirs || {
+              git rebase --abort || true
+              exit 1
+            }
+          done
+          git push
