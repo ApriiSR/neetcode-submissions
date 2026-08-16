@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-16T18:43:33.222567+00:00",
+  "generated_at": "2026-08-16T20:32:03.367028+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -2701,6 +2701,36 @@
           "slug": "reverse-a-linked-list",
           "solved_at": "2026-08-14T12:46:38-07:00",
           "statement": "reverse-a-linked-list"
+        }
+      ]
+    },
+    "same-binary-tree": {
+      "submissions": [
+        {
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-16T20:32:03.218536+00:00",
+          "complexity": {
+            "benchmark_model": "n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Concise and idiomatic; the XOR check cleanly handles the one-null case. Recursion depth equals tree height, so worst-case space is O(n) for a skewed tree (O(log n) for balanced).",
+            "space": "O(n)",
+            "summary": "Recursive structural comparison: returns True when both nodes are null, False when exactly one is null, and otherwise checks value equality plus recursive equality of both subtrees with short-circuit evaluation.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
+          "file": "Data Structures & Algorithms/same-binary-tree/submission-0.py",
+          "golf": {
+            "bytes": 516,
+            "characters": 516,
+            "non_blank_lines": 14,
+            "tokens": 84
+          },
+          "model": "k3",
+          "slug": "same-binary-tree",
+          "solved_at": "2026-08-16T13:31:47-07:00",
+          "statement": "same-binary-tree"
         }
       ]
     },
