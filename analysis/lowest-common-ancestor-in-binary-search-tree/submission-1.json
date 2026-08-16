@@ -1,0 +1,26 @@
+{
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-16T20:58:56.138062+00:00",
+  "complexity": {
+    "benchmark_model": "n log n",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "Correct but far from optimal \u2014 the BST property allows a simple O(h) walk comparing values. The copied isSameTree/isSubtree methods are dead weight for this problem and make the code harder to read; note isSubtree is only O(n) per call here because unique values make isSameTree fail in O(1) except at the single matching node.",
+    "space": "O(n)",
+    "summary": "Ignores the BST ordering and instead reuses isSameTree/isSubtree helpers: at each node it checks whether p contains q (or vice versa), whether p and q split across the children, and otherwise recurses. Each node visit costs O(n) in subtree scans and up to O(n) nodes are visited, giving O(n^2) worst case on a degenerate tree.",
+    "time_average": "O(n log n)",
+    "time_worst": "O(n^2)"
+  },
+  "file": "Data Structures & Algorithms/lowest-common-ancestor-in-binary-search-tree/submission-1.py",
+  "golf": {
+    "bytes": 1420,
+    "characters": 1420,
+    "non_blank_lines": 34,
+    "tokens": 283
+  },
+  "model": "k3",
+  "slug": "lowest-common-ancestor-in-binary-search-tree",
+  "solved_at": "2026-08-16T13:56:51-07:00",
+  "statement": "lowest-common-ancestor-in-binary-search-tree"
+}
