@@ -1,0 +1,26 @@
+{
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-16T18:43:33.069586+00:00",
+  "complexity": {
+    "benchmark_model": "n^2",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "Correct but redundant: maxDepth is recomputed for every subtree. A bottom-up pass returning (height, balanced) pairs or a sentinel like -1 achieves O(n) time. Also, generalized inputs deeper than CPython's recursion limit (~1000) would hit RecursionError, though the stated cap of 1000 nodes makes this a non-issue here.",
+    "space": "O(n)",
+    "summary": "Top-down check: at every node it recomputes the heights of both subtrees with a separate maxDepth traversal and compares them, recursing into children. On a balanced tree each level's heights cost O(n) total giving O(n log n), but on a degenerate (chain) tree the repeated height computations sum to O(n^2).",
+    "time_average": "O(n log n)",
+    "time_worst": "O(n^2)"
+  },
+  "file": "Data Structures & Algorithms/balanced-binary-tree/submission-0.py",
+  "golf": {
+    "bytes": 657,
+    "characters": 657,
+    "non_blank_lines": 17,
+    "tokens": 111
+  },
+  "model": "k3",
+  "slug": "balanced-binary-tree",
+  "solved_at": "2026-08-16T11:43:10-07:00",
+  "statement": "balanced-binary-tree"
+}
