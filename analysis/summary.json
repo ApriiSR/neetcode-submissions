@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-16T21:56:17.389236+00:00",
+  "generated_at": "2026-08-16T22:01:37.193268+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -1696,8 +1696,9 @@
           "analyzed_at": "2026-08-16T21:56:17.223255+00:00",
           "complexity": {
             "benchmark_model": "n^2",
-            "correctness": "incorrect",
-            "correctness_reason": "On any non-empty tree (e.g. root = [1]), node.children raises AttributeError because the judge constructs instances of its own TreeNode, which has no `children` property \u2014 the solution's redefined TreeNode class does not apply to the objects it is handed.",
+            "correctness": "neetcode-only",
+            "correctness_note": "NeetCode accepts this, so its driver does construct nodes from the submission's own TreeNode \u2014 verified by acceptance, and locally by running the solution both ways: with this file's TreeNode it returns [[1],[2,3],[4,5,7]]; with a plain TreeNode it raises AttributeError. K3 had assumed the judge supplies its own class, which is how LeetCode's driver behaves but not this one.",
+            "correctness_reason": "Depends on the judge building nodes from the TreeNode class this file defines: the solution redefines TreeNode with a `children` property and reads node.children. Handed a node built from the problem's own commented definition instead, it raises AttributeError.",
             "hash_dependent": false,
             "notes": "The custom set2 dedup is unnecessary (a tree node has exactly one parent, so duplicates never occur), and TreeNode.__iter__/__next__ are dead code that also violate the iterator protocol. A collections.deque with popleft() would restore the standard O(n) BFS. The local TreeNode redefinition adds a `children` property that the harness-supplied nodes do not have.",
             "relation_to_previous": "new-approach",
