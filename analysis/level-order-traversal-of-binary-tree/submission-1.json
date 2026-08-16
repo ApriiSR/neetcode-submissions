@@ -1,0 +1,28 @@
+{
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-16T21:56:17.223255+00:00",
+  "complexity": {
+    "benchmark_model": "n^2",
+    "correctness": "incorrect",
+    "correctness_reason": "On any non-empty tree (e.g. root = [1]), node.children raises AttributeError because the judge constructs instances of its own TreeNode, which has no `children` property \u2014 the solution's redefined TreeNode class does not apply to the objects it is handed.",
+    "hash_dependent": false,
+    "notes": "The custom set2 dedup is unnecessary (a tree node has exactly one parent, so duplicates never occur), and TreeNode.__iter__/__next__ are dead code that also violate the iterator protocol. A collections.deque with popleft() would restore the standard O(n) BFS. The local TreeNode redefinition adds a `children` property that the harness-supplied nodes do not have.",
+    "relation_to_previous": "new-approach",
+    "space": "O(n)",
+    "summary": "Iterative BFS that processes one frontier list per level, collecting children into a custom dedup wrapper (set2) for the next level. Using list.pop(0) to drain each frontier costs O(L) per pop, so each level of width L costs O(L^2) and the whole traversal degrades to O(n^2) on bushy trees.",
+    "time_average": "O(n^2)",
+    "time_worst": "O(n^2)"
+  },
+  "file": "Data Structures & Algorithms/level-order-traversal-of-binary-tree/submission-1.py",
+  "golf": {
+    "bytes": 1327,
+    "characters": 1327,
+    "non_blank_lines": 43,
+    "tokens": 271
+  },
+  "model": "k3",
+  "relation_to_previous": "new-approach",
+  "slug": "level-order-traversal-of-binary-tree",
+  "solved_at": "2026-08-16T14:55:03-07:00",
+  "statement": "level-order-traversal-of-binary-tree"
+}
