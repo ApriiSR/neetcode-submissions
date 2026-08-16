@@ -1,0 +1,28 @@
+{
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-16T22:57:45.366123+00:00",
+  "complexity": {
+    "benchmark_model": "n^2",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "Each membership test scans (and slices, copying) the current window, so each extension costs O(window) and the whole loop is O(n^2) despite the window endpoints being monotone; a set of window characters or a last-seen-index dict would give O(n). The unconditional guarded decrement is a small tidy-up of the previous conditional check.",
+    "relation_to_previous": "revision",
+    "space": "O(n)",
+    "summary": "Sliding window that only ever shrinks by one per step and extends the right end, testing membership via substring scan `s[i+length] not in s[i:i+length]`. The early break skips starts that cannot beat the current best.",
+    "time_average": "O(n^2)",
+    "time_worst": "O(n^2)"
+  },
+  "file": "Data Structures & Algorithms/longest-substring-without-duplicates/submission-3.py",
+  "golf": {
+    "bytes": 432,
+    "characters": 432,
+    "non_blank_lines": 13,
+    "tokens": 89
+  },
+  "model": "k3",
+  "relation_to_previous": "new-approach",
+  "slug": "longest-substring-without-duplicates",
+  "solved_at": "2026-08-16T15:57:09-07:00",
+  "statement": "longest-substring-without-duplicates"
+}
