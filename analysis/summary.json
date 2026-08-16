@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-15T19:56:22.772667+00:00",
+  "generated_at": "2026-08-16T04:43:56.091426+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -1100,6 +1100,76 @@
         {
           "analysis_version": 8,
           "analyzed_at": "2026-08-15T06:38:17.744848+00:00",
+          "benchmarks": {
+            "adversarial": {
+              "best_fit": "n^2",
+              "best_fit_r2": 0.9998384260201421,
+              "k3_model": "n",
+              "k3_model_r2": 0.7475565895591516,
+              "note": "n-1 distinct multiples of 2**61-1, all hashing to 0, followed by a repeat of the last of them -- so a set-based scan does n-1 colliding inserts before it reaches the duplicate; the repeat itself is an exact-key hit, which CPython resolves by direct slot lookup, so the degradation comes entirely from the distinct colliding keys ahead of it",
+              "r2": 0.9998602028296185,
+              "sizes": [
+                256,
+                512,
+                1024,
+                2048,
+                4096,
+                8192,
+                16384
+              ],
+              "slope": 2.009377542228545,
+              "times_ms": [
+                0.9325959999983979,
+                3.6397479999976667,
+                15.184720000000596,
+                56.17376000000007,
+                235.42099699999852,
+                943.183931,
+                4068.533359
+              ],
+              "truncated_by": null,
+              "unmeasured": null
+            },
+            "benchmark_version": 2,
+            "best_fit": "n log n",
+            "best_fit_r2": 0.9480105418336715,
+            "k3_model": "n",
+            "k3_model_r2": 0.9357317721153897,
+            "r2": 0.9517801777559015,
+            "sizes": [
+              256,
+              512,
+              1024,
+              2048,
+              4096,
+              8192,
+              16384,
+              32768,
+              65536,
+              131072,
+              262144,
+              524288,
+              1048576
+            ],
+            "slope": 1.1492293816654386,
+            "times_ms": [
+              0.006542000001275028,
+              0.017342999999669928,
+              0.030957999999969843,
+              0.05401199999965911,
+              0.17492699999976935,
+              0.2002250000003869,
+              0.8708409999975686,
+              1.0852830000018798,
+              0.501018000001352,
+              3.3082659999976727,
+              21.133651999999614,
+              65.11465500000213,
+              187.54937599999977
+            ],
+            "truncated_by": null,
+            "unmeasured": null
+          },
           "complexity": {
             "benchmark_model": "n",
             "correctness": "general",
@@ -1126,6 +1196,64 @@
         {
           "analysis_version": 8,
           "analyzed_at": "2026-08-15T06:57:25.707856+00:00",
+          "benchmarks": {
+            "adversarial": {
+              "best_fit": "n^2",
+              "best_fit_r2": 0.9981997450725084,
+              "k3_model": "n^2",
+              "k3_model_r2": 0.9981997450725084,
+              "note": "n-1 distinct multiples of 2**61-1, all hashing to 0, followed by a repeat of the last of them -- so a set-based scan does n-1 colliding inserts before it reaches the duplicate; the repeat itself is an exact-key hit, which CPython resolves by direct slot lookup, so the degradation comes entirely from the distinct colliding keys ahead of it",
+              "r2": 0.9988529729306425,
+              "sizes": [
+                256,
+                512,
+                1024,
+                2048,
+                4096,
+                8192,
+                16384
+              ],
+              "slope": 2.0524882688383457,
+              "times_ms": [
+                1.0161289999928158,
+                5.444509000000153,
+                23.10538199999712,
+                93.88819400000159,
+                377.2695389999967,
+                1438.6222650000063,
+                5684.281826000003
+              ],
+              "truncated_by": null,
+              "unmeasured": null
+            },
+            "benchmark_version": 2,
+            "best_fit": "n^2",
+            "best_fit_r2": 0.9322733940241051,
+            "k3_model": "n^2",
+            "k3_model_r2": 0.9322733940241051,
+            "r2": 0.9665489437122394,
+            "sizes": [
+              256,
+              512,
+              1024,
+              2048,
+              4096,
+              8192,
+              16384
+            ],
+            "slope": 2.4640039644655127,
+            "times_ms": [
+              0.07952900000418595,
+              1.5594390000046587,
+              2.7336179999934984,
+              48.686824999997214,
+              260.6484950000052,
+              292.30184900000467,
+              4450.504396000007
+            ],
+            "truncated_by": null,
+            "unmeasured": null
+          },
           "complexity": {
             "benchmark_model": "n^2",
             "correctness": "general",
@@ -1686,6 +1814,34 @@
         {
           "analysis_version": 8,
           "analyzed_at": "2026-08-15T19:56:22.614692+00:00",
+          "benchmarks": {
+            "adversarial": null,
+            "benchmark_version": 2,
+            "best_fit": "n^2",
+            "best_fit_r2": 0.9991203965703769,
+            "k3_model": "n^2",
+            "k3_model_r2": 0.9991203965703769,
+            "r2": 0.9997938688802428,
+            "sizes": [
+              256,
+              512,
+              1024,
+              2048,
+              4096,
+              8192
+            ],
+            "slope": 2.0532911601499864,
+            "times_ms": [
+              3.364213000011773,
+              15.106927999994468,
+              63.744057999997494,
+              261.80316200000675,
+              1046.913613000001,
+              4231.0800239999935
+            ],
+            "truncated_by": null,
+            "unmeasured": null
+          },
           "complexity": {
             "benchmark_model": "n^2",
             "correctness": "general",
@@ -1716,6 +1872,42 @@
         {
           "analysis_version": 8,
           "analyzed_at": "2026-08-15T08:14:10.129617+00:00",
+          "benchmarks": {
+            "adversarial": null,
+            "benchmark_version": 2,
+            "best_fit": "n^1.5",
+            "best_fit_r2": 0.9996704718056314,
+            "k3_model": "n^2",
+            "k3_model_r2": 0.8757253656249471,
+            "r2": 0.9998742906576061,
+            "sizes": [
+              256,
+              512,
+              1024,
+              2048,
+              4096,
+              8192,
+              16384,
+              32768,
+              65536,
+              131072
+            ],
+            "slope": 1.4788853454655917,
+            "times_ms": [
+              0.41705499999977746,
+              1.0719529999931865,
+              3.015964999988796,
+              8.165476999991483,
+              22.70012099999974,
+              63.673565000001986,
+              180.01043299999253,
+              506.28703900000005,
+              1420.9792420000012,
+              4166.864352000004
+            ],
+            "truncated_by": null,
+            "unmeasured": null
+          },
           "complexity": {
             "benchmark_model": "n^2",
             "correctness": "incorrect",
@@ -1743,6 +1935,42 @@
         {
           "analysis_version": 8,
           "analyzed_at": "2026-08-15T08:29:52.027356+00:00",
+          "benchmarks": {
+            "adversarial": null,
+            "benchmark_version": 2,
+            "best_fit": "n^1.5",
+            "best_fit_r2": 0.9997839840265573,
+            "k3_model": "n^2",
+            "k3_model_r2": 0.878332022289261,
+            "r2": 0.9999168797860194,
+            "sizes": [
+              256,
+              512,
+              1024,
+              2048,
+              4096,
+              8192,
+              16384,
+              32768,
+              65536,
+              131072
+            ],
+            "slope": 1.482904305908677,
+            "times_ms": [
+              0.40613400000211186,
+              1.0697980000031748,
+              2.9595700000015768,
+              8.181996000004688,
+              22.946876000006,
+              63.71148600000254,
+              181.45094300000153,
+              509.11408899999344,
+              1430.7796100000019,
+              4180.209592000011
+            ],
+            "truncated_by": null,
+            "unmeasured": null
+          },
           "complexity": {
             "benchmark_model": "n^2",
             "correctness": "incorrect",
@@ -1772,6 +2000,42 @@
         {
           "analysis_version": 8,
           "analyzed_at": "2026-08-15T08:44:25.115068+00:00",
+          "benchmarks": {
+            "adversarial": null,
+            "benchmark_version": 2,
+            "best_fit": "n^1.5",
+            "best_fit_r2": 0.9998359750591975,
+            "k3_model": "n^2",
+            "k3_model_r2": 0.8801006586940392,
+            "r2": 0.9999287183909098,
+            "sizes": [
+              256,
+              512,
+              1024,
+              2048,
+              4096,
+              8192,
+              16384,
+              32768,
+              65536,
+              131072
+            ],
+            "slope": 1.4856917820479294,
+            "times_ms": [
+              0.4403989999843816,
+              1.1620909999976448,
+              3.268939000008686,
+              8.922010999981467,
+              25.144589000007045,
+              70.36268599998152,
+              200.44559199999412,
+              562.5178370000015,
+              1582.0851179999806,
+              4607.016473999976
+            ],
+            "truncated_by": null,
+            "unmeasured": null
+          },
           "complexity": {
             "benchmark_model": "n^2",
             "correctness": "incorrect",
@@ -1801,6 +2065,42 @@
         {
           "analysis_version": 8,
           "analyzed_at": "2026-08-15T08:55:05.043817+00:00",
+          "benchmarks": {
+            "adversarial": null,
+            "benchmark_version": 2,
+            "best_fit": "n^1.5",
+            "best_fit_r2": 0.999866300478486,
+            "k3_model": "n^2",
+            "k3_model_r2": 0.8808062858746908,
+            "r2": 0.9999451656621974,
+            "sizes": [
+              256,
+              512,
+              1024,
+              2048,
+              4096,
+              8192,
+              16384,
+              32768,
+              65536,
+              131072
+            ],
+            "slope": 1.4867959868767089,
+            "times_ms": [
+              0.3872589999787124,
+              1.039101000003484,
+              2.910088999982463,
+              8.050343000007842,
+              22.71309600001814,
+              62.67258899998751,
+              178.00266400001874,
+              500.5025640000156,
+              1412.852574999988,
+              4141.992231999979
+            ],
+            "truncated_by": null,
+            "unmeasured": null
+          },
           "complexity": {
             "benchmark_model": "n^2",
             "correctness": "general",
@@ -2491,6 +2791,34 @@
         {
           "analysis_version": 8,
           "analyzed_at": "2026-08-15T19:28:13.449751+00:00",
+          "benchmarks": {
+            "adversarial": null,
+            "benchmark_version": 2,
+            "best_fit": "n^2",
+            "best_fit_r2": 0.9995687149242459,
+            "k3_model": "n^2",
+            "k3_model_r2": 0.9995687149242459,
+            "r2": 0.9997897578651088,
+            "sizes": [
+              256,
+              512,
+              1024,
+              2048,
+              4096,
+              8192
+            ],
+            "slope": 2.0301870050138615,
+            "times_ms": [
+              3.9761510000175804,
+              18.00370300000509,
+              72.81937600001243,
+              289.76565299998924,
+              1150.5465029999868,
+              4722.889380000026
+            ],
+            "truncated_by": null,
+            "unmeasured": null
+          },
           "complexity": {
             "benchmark_model": "n^2",
             "correctness": "general",

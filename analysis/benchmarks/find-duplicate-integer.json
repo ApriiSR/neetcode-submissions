@@ -1,0 +1,135 @@
+{
+  "generated_at": "2026-08-16T04:42:00.242209+00:00",
+  "python_hash_seed": "0",
+  "slug": "find-duplicate-integer",
+  "submissions": {
+    "submission-0.py": {
+      "adversarial": {
+        "best_fit": "n^2",
+        "best_fit_r2": 0.9998384260201421,
+        "k3_model": "n",
+        "k3_model_r2": 0.7475565895591516,
+        "note": "n-1 distinct multiples of 2**61-1, all hashing to 0, followed by a repeat of the last of them -- so a set-based scan does n-1 colliding inserts before it reaches the duplicate; the repeat itself is an exact-key hit, which CPython resolves by direct slot lookup, so the degradation comes entirely from the distinct colliding keys ahead of it",
+        "r2": 0.9998602028296185,
+        "sizes": [
+          256,
+          512,
+          1024,
+          2048,
+          4096,
+          8192,
+          16384
+        ],
+        "slope": 2.009377542228545,
+        "times_ms": [
+          0.9325959999983979,
+          3.6397479999976667,
+          15.184720000000596,
+          56.17376000000007,
+          235.42099699999852,
+          943.183931,
+          4068.533359
+        ],
+        "truncated_by": null,
+        "unmeasured": null
+      },
+      "benchmark_version": 2,
+      "best_fit": "n log n",
+      "best_fit_r2": 0.9480105418336715,
+      "k3_model": "n",
+      "k3_model_r2": 0.9357317721153897,
+      "r2": 0.9517801777559015,
+      "sizes": [
+        256,
+        512,
+        1024,
+        2048,
+        4096,
+        8192,
+        16384,
+        32768,
+        65536,
+        131072,
+        262144,
+        524288,
+        1048576
+      ],
+      "slope": 1.1492293816654386,
+      "times_ms": [
+        0.006542000001275028,
+        0.017342999999669928,
+        0.030957999999969843,
+        0.05401199999965911,
+        0.17492699999976935,
+        0.2002250000003869,
+        0.8708409999975686,
+        1.0852830000018798,
+        0.501018000001352,
+        3.3082659999976727,
+        21.133651999999614,
+        65.11465500000213,
+        187.54937599999977
+      ],
+      "truncated_by": null,
+      "unmeasured": null
+    },
+    "submission-1.py": {
+      "adversarial": {
+        "best_fit": "n^2",
+        "best_fit_r2": 0.9981997450725084,
+        "k3_model": "n^2",
+        "k3_model_r2": 0.9981997450725084,
+        "note": "n-1 distinct multiples of 2**61-1, all hashing to 0, followed by a repeat of the last of them -- so a set-based scan does n-1 colliding inserts before it reaches the duplicate; the repeat itself is an exact-key hit, which CPython resolves by direct slot lookup, so the degradation comes entirely from the distinct colliding keys ahead of it",
+        "r2": 0.9988529729306425,
+        "sizes": [
+          256,
+          512,
+          1024,
+          2048,
+          4096,
+          8192,
+          16384
+        ],
+        "slope": 2.0524882688383457,
+        "times_ms": [
+          1.0161289999928158,
+          5.444509000000153,
+          23.10538199999712,
+          93.88819400000159,
+          377.2695389999967,
+          1438.6222650000063,
+          5684.281826000003
+        ],
+        "truncated_by": null,
+        "unmeasured": null
+      },
+      "benchmark_version": 2,
+      "best_fit": "n^2",
+      "best_fit_r2": 0.9322733940241051,
+      "k3_model": "n^2",
+      "k3_model_r2": 0.9322733940241051,
+      "r2": 0.9665489437122394,
+      "sizes": [
+        256,
+        512,
+        1024,
+        2048,
+        4096,
+        8192,
+        16384
+      ],
+      "slope": 2.4640039644655127,
+      "times_ms": [
+        0.07952900000418595,
+        1.5594390000046587,
+        2.7336179999934984,
+        48.686824999997214,
+        260.6484950000052,
+        292.30184900000467,
+        4450.504396000007
+      ],
+      "truncated_by": null,
+      "unmeasured": null
+    }
+  }
+}

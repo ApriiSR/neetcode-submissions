@@ -1,0 +1,35 @@
+{
+  "generated_at": "2026-08-16T04:42:17.168004+00:00",
+  "python_hash_seed": "0",
+  "slug": "max-water-container",
+  "submissions": {
+    "submission-0.py": {
+      "adversarial": null,
+      "benchmark_version": 2,
+      "best_fit": "n^2",
+      "best_fit_r2": 0.9991203965703769,
+      "k3_model": "n^2",
+      "k3_model_r2": 0.9991203965703769,
+      "r2": 0.9997938688802428,
+      "sizes": [
+        256,
+        512,
+        1024,
+        2048,
+        4096,
+        8192
+      ],
+      "slope": 2.0532911601499864,
+      "times_ms": [
+        3.364213000011773,
+        15.106927999994468,
+        63.744057999997494,
+        261.80316200000675,
+        1046.913613000001,
+        4231.0800239999935
+      ],
+      "truncated_by": null,
+      "unmeasured": null
+    }
+  }
+}
