@@ -2,12 +2,13 @@
 
 Each problem in `PROBLEMS` maps to:
 - `entry`: the Solution method to call, or None for a design problem
-  whose submission defines no Solution class at all (minimum-stack).
+  whose submission defines no Solution class at all (minimum-stack,
+  lru-cache).
 - `scalable`: False for problems benchmark.py can't time -- valid-sudoku
-  is a fixed 9x9 board, and minimum-stack is a design problem whose
-  submission defines no Solution class at all; benchmark.py skips scaling
-  curves for these, so their `generate` documents the input shape rather
-  than feeding a timing run.
+  is a fixed 9x9 board, and minimum-stack and lru-cache are design
+  problems whose submissions define no Solution class at all;
+  benchmark.py skips scaling curves for these, so their `generate`
+  documents the input shape rather than feeding a timing run.
 - `generate(n, rng)`: returns a positional-args tuple (excluding `self`)
   for `entry`, sized around n. Uses only the passed-in random.Random, so
   it's deterministic for a given seed.
@@ -22,6 +23,9 @@ Each problem in `PROBLEMS` maps to:
   `generate` on plain data is also what keeps it comparable, which is
   what the determinism tests check -- node objects compare by identity,
   so a generate that returned them could never be checked that way.
+  merge-k-sorted-linked-lists describes its chains as a tuple of tuples
+  rather than a list of lists, since its entry takes one list *of* heads
+  and the description would otherwise be mistaken for that list.
 - `adversarial(n)`: returns an args tuple built to trigger the worst case
   of the dict/set the entry method is expected to use, or None if the
   problem has no meaningful adversarial-hash story.
@@ -47,6 +51,7 @@ string-keyed adversarial generator would need it fixed before the
 interpreter starts.
 """
 
+import math
 import random
 import string
 
@@ -198,6 +203,22 @@ def _gen_evaluate_reverse_polish_notation(n, rng):
     return (tokens,)
 
 
+def _gen_find_duplicate_integer(n, rng):
+    # NeetCode's shape exactly: n numbers drawn from 1..n-1, so exactly one
+    # value repeats. Both occurrences land at random positions rather than
+    # being pinned to either end, so a scan that stops at the first repeat
+    # walks a fraction of the array that doesn't depend on n.
+    size = max(2, n)
+    nums = list(range(1, size)) + [rng.randint(1, size - 1)]
+    rng.shuffle(nums)
+    return (nums,)
+
+
+def _adv_find_duplicate_integer(n):
+    values = _int_collisions(max(2, n) - 1)
+    return (values + [values[-1]],)
+
+
 def _gen_is_anagram(n, rng):
     s = "".join(rng.choice(string.ascii_lowercase) for _ in range(n))
     t = list(s)
@@ -238,6 +259,42 @@ def _gen_longest_consecutive_sequence(n, rng):
 
 def _adv_longest_consecutive_sequence(n):
     return (_int_collisions(n),)
+
+
+def _gen_lru_cache(n, rng):
+    ops = []
+    key_space = max(1, n // 4)
+    for _ in range(n):
+        key = rng.randint(0, key_space)
+        if rng.random() < 0.5:
+            ops.append(("get", key))
+        else:
+            ops.append(("put", key, rng.randint(-1000, 1000)))
+    return (max(1, n // 8), ops)
+
+
+def _gen_max_water_container(n, rng):
+    return ([rng.randint(1, 1000) for _ in range(n)],)
+
+
+def _gen_merge_k_sorted_linked_lists(n, rng):
+    # k grows as sqrt(n), so the number of chains and each chain's length
+    # both scale with n. Values come from a range that scales with n too,
+    # which keeps ties between chain heads rare -- the submissions here
+    # short-circuit their head scan on a tie, and a fixed value range would
+    # make those ties more frequent as n grew, quietly shrinking the scan.
+    total = max(1, n)
+    k = max(1, math.isqrt(total))
+    base, extra = divmod(total, k)
+    groups = []
+    for i in range(k):
+        length = base + (1 if i < extra else 0)
+        groups.append(tuple(sorted(rng.randint(0, 4 * total) for _ in range(length))))
+    return (tuple(groups),)
+
+
+def _build_merge_k_sorted_linked_lists(groups):
+    return ([_chain(values) for values in groups],)
 
 
 def _gen_merge_two_sorted_linked_lists(n, rng):
@@ -293,6 +350,17 @@ def _build_one_list(values):
 
 def _gen_string_encode_and_decode(n, rng):
     return ([_random_word(rng, 3, 12) for _ in range(n)],)
+
+
+def _gen_three_integer_sum(n, rng):
+    # Values are sampled without replacement from a range that grows like
+    # n**2, which keeps the number of zero-sum triples linear in n (25 of
+    # them at n = 512). A range that grew only linearly with n would leave
+    # quadratically many, and the submission's dedup check scans the whole
+    # result list per hit, so the answer set -- not the search -- would
+    # dominate the run.
+    span = max(1, n * n)
+    return (rng.sample(range(-span, span + 1), n),)
 
 
 def _gen_top_k_elements_in_list(n, rng):
@@ -445,6 +513,15 @@ PROBLEMS = {
         "scaling_note": "n = number of tokens; the expression is a valid postfix expression with (n+1)//2 operands and one fewer operator, so token count scales linearly with n; operands are drawn from the fixed range 1..100 and operators are picked so intermediate values stay bounded by ~10**6 (no bignum growth), meaning per-token arithmetic cost is constant and independent of n",
         "generalized_note": "uncapped: any number of tokens, operands any ints. The token grammar is part of the problem, not a cap \u2014 still the four operators over a valid postfix expression. Intermediate values may exceed machine words; arithmetic is still counted as unit cost.",
     },
+    "find-duplicate-integer": {
+        "entry": "findDuplicate",
+        "scalable": True,
+        "generate": _gen_find_duplicate_integer,
+        "adversarial": _adv_find_duplicate_integer,
+        "adversarial_note": "n-1 distinct multiples of 2**61-1, all hashing to 0, followed by a repeat of the last of them -- so a set-based scan does n-1 colliding inserts before it reaches the duplicate; the repeat itself is an exact-key hit, which CPython resolves by direct slot lookup, so the degradation comes entirely from the distinct colliding keys ahead of it",
+        "scaling_note": "n = array length; the array is a shuffled permutation of 1..n-1 plus one extra copy of a uniformly chosen value from that same range, so exactly one value repeats and the value range scales with n. The two occurrences sit at uniformly random positions rather than being pinned to either end: a scan that stops at the first repeat therefore reaches it about two thirds of the way through on average, and an all-pairs scan reaches the earlier occurrence about a third of the way in, so both do a fixed fraction of their worst case rather than a fraction that shrinks with n",
+        "generalized_note": "uncapped: any array length, values any ints — including values an adversary picks to collide in CPython's hash (multiples of 2**61-1). The precondition that some value repeats is part of the problem and stays, but the 1..n-1 value range is a cap, so it goes: that range is what lets the array be read as a function from indices to indices, so a cycle-detection or index-marking solution is correct only under it.",
+    },
     "is-anagram": {
         "entry": "isAnagram",
         "scalable": True,
@@ -490,6 +567,34 @@ PROBLEMS = {
         "adversarial_note": "n distinct multiples of 2**61-1, all hashing to 0, so every set insert/lookup collides",
         "scaling_note": "n = array length; values are a shuffled permutation of range(n), so the value range scales with n too",
         "generalized_note": "uncapped: any array length, values any ints \u2014 including adversarially colliding ones, which the stated -10^9..10^9 range would have made impossible.",
+    },
+    "lru-cache": {
+        "entry": None,
+        "scalable": False,
+        "generate": _gen_lru_cache,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "not benchmarked: this is a design problem -- the submission defines an LRUCache class with get/put rather than a Solution class with one entry method, so benchmark.py's loader has nothing to drive; the generator builds a capacity of n // 8 and an n-operation sequence (~50% get, ~50% put, keys drawn uniformly from 0..n // 4 so both hits and misses are common and eviction actually fires) purely as documentation of the input shape",
+        "generalized_note": "uncapped: any number of operations, any capacity, keys and values any ints. The contract is part of the problem, not a cap — get still returns -1 for a key that is absent or already evicted, put still evicts the least recently used entry once the cache is over capacity, and both count as uses for recency purposes. The stated O(1)-per-operation expectation is part of the problem too.",
+    },
+    "max-water-container": {
+        "entry": "maxArea",
+        "scalable": True,
+        "generate": _gen_max_water_container,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of heights; each height is drawn uniformly from the fixed range 1..1000, independent of n, so no height is 0 and the tallest lines are spread through the array rather than sitting at its ends. An all-pairs submission therefore always does the full n(n-1)/2 comparisons, and a two-pointer sweep always does its full n steps -- neither shape gets an early exit from the input",
+        "generalized_note": "uncapped: any number of lines, heights any non-negative ints. The geometry is part of the problem, not a cap — the area of a pair is still (j - i) * min(heights[i], heights[j]), and the lines stay at unit spacing in input order.",
+    },
+    "merge-k-sorted-linked-lists": {
+        "entry": "mergeKLists",
+        "scalable": True,
+        "generate": _gen_merge_k_sorted_linked_lists,
+        "build": _build_merge_k_sorted_linked_lists,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = total number of nodes, split across k = isqrt(n) chains of near-equal length (never empty), so the chain count and each chain's length both grow like sqrt(n) -- this is the one problem here with a second size dimension, and pinning k to n this way is what makes it visible: a submission that rescans every chain head to pick each output node is O(n * k) = O(n**1.5) on this ladder, where a heap or pairwise merge stays O(n log k). Node values are drawn uniformly from 0..4n and each chain is sorted ascending; that range scales with n so ties between chain heads stay rare, which matters because these submissions short-circuit their head scan on a value equal to the last one emitted. The submissions rewire the input chains in place, so the `build` hook hands each timed repeat freshly built chains",
+        "generalized_note": "uncapped: any number of chains, each of any length, node values any ints; chains may be empty and the input list itself may be empty. Sortedness is part of the problem, not a cap — every input chain is ascending and the merged result must be too. Note k is a size dimension of its own: work that is linear in k per output node is O(n * k), which only passes for linear when k is treated as a constant.",
     },
     "merge-two-sorted-linked-lists": {
         "entry": "mergeTwoLists",
@@ -557,6 +662,15 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "n = number of strings; each string's length is drawn from a fixed small range (3-12 chars) independent of n, so total character volume scales linearly with n",
         "generalized_note": "uncapped: any number of strings, each of any length. The character set is part of the problem, not a cap \u2014 input is still drawn from the 256 ASCII characters, so a delimiter outside that set remains safe. Widening to arbitrary Unicode is the statement's separate follow-up, not this generalization.",
+    },
+    "three-integer-sum": {
+        "entry": "threeSum",
+        "scalable": True,
+        "generate": _gen_three_integer_sum,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = array length; values are sampled without replacement from -n**2..n**2, so the value range grows quadratically with n. That has two deliberate effects: the values are distinct, so no triple is ever produced twice and a submission that dedups by scanning its result list effectively never pays for it; and the number of zero-sum triples grows only linearly with n (25 of them at n = 512), so the answer stays small and the measured time is the search itself -- the O(n log n) sort plus the O(n**2) two-pointer sweep -- rather than the cost of assembling and deduplicating output",
+        "generalized_note": "uncapped: any array length, values any ints, and values may repeat. The output contract is part of the problem, not a cap — still every distinct triple summing to zero, each reported once, in any order. Note the number of such triples can itself be quadratic in n, so a solution that dedups by scanning the result list is quadratic in the output size on top of its search cost, and no solution can beat the output size itself.",
     },
     "top-k-elements-in-list": {
         "entry": "topKFrequent",
