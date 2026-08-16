@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-16T04:54:58.858561+00:00",
+  "generated_at": "2026-08-16T05:01:33.110365+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -1278,6 +1278,36 @@
           "slug": "find-duplicate-integer",
           "solved_at": "2026-08-14T23:57:08-07:00",
           "statement": "find-duplicate-integer"
+        }
+      ]
+    },
+    "invert-a-binary-tree": {
+      "submissions": [
+        {
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-16T05:01:32.988355+00:00",
+          "complexity": {
+            "benchmark_model": "n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Clean idiomatic recursion; space is O(h) for the call stack, which is O(n) for a skewed tree and O(log n) for a balanced one.",
+            "space": "O(n)",
+            "summary": "Recursive depth-first traversal that swaps each node's left and right subtrees after inverting them, returning the root.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
+          "file": "Data Structures & Algorithms/invert-a-binary-tree/submission-1.py",
+          "golf": {
+            "bytes": 447,
+            "characters": 447,
+            "non_blank_lines": 13,
+            "tokens": 53
+          },
+          "model": "k3",
+          "slug": "invert-a-binary-tree",
+          "solved_at": "2026-08-15T22:01:18-07:00",
+          "statement": "invert-a-binary-tree"
         }
       ]
     },
