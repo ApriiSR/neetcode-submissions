@@ -1,0 +1,28 @@
+{
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-16T22:11:51.576586+00:00",
+  "complexity": {
+    "benchmark_model": "n",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "Clean, idiomatic BFS. A single deque with a per-level size snapshot would avoid allocating a second deque, but this is perfectly fine.",
+    "relation_to_previous": "revision",
+    "space": "O(n)",
+    "summary": "Standard breadth-first search: processes the tree level by level using two deques as frontiers, collecting each level's values before building the next frontier from children.",
+    "time_average": "O(n)",
+    "time_worst": "O(n)"
+  },
+  "file": "Data Structures & Algorithms/level-order-traversal-of-binary-tree/submission-2.py",
+  "golf": {
+    "bytes": 837,
+    "characters": 837,
+    "non_blank_lines": 23,
+    "tokens": 106
+  },
+  "model": "k3",
+  "relation_to_previous": "new-approach",
+  "slug": "level-order-traversal-of-binary-tree",
+  "solved_at": "2026-08-16T15:11:22-07:00",
+  "statement": "level-order-traversal-of-binary-tree"
+}
