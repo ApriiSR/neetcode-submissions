@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-16T05:01:33.110365+00:00",
+  "generated_at": "2026-08-16T05:09:10.451394+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -926,6 +926,36 @@
           "slug": "daily-temperatures",
           "solved_at": "2026-08-13T20:18:35-07:00",
           "statement": "daily-temperatures"
+        }
+      ]
+    },
+    "depth-of-binary-tree": {
+      "submissions": [
+        {
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-16T05:09:10.298714+00:00",
+          "complexity": {
+            "benchmark_model": "n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Idiomatic and minimal; recursion depth equals tree height, so a pathologically skewed tree could hit Python's recursion limit, but that is acceptable here.",
+            "space": "O(h)",
+            "summary": "Classic recursive DFS: depth of an empty tree is 0, otherwise one plus the max depth of the two subtrees.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
+          "file": "Data Structures & Algorithms/depth-of-binary-tree/submission-0.py",
+          "golf": {
+            "bytes": 401,
+            "characters": 401,
+            "non_blank_lines": 12,
+            "tokens": 49
+          },
+          "model": "k3",
+          "slug": "depth-of-binary-tree",
+          "solved_at": "2026-08-15T22:08:43-07:00",
+          "statement": "depth-of-binary-tree"
         }
       ]
     },
