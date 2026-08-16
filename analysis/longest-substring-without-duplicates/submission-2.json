@@ -1,0 +1,26 @@
+{
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-16T22:55:04.381789+00:00",
+  "complexity": {
+    "benchmark_model": "n",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "The condition `s[i+length-1] in s[i:i+length]` is trivially true whenever length > 0 (the character is by construction inside the slice), so it is just an obscure way to write `if length: length -= 1`. Slicing on every check copies the window; with an unbounded alphabet this approach degrades to O(n * k) since each `in` test scans the window, whereas the idiomatic dict/set sliding window stays O(n) regardless of alphabet. Correct and fast enough here only because the ASCII cap bounds the window.",
+    "space": "O(1)",
+    "summary": "Sliding window over s: each step drops the leftmost character (decrement length) then greedily extends while the next character is not already in the window s[i:i+length], tracking the max. Each membership test is a linear scan of a copied slice, but since the window can never exceed the fixed printable-ASCII alphabet (95 chars), every scan is O(1), giving O(n) overall with O(1) extra space.",
+    "time_average": "O(n)",
+    "time_worst": "O(n)"
+  },
+  "file": "Data Structures & Algorithms/longest-substring-without-duplicates/submission-2.py",
+  "golf": {
+    "bytes": 456,
+    "characters": 456,
+    "non_blank_lines": 13,
+    "tokens": 105
+  },
+  "model": "k3",
+  "slug": "longest-substring-without-duplicates",
+  "solved_at": "2026-08-16T15:53:43-07:00",
+  "statement": "longest-substring-without-duplicates"
+}
