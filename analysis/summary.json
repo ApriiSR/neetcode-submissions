@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-16T20:58:56.267488+00:00",
+  "generated_at": "2026-08-16T21:11:38.158558+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -1660,6 +1660,36 @@
           "slug": "largest-rectangle-in-histogram",
           "solved_at": "2026-08-14T11:18:17-07:00",
           "statement": "largest-rectangle-in-histogram"
+        }
+      ]
+    },
+    "level-order-traversal-of-binary-tree": {
+      "submissions": [
+        {
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-16T21:11:38.001075+00:00",
+          "complexity": {
+            "benchmark_model": "n^2",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Correct but non-idiomatic; a deque-based BFS achieves O(n) time. The repeated `left[i] + right[i]` concatenations drive the quadratic worst case. Also note the recursion depth equals tree height, so a skewed tree near the 2000-node cap can exceed CPython's default recursion limit.",
+            "space": "O(n)",
+            "summary": "Recursive DFS: compute level lists of both subtrees, then zip-merge them pairwise with list concatenation, prepending the root's own level. Each merge copies every element in the subtree's lists, so each node's value is recopied once per ancestor, giving O(n*h) time (O(n^2) on a skewed tree, O(n log n) on a balanced one) versus the O(n) of standard BFS.",
+            "time_average": "O(n log n)",
+            "time_worst": "O(n^2)"
+          },
+          "file": "Data Structures & Algorithms/level-order-traversal-of-binary-tree/submission-0.py",
+          "golf": {
+            "bytes": 676,
+            "characters": 676,
+            "non_blank_lines": 16,
+            "tokens": 141
+          },
+          "model": "k3",
+          "slug": "level-order-traversal-of-binary-tree",
+          "solved_at": "2026-08-16T14:10:37-07:00",
+          "statement": "level-order-traversal-of-binary-tree"
         }
       ]
     },
