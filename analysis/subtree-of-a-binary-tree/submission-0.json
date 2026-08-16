@@ -1,0 +1,26 @@
+{
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-16T20:38:01.979808+00:00",
+  "complexity": {
+    "benchmark_model": "n^2",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "Clean and readable recursion; the `bool(p) ^ bool(q)` mismatch check is a slightly cute but correct idiom. Recursion depth is bounded by tree height, O(n) in the degenerate case, which could hit Python's recursion limit for very large skewed trees.",
+    "space": "O(n)",
+    "summary": "For each node of root, recursively compare the subtree rooted there against subRoot with a standard same-tree check; returns true on the first match. The generalized worst case (e.g., two long chains of equal values) forces a full O(m) comparison at most of the n nodes, giving O(n*m), which becomes O(n^2) when both trees scale with n.",
+    "time_average": "O(n*m)",
+    "time_worst": "O(n*m)"
+  },
+  "file": "Data Structures & Algorithms/subtree-of-a-binary-tree/submission-0.py",
+  "golf": {
+    "bytes": 877,
+    "characters": 877,
+    "non_blank_lines": 23,
+    "tokens": 154
+  },
+  "model": "k3",
+  "slug": "subtree-of-a-binary-tree",
+  "solved_at": "2026-08-16T13:37:37-07:00",
+  "statement": "subtree-of-a-binary-tree"
+}
