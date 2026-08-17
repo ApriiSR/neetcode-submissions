@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-16T22:57:45.522232+00:00",
+  "generated_at": "2026-08-17T00:19:58.378035+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -1368,6 +1368,36 @@
           "slug": "find-duplicate-integer",
           "solved_at": "2026-08-14T23:57:08-07:00",
           "statement": "find-duplicate-integer"
+        }
+      ]
+    },
+    "implement-prefix-tree": {
+      "submissions": [
+        {
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-17T00:19:58.220601+00:00",
+          "complexity": {
+            "benchmark_model": "n^2",
+            "correctness": "incorrect",
+            "correctness_reason": "A word of length 1000 \u2014 permitted by the stated constraints (word.length <= 1000) \u2014 recurses roughly 1000 frames deep and exceeds CPython's default recursion limit, raising RecursionError.",
+            "hash_dependent": true,
+            "notes": "Recursion is elegant but un-Pythonic here: word[1:] copies the remaining string at every level (O(L^2) time and O(L^2) peak stack-held characters), whereas an iterative loop over characters with node = node.children[c] is O(L). Dict keys are single characters from a fixed alphabet, so hash collisions are bounded and lookups are O(1) worst case.",
+            "space": "O(L^2)",
+            "summary": "Recursive trie where each node holds a dict of children keyed by single characters and a terminal flag; insert/search/startsWith recurse on word[1:], and the per-level string slicing makes each operation quadratic in the word length L rather than linear.",
+            "time_average": "O(L^2)",
+            "time_worst": "O(L^2)"
+          },
+          "file": "Data Structures & Algorithms/implement-prefix-tree/submission-2.py",
+          "golf": {
+            "bytes": 889,
+            "characters": 889,
+            "non_blank_lines": 27,
+            "tokens": 192
+          },
+          "model": "k3",
+          "slug": "implement-prefix-tree",
+          "solved_at": "2026-08-16T17:19:13-07:00",
+          "statement": "implement-prefix-tree"
         }
       ]
     },
