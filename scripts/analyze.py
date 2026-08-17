@@ -75,6 +75,17 @@ SUBMISSION_RE = re.compile(r"^submission-(\d+)\.py$")
 # CPython 3.14: a `-> tuple(int)` annotation got graded 'incorrect' for
 # raising at definition time, which PEP 649 means it no longer does — the
 # very reason the workflow pins 3.14.
+# NOT bumped when "2^n"/"n 2^n" were added to the benchmark_model grammar,
+# which is the one prompt change so far that didn't need it. Every earlier
+# bump could have changed any record's answer, so every record had to be
+# re-run. This change is purely additive: each old spelling stays legal and
+# means what it meant, so the only records it can alter are ones where K3 was
+# forced to clamp an exponential answer to the largest polynomial in reach.
+# A scan of the corpus found exactly one (subsets, which said so outright in
+# its own notes), and deleting that record re-ran it on the next CI pass --
+# the same guarantee a bump gives, without putting 66 correct analyses back
+# through a nondeterministic model. Bump as usual for any prompt change that
+# is not additive in this sense.
 ANALYSIS_VERSION = 8
 
 # Per-request read timeout. Raised from 120s when the prompt grew (statement
@@ -117,8 +128,13 @@ SYSTEM_PROMPT = (
     "to exactly this grammar: a product of n^a and (log n)^b, with a in "
     "{0, 0.5, 1, 1.5, 2, 3} and b in {0, 1}, written as one of: \"1\", "
     '"log n", "n", "n log n", "n^0.5", "n^0.5 log n", "n^1.5", '
-    '"n^1.5 log n", "n^2", "n^2 log n", "n^3", "n^3 log n" — no other '
-    'symbols, variables, or constants), "summary" (string, 1-2 sentences '
+    '"n^1.5 log n", "n^2", "n^2 log n", "n^3", "n^3 log n"; plus exactly '
+    'two exponential forms, "2^n" and "n 2^n", for a running time that is '
+    "exponential in n — a power-set enumeration or a backtracking search, "
+    "say. Use those two when they apply rather than clamping to the largest "
+    'polynomial: reporting "n^3 log n" for an O(n * 2^n) enumeration is '
+    'wrong, not conservative. No other symbols, variables, or constants), '
+    '"summary" (string, 1-2 sentences '
     'describing the approach), "notes" (string, optional remarks on '
     'idiomatic style or readability; empty string if none), "correctness" '
     '(string, exactly one of "general", "neetcode-only", or "incorrect" — '

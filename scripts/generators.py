@@ -4,15 +4,20 @@ Each problem in `PROBLEMS` maps to:
 - `entry`: the Solution method to call, or None for a design problem
   whose submission defines no Solution class at all (minimum-stack,
   lru-cache, implement-prefix-tree, kth-largest-integer-in-a-stream).
-- `scalable`: False for problems benchmark.py can't time, for three
-  distinct reasons. valid-sudoku is a fixed 9x9 board. minimum-stack,
-  lru-cache, implement-prefix-tree and kth-largest-integer-in-a-stream
-  are design problems whose submissions define no Solution class at all.
-  subsets has an exponentially large output -- 2**k subsets for a
-  k-element array -- so the ladder's smallest size (256) is already
-  unreachable. benchmark.py skips scaling curves for all of these, so
-  their `generate` documents the input shape rather than feeding a
-  timing run.
+- `scalable`: False for problems benchmark.py can't time -- valid-sudoku
+  is a fixed 9x9 board, and minimum-stack, lru-cache,
+  implement-prefix-tree and kth-largest-integer-in-a-stream are design
+  problems whose submissions define no Solution class at all.
+  benchmark.py skips scaling curves for these, so their `generate`
+  documents the input shape rather than feeding a timing run.
+- `sizes` / `models`: optional, and set together. A problem whose output
+  is exponential in the input size can't walk the default 256..2**20
+  ladder -- one doubling of n squares the work, so its first rung is
+  already unreachable -- and can't be described by any of benchmark.py's
+  polynomial CANDIDATE_MODELS either. Such a problem carries its own
+  ladder and its own extra candidate models instead; see
+  EXPONENTIAL_SIZES and EXPONENTIAL_MODELS below, which subsets uses.
+  Everything else inherits benchmark.py's defaults.
 - `generate(n, rng)`: returns a positional-args tuple (excluding `self`)
   for `entry`, sized around n. Uses only the passed-in random.Random, so
   it's deterministic for a given seed.
@@ -64,6 +69,34 @@ import string
 
 MERSENNE61 = 2**61 - 1
 RPN_VALUE_LIMIT = 10**6
+
+# The ladder for a problem whose output is exponential in the input size, and
+# the only thing that makes such a problem measurable at all: benchmark.py's
+# default ladder starts at 256 and doubles, but here one doubling of n squares
+# the work, so its very first rung is already out of reach. Stepping by 1 from
+# 4 puts 18 points between about 5 microseconds and 1.4 seconds -- a longer
+# ladder than the default's 13 -- and stops short of SIZE_CAP_SECONDS on its
+# own rather than being truncated by it. A spec opts in via "sizes".
+EXPONENTIAL_SIZES = tuple(range(4, 22))
+
+# Paired with EXPONENTIAL_SIZES via "models", because none of benchmark.py's
+# CANDIDATE_MODELS can describe an exponential curve: fitting one against them
+# picks whichever polynomial is least wrong, which is how subsets used to be
+# reported as n^3 log n. Written with a float base on purpose -- 2.0**n raises
+# OverflowError past n = 1023 instead of building a multi-megabit integer,
+# which is what lets benchmark.model_fits_ladder drop these cheaply if they
+# ever meet a ladder they don't belong to.
+#
+# Worth knowing before reading a winner off the chart: these two separate
+# from the polynomials decisively but barely from each other. On the subsets
+# ladder the best polynomial reaches r^2 = 0.59 while both of these clear
+# 0.995 -- but they sit 0.9955 against 0.9959, because in log space they
+# differ only by a log n term. "Exponential, not polynomial" is a strong
+# reading of that result; "n * 2^n rather than 2^n" is a weak one.
+EXPONENTIAL_MODELS = (
+    ("2^n", lambda n: 2.0**n),
+    ("n 2^n", lambda n: n * 2.0**n),
+)
 
 
 class ListNode:
@@ -510,10 +543,12 @@ def _gen_string_encode_and_decode(n, rng):
 
 
 def _gen_subsets(n, rng):
-    # Capped at 16 elements: the output is one subset per element of the
-    # power set, so anything near the benchmark ladder's smallest size (256)
-    # would be 2**256 subsets. See the entry's scaling_note.
-    return (rng.sample(range(-100, 101), min(max(1, n), 16)),)
+    # n is the array length itself, walked one step at a time over
+    # EXPONENTIAL_SIZES rather than doubled. Values are sampled without
+    # replacement from a range that scales with n, since the problem
+    # guarantees them distinct.
+    size = max(1, n)
+    return (rng.sample(range(-2 * size, 2 * size + 1), size),)
 
 
 def _gen_subtree_of_a_binary_tree(n, rng):
@@ -961,11 +996,13 @@ PROBLEMS = {
     },
     "subsets": {
         "entry": "subsets",
-        "scalable": False,
+        "scalable": True,
+        "sizes": EXPONENTIAL_SIZES,
+        "models": EXPONENTIAL_MODELS,
         "generate": _gen_subsets,
         "adversarial": None,
         "adversarial_note": None,
-        "scaling_note": "not benchmarked: the output is the power set, so a k-element array produces 2**k subsets and no solution can be sub-exponential in k. The benchmark ladder starts at n = 256 and doubles to 2**20, so even its first rung would ask for 2**256 subsets -- there is no ladder to walk here, and this is a fact about the problem rather than about any submission. The generator builds a 16-element array of distinct values drawn from -100..100 purely as documentation of the input shape",
+        "scaling_note": "n = array length, and this problem runs a ladder of its own: n steps by 1 from 4 to 21 rather than doubling from 256, because the output is the power set and one doubling of n squares the work -- the default ladder's first rung would ask for 2**256 subsets. Values are sampled without replacement from -2n..2n, since the problem guarantees them distinct; their magnitudes are never read. Two things follow for reading the numbers. The reported log-log slope is meaningless here -- it fits log(time) against log(n), and an exponential curve is not a line in those coordinates -- so read best_fit, which is chosen from 2^n and n * 2^n alongside the usual polynomials. And no solution can do better than exponential: the output alone is 2**n subsets holding n * 2**(n-1) values",
         "generalized_note": "uncapped: any array length, values any ints. Distinctness and the output contract are part of the problem, not caps -- the input has no duplicates, and every subset must appear exactly once, in any order. The stated length maximum is a cap and goes, but note that the output alone is 2**k subsets holding k * 2**(k-1) values in total, so exponential time in the array length is a floor no solution gets under.",
     },
     "subtree-of-a-binary-tree": {

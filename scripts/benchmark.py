@@ -48,6 +48,12 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 BENCHMARKS_ROOT = REPO_ROOT / "analysis" / "benchmarks"
 
 DEFAULT_SIZES = tuple(2**k for k in range(8, 21))  # 256 .. 2**20, x2 each step
+# A problem whose spec carries its own `sizes` walks that ladder instead --
+# see generators.EXPONENTIAL_SIZES, which steps by 1 from 4 rather than
+# doubling from 256, because for a problem whose output is exponential in the
+# input size one doubling of n squares the work and the default ladder is
+# unreachable from its very first rung. Such a spec carries its own `models`
+# too, since none of CANDIDATE_MODELS below can describe an exponential curve.
 SIZE_CAP_SECONDS = 2.0
 # The adversarial run uses the same ladder, so the two series are directly
 # comparable point-for-point (and the progress page can plot them against the
@@ -115,6 +121,14 @@ def parse_benchmark_model(text):
         return lambda n: n
     if normalized == "n log n":
         return lambda n: n * math.log(n)
+    # Float base on purpose, matching generators.EXPONENTIAL_MODELS: these
+    # raise OverflowError past n = 1023 rather than building a multi-megabit
+    # integer, which is what lets model_fits_ladder drop them cheaply when K3
+    # attaches one to a problem running the default 256..2**20 ladder.
+    if normalized == "2^n":
+        return lambda n: 2.0**n
+    if normalized == "n 2^n":
+        return lambda n: n * 2.0**n
 
     m = _BENCHMARK_MODEL_POWER_LOG_RE.match(normalized)
     if m:
@@ -226,6 +240,24 @@ def _fit_model_r2(sizes, times_ms, f):
     return 1.0 if ss_tot == 0 else 1.0 - ss_res / ss_tot
 
 
+def model_fits_ladder(f, sizes):
+    """Whether a candidate model can be evaluated across `sizes` at all.
+
+    Every model in CANDIDATE_MODELS passes for any ladder; this exists for
+    the ones that don't. The exponential models are only meaningful on the
+    short arithmetic ladder an exponential-output problem runs, and they are
+    written with a float base so that meeting a ladder they don't belong to
+    raises OverflowError instead of quietly computing the logarithm of a
+    multi-megabit integer thirteen times. K3 supplies the case that matters:
+    nothing stops it from returning "2^n" for a problem on the default
+    ladder, and a model we can't evaluate is not a candidate.
+    """
+    try:
+        return all(math.isfinite(math.log(f(n))) for n in sizes)
+    except (OverflowError, ValueError):
+        return False
+
+
 def fit_best_model(sizes, times_ms, candidates=CANDIDATE_MODELS):
     """Pick the candidate complexity model (see CANDIDATE_MODELS, plus any
     extra candidates passed in — e.g. a K3-supplied benchmark_model) whose
@@ -243,7 +275,15 @@ def fit_best_model(sizes, times_ms, candidates=CANDIDATE_MODELS):
 
 
 def run_ladder(
-    fn, args_fn, sizes, cap_seconds, deadline, k3_model_name=None, k3_model_fn=None, build=None
+    fn,
+    args_fn,
+    sizes,
+    cap_seconds,
+    deadline,
+    k3_model_name=None,
+    k3_model_fn=None,
+    build=None,
+    extra_models=(),
 ):
     sizes_out, times_out = [], []
     truncated_by = None
@@ -295,9 +335,17 @@ def run_ladder(
 
     slope, r2 = fit_loglog(sizes_out, times_out)
 
-    candidates = list(CANDIDATE_MODELS)
+    candidates = [
+        (name, f)
+        for name, f in list(CANDIDATE_MODELS) + list(extra_models)
+        if model_fits_ladder(f, sizes_out)
+    ]
     k3_model_r2 = None
-    if k3_model_fn is not None and len(sizes_out) >= 2:
+    if (
+        k3_model_fn is not None
+        and len(sizes_out) >= 2
+        and model_fits_ladder(k3_model_fn, sizes_out)
+    ):
         k3_model_r2 = _fit_model_r2(sizes_out, times_out, k3_model_fn)
         candidates.append((k3_model_name, k3_model_fn))
     best_fit, best_fit_r2 = fit_best_model(sizes_out, times_out, candidates)
@@ -359,6 +407,8 @@ def benchmark_submission(slug, spec, path):
         return {"error": f"{type(exc).__name__}: {exc}"}
 
     k3_model_name, k3_model_fn = load_k3_model(slug, path)
+    sizes = spec.get("sizes", DEFAULT_SIZES)
+    extra_models = spec.get("models", ())
 
     # Shared across the normal and adversarial ladders below: caps the
     # total wall time spent on this one submission regardless of how
@@ -368,24 +418,26 @@ def benchmark_submission(slug, spec, path):
     result = run_ladder(
         entry,
         lambda n: spec["generate"](n, rng),
-        DEFAULT_SIZES,
+        sizes,
         SIZE_CAP_SECONDS,
         deadline,
         k3_model_name,
         k3_model_fn,
         build,
+        extra_models,
     )
 
     if spec["adversarial"] is not None:
         adversarial = run_ladder(
             entry,
             spec["adversarial"],
-            DEFAULT_SIZES,
+            sizes,
             ADVERSARIAL_CAP_SECONDS,
             deadline,
             k3_model_name,
             k3_model_fn,
             build,
+            extra_models,
         )
         adversarial["note"] = spec["adversarial_note"]
         result["adversarial"] = adversarial

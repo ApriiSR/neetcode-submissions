@@ -142,6 +142,57 @@ class BestFitModelTests(unittest.TestCase):
         self.assertEqual(name, "n^0.5")
         self.assertGreater(r2, 0.999)
 
+    def test_exponential_data_beats_every_polynomial(self):
+        # The whole point of EXPONENTIAL_MODELS: against the polynomial-only
+        # set, exponential timings fit whichever candidate is least wrong,
+        # which is how subsets came out as n^3 log n. Offered the right shape
+        # on the ladder it belongs to, it should win outright.
+        sizes = list(generators.EXPONENTIAL_SIZES)
+        times_ms = [0.001 * n * 2.0**n for n in sizes]
+        polynomial_only, _ = benchmark.fit_best_model(sizes, times_ms)
+        self.assertIn(polynomial_only, [name for name, _ in benchmark.CANDIDATE_MODELS])
+        candidates = list(benchmark.CANDIDATE_MODELS) + list(generators.EXPONENTIAL_MODELS)
+        name, r2 = benchmark.fit_best_model(sizes, times_ms, candidates)
+        self.assertEqual(name, "n 2^n")
+        self.assertGreater(r2, 0.999)
+
+
+class ModelFitsLadderTests(unittest.TestCase):
+    def test_polynomials_are_evaluable_on_the_default_ladder(self):
+        for name, f in benchmark.CANDIDATE_MODELS:
+            self.assertTrue(
+                benchmark.model_fits_ladder(f, benchmark.DEFAULT_SIZES), name
+            )
+
+    def test_exponential_models_are_evaluable_on_their_own_ladder(self):
+        for name, f in generators.EXPONENTIAL_MODELS:
+            self.assertTrue(
+                benchmark.model_fits_ladder(f, generators.EXPONENTIAL_SIZES), name
+            )
+
+    def test_exponential_models_are_dropped_from_the_default_ladder(self):
+        # K3 can return "2^n" for any problem it likes, including one running
+        # the 256..2**20 ladder. Dropping it there is what keeps the fit from
+        # taking the logarithm of a multi-megabit integer per point.
+        for name, f in generators.EXPONENTIAL_MODELS:
+            self.assertFalse(
+                benchmark.model_fits_ladder(f, benchmark.DEFAULT_SIZES), name
+            )
+
+    def test_a_k3_exponential_model_does_not_reach_a_default_ladder_fit(self):
+        result = benchmark.run_ladder(
+            lambda values: sum(values),
+            lambda n: ([0] * n,),
+            (256, 512, 1024),
+            10.0,
+            time.perf_counter() + 10.0,
+            "2^n",
+            benchmark.parse_benchmark_model("2^n"),
+        )
+        self.assertEqual(result["k3_model"], "2^n")
+        self.assertIsNone(result["k3_model_r2"])
+        self.assertIn(result["best_fit"], [name for name, _ in benchmark.CANDIDATE_MODELS])
+
 
 class BenchmarkModelGrammarTests(unittest.TestCase):
     def test_parses_bare_n(self):
@@ -175,6 +226,15 @@ class BenchmarkModelGrammarTests(unittest.TestCase):
     def test_is_case_and_whitespace_insensitive(self):
         f = benchmark.parse_benchmark_model("  N LOG N  ")
         self.assertAlmostEqual(f(1000), 1000 * math.log(1000))
+
+    def test_parses_the_exponential_forms(self):
+        self.assertEqual(benchmark.parse_benchmark_model("2^n")(10), 1024.0)
+        self.assertEqual(benchmark.parse_benchmark_model("n 2^n")(10), 10240.0)
+
+    def test_exponential_forms_overflow_rather_than_build_a_huge_int(self):
+        # Not incidental: model_fits_ladder relies on this to drop them.
+        with self.assertRaises(OverflowError):
+            benchmark.parse_benchmark_model("2^n")(2**20)
 
     def test_rejects_out_of_grammar_exponent(self):
         self.assertIsNone(benchmark.parse_benchmark_model("n^4"))
@@ -472,6 +532,39 @@ class BuildHookTests(unittest.TestCase):
                 spec["generate"](12, random.Random(9)),
                 slug,
             )
+
+
+class PerProblemLadderTests(unittest.TestCase):
+    def test_sizes_and_models_are_declared_together(self):
+        # A problem that needs its own ladder needs its own models too: the
+        # ladder alone would just fit an exponential curve against the
+        # polynomials and report whichever is least wrong.
+        for slug, spec in generators.PROBLEMS.items():
+            self.assertEqual("sizes" in spec, "models" in spec, slug)
+
+    def test_the_exponential_ladder_ends_below_the_default_one_starts(self):
+        self.assertLess(
+            max(generators.EXPONENTIAL_SIZES), min(benchmark.DEFAULT_SIZES)
+        )
+        self.assertGreaterEqual(
+            len(generators.EXPONENTIAL_SIZES), benchmark.MIN_LADDER_POINTS
+        )
+
+    def test_benchmark_submission_walks_the_specs_own_ladder(self):
+        slug = "is-palindrome"
+        spec = dict(generators.PROBLEMS[slug], sizes=(16, 32, 64))
+        _found, _number, path = next(iter(analyze.iter_submissions(slug)))
+        record = benchmark.benchmark_submission(slug, spec, path)
+        self.assertEqual(record["sizes"], [16, 32, 64])
+
+    def test_a_spec_without_sizes_walks_the_default_ladder(self):
+        slug = "is-palindrome"
+        spec = generators.PROBLEMS[slug]
+        self.assertNotIn("sizes", spec)
+        record = benchmark.benchmark_submission(
+            slug, spec, next(iter(analyze.iter_submissions(slug)))[2]
+        )
+        self.assertEqual(record["sizes"][0], benchmark.DEFAULT_SIZES[0])
 
 
 class SubmissionsRunUnderTheHarnessTests(unittest.TestCase):

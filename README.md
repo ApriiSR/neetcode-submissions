@@ -262,11 +262,10 @@ dry run, so mocked records always have `"statement": null`.
 Every push to `main` that touches `Data Structures & Algorithms/**` also
 runs `scripts/benchmark.py`, after `analyze.py`, via the same workflow.
 For each submission of each **scalable** problem (see
-`scripts/generators.py`; `valid-sudoku` is a fixed 9x9 board,
-`minimum-stack` and `lru-cache` and `implement-prefix-tree` and
+`scripts/generators.py`; `valid-sudoku` is a fixed 9x9 board, and
+`minimum-stack`, `lru-cache`, `implement-prefix-tree` and
 `kth-largest-integer-in-a-stream` are design problems with no `Solution`
-class, and `subsets` returns the power set, so its output is already
-exponential at the ladder's smallest size — all of them skipped), it:
+class, so those are skipped), it:
 
 1. Runs the entry method once on a small generated input, and once on
    the adversarial input if one exists. If either raises, the submission
@@ -395,6 +394,54 @@ keyed on **node objects**, whose hashes come from CPython's identity
 hash. The input can't choose them, so there's no adversarial generator
 for any of these — the same distinction `ANALYSIS_VERSION = 6` was
 bumped for.
+
+### Exponential-output problems and per-problem ladders
+
+The default ladder assumes doubling `n` is a modest step. For a problem
+whose output is exponential in the input size that assumption inverts —
+doubling `n` *squares* the work — and the ladder is unusable from its
+very first rung: `subsets` at `n = 256` would mean 2²⁵⁶ subsets.
+
+A spec can therefore carry its own `sizes` and its own extra candidate
+`models`, always together (there's a test for that pairing). The two go
+together because a private ladder alone isn't enough: fit an exponential
+curve against the polynomial-only `CANDIDATE_MODELS` and you get
+whichever polynomial is least wrong. `generators.EXPONENTIAL_SIZES`
+steps by 1 from 4 to 21 — 18 points, more than the default ladder's 13,
+spanning about 5µs to 1.4s and stopping short of the per-size cap on its
+own — and `generators.EXPONENTIAL_MODELS` adds `2^n` and `n 2^n`.
+
+For `subsets` that's the difference between a right answer and a wrong
+one. The best polynomial reaches r² = 0.59 against its measured times;
+the exponential forms reach 0.9955 (`2^n`) and 0.9959 (`n 2^n`). Note
+those last two barely separate from each other — in log space they
+differ only by a `log n` term — so "exponential, not polynomial" is a
+strong reading of that fit and "`n 2^n` rather than `2^n`" is a weak
+one. The reported log-log **slope is meaningless** for these problems
+(it fits `log(time)` against `log(n)`, and an exponential curve is not a
+line in those coordinates — `subsets` reports 7.79); read `best_fit`.
+
+K3's `benchmark_model` grammar carries the same two forms, added for the
+same reason. Before that it was polynomial-only, so K3 analyzed `subsets`
+as `O(n * 2^n)` — correctly — and then clamped `benchmark_model` to
+`n^3 log n`, saying so outright in its own notes. That clamp would have
+been charted as "K3's model" next to the real timings, which is a
+fabricated comparison rather than a wrong one. Adding the forms was the
+one prompt change so far that did **not** bump `ANALYSIS_VERSION`: it's
+purely additive, every old spelling still means what it meant, so the
+only records it can change are ones that clamped an exponential answer.
+A scan found exactly one, and deleting that record re-ran it on the next
+pass — the same guarantee a bump gives without putting 66 correct
+analyses back through a nondeterministic model.
+
+A model that can't be evaluated over the ladder in use is dropped before
+fitting (`model_fits_ladder`). Nothing stops K3 from returning `2^n` for
+a problem on the default ladder, and the exponential models are written
+with a float base precisely so that case raises `OverflowError` instead
+of quietly taking the logarithm of a multi-megabit integer at every
+point. All the polynomial candidates pass on every ladder, so this
+changes no existing measurement — `BENCHMARK_VERSION` is unbumped, and a
+spot-check confirms the default-ladder classifications are identical.
 
 ### Adversarial inputs
 
