@@ -35,6 +35,7 @@ import random
 import re
 import sys
 import time
+from collections import deque
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional
@@ -129,15 +130,26 @@ def parse_benchmark_model(text):
 
 
 def load_solution(path):
-    # ListNode/Node arrive from generators so a submission's `ListNode(...)`
-    # resolves to the same class the build hooks construct. NeetCode ships
-    # those definitions as a commented-out header, so every linked-list
-    # solution constructs a name its own file never defines.
+    # ListNode/Node/TreeNode arrive from generators so a submission's
+    # `ListNode(...)` resolves to the same class the build hooks construct.
+    # NeetCode ships those definitions as a commented-out header, so every
+    # linked-list solution constructs a name its own file never defines --
+    # and the tree solutions carry the same header, which is why TreeNode is
+    # here too even though none of them construct one today: without it they
+    # only load because the workflow pins Python 3.14, whose lazy annotations
+    # (PEP 649) never evaluate the `Optional[TreeNode]` in their signatures.
+    #
+    # `deque` is the same kind of gap from the other direction: it's a name
+    # NeetCode's environment has already imported, so a solution can use it
+    # without an import line of its own (level-order-traversal-of-binary-tree
+    # submission-2 does).
     namespace = {
         "List": List,
         "Optional": Optional,
+        "deque": deque,
         "ListNode": generators.ListNode,
         "Node": generators.Node,
+        "TreeNode": generators.TreeNode,
     }
     source = path.read_text(encoding="utf-8")
     exec(compile(source, str(path), "exec"), namespace)

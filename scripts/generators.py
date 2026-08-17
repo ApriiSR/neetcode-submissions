@@ -46,11 +46,11 @@ such (distinct, ascending) values.
 None of the problems here have a dict/set keyed on raw, unbounded
 input strings (is-anagram and implement-prefix-tree key on single
 characters — a 26-symbol alphabet, too small to stress; anagram-groups
-keys on a computed
-26-int signature tuple, not the input strings; string-encode-and-decode
-doesn't hash at all; the linked-list problems that hash at all key on
-node objects, whose hashes come from CPython's identity hash, so the
-input can't choose them). So there's currently no PYTHONHASHSEED=0-dependent
+keys on a computed 26-int signature tuple, not the input strings;
+string-encode-and-decode doesn't hash at all; the linked-list problems
+that hash at all, and level-order-traversal-of-binary-tree submission-1,
+key on node objects, whose hashes come from CPython's identity hash, so
+the input can't choose them). So there's currently no PYTHONHASHSEED=0-dependent
 string-collision generator in use. benchmark.py still forces
 PYTHONHASHSEED=0 for the whole run as a forward-looking default, since
 str/bytes hashing is otherwise randomized per-process and any future
@@ -92,17 +92,32 @@ class Node:
 
 class TreeNode:
     """The binary-tree node the tree problems are written against, and what
-    their `build` hooks construct. Unlike ListNode, this one is not injected
-    into the loader namespace and doesn't need to be: no tree solution here
-    constructs a node by name, and the `TreeNode` in their annotations is
-    never evaluated -- the analysis workflow pins Python 3.14, whose lazy
-    annotations (PEP 649) leave those expressions unevaluated.
+    their `build` hooks construct. Injected into the loader namespace the
+    same way ListNode is, though no tree solution constructs one by name
+    today -- what the injection buys is that these submissions no longer
+    load *only* because the workflow pins Python 3.14, whose lazy
+    annotations (PEP 649) leave the `Optional[TreeNode]` in their signatures
+    unevaluated.
+
+    `children` is not part of NeetCode's definition. It's here because
+    level-order-traversal-of-binary-tree submission-1 redefines TreeNode in
+    its own file, adding that property, and then reads it off whatever nodes
+    it is handed -- on NeetCode, nodes of its own redefined class. Supplying
+    the property is what lets the shared build hook hand it a tree it can
+    walk, and it returns exactly what that submission's own version returns.
+    A future submission that redefines TreeNode *incompatibly* (renaming
+    `val`, say) would need the loader to hand its own class back to the
+    build hook instead; nothing here does that yet.
     """
 
     def __init__(self, val=0, left=None, right=None):
         self.val = val
         self.left = left
         self.right = right
+
+    @property
+    def children(self):
+        return [self.left, self.right]
 
 
 def _int_collisions(n):
@@ -194,9 +209,10 @@ def _gen_binary_search(n, rng):
 
 def _gen_binary_tree(n, rng):
     # Shared by balanced-binary-tree, binary-tree-diameter,
-    # depth-of-binary-tree and invert-a-binary-tree: each takes one root and
-    # reads nothing but the shape and the values. Returned as a tuple rather
-    # than a list so it can't be mistaken for an argument the entry takes.
+    # depth-of-binary-tree, invert-a-binary-tree and
+    # level-order-traversal-of-binary-tree: each takes one root and reads
+    # nothing but the shape and the values. Returned as a tuple rather than
+    # a list so it can't be mistaken for an argument the entry takes.
     return (tuple(rng.randint(-1000, 1000) for _ in range(n)),)
 
 
@@ -780,6 +796,16 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "n = number of bars; each height is drawn uniformly from 0..10000, NeetCode's full stated range for heights[i], independent of n -- so a submission that sweeps every height value from 0 to max(heights) does a bounded (<=10001) number of linear passes: still O(n) in n, but with a constant large enough that the size ladder hits its per-size time cap around n = 2**13 to 2**14, depending on machine speed",
         "generalized_note": "uncapped: any number of bars, heights any non-negative ints. Note the stated 0..10000 height cap is what makes a height-indexed sweep O(n); without it such a solution scales with the largest height instead.",
+    },
+    "level-order-traversal-of-binary-tree": {
+        "entry": "levelOrder",
+        "scalable": True,
+        "generate": _gen_binary_tree,
+        "build": _build_one_tree,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of nodes; the tree is filled level order, so it is complete, it has floor(log2(n)) + 1 levels and each level is twice the width of the one above -- meaning the single widest level holds about half of all n nodes. That is the load-bearing fact here: a submission whose per-level work is quadratic in that level's width (popping from the front of a Python list, or checking membership against a collection it is still filling) pays on the order of (n/2)**2 on that one level alone and is quadratic overall, where one that pops from a deque stays linear. The quadratic term only overtakes the linear one partway up the ladder, so a least-squares fit over the whole range reads well below 2 -- the tail quadrupling per doubling is the real signal. Values are drawn uniformly from the fixed range -1000..1000, independent of n, and nothing reads them beyond copying them into the output",
+        "generalized_note": "uncapped: any number of nodes, values any ints, any shape. The output contract is part of the problem, not a cap -- still one list per level, top to bottom, each holding that level's values left to right. Note that a skewed tree inverts the shape this input has: n levels of one node each rather than log n levels whose widths double, so a solution whose per-level cost is quadratic in the level width looks linear there and a recursive one needs stack depth proportional to n.",
     },
     "linked-list-cycle-detection": {
         "entry": "hasCycle",

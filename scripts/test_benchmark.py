@@ -492,6 +492,39 @@ class SubmissionsRunUnderTheHarnessTests(unittest.TestCase):
                 checked += 1
         self.assertGreater(checked, 0)
 
+    def test_level_order_submissions_agree_on_the_shared_tree_node(self):
+        # level-order-traversal-of-binary-tree submission-1 redefines
+        # TreeNode in its own file, adding a `children` property, and then
+        # reads that property off whatever nodes it is handed -- on NeetCode,
+        # instances of its own redefined class. generators.TreeNode carries
+        # the property so the shared build hook can feed it a tree it can
+        # walk; this is the check that the substitution is faithful. Agreeing
+        # with each other isn't enough on its own (all three could be wrong
+        # the same way), so they're checked against an independent
+        # breadth-first walk too.
+        slug = "level-order-traversal-of-binary-tree"
+        spec = generators.PROBLEMS[slug]
+        description = spec["generate"](25, random.Random(7))
+
+        expected, frontier = [], [generators._complete_tree(*description)]
+        while frontier:
+            expected.append([node.val for node in frontier])
+            frontier = [
+                child
+                for node in frontier
+                for child in (node.left, node.right)
+                if child is not None
+            ]
+
+        outputs = []
+        for _found, _number, path in analyze.iter_submissions(slug):
+            solution = benchmark.load_solution(path)
+            entry = getattr(solution, spec["entry"])
+            outputs.append(entry(*benchmark.make_call_args(description, spec["build"])))
+        self.assertEqual(len(outputs), 3)
+        for output in outputs:
+            self.assertEqual(output, expected)
+
 
 class LadderTruncationTests(unittest.TestCase):
     @staticmethod

@@ -262,9 +262,11 @@ dry run, so mocked records always have `"statement": null`.
 Every push to `main` that touches `Data Structures & Algorithms/**` also
 runs `scripts/benchmark.py`, after `analyze.py`, via the same workflow.
 For each submission of each **scalable** problem (see
-`scripts/generators.py`; `valid-sudoku` is a fixed 9x9 board and
-`minimum-stack` is a design problem with no `Solution` class, so both are
-skipped), it:
+`scripts/generators.py`; `valid-sudoku` is a fixed 9x9 board,
+`minimum-stack` and `lru-cache` and `implement-prefix-tree` and
+`kth-largest-integer-in-a-stream` are design problems with no `Solution`
+class, and `subsets` returns the power set, so its output is already
+exponential at the ladder's smallest size — all of them skipped), it:
 
 1. Runs the entry method once on a small generated input, and once on
    the adversarial input if one exists. If either raises, the submission
@@ -330,32 +332,63 @@ everything on its own, rather than leaving numbers taken under two
 different regimes side by side in the same summary. It plays the same
 role `ANALYSIS_VERSION` does in `analyze.py`.
 
-### Linked-list problems and the `build` hook
+### Node-based problems and the `build` hook
 
 Most entry methods take plain data, so a generated args tuple can be
-handed straight to them and deep-copied per repeat. The linked-list
-problems can't work that way, for two reasons that pull in opposite
-directions: their entries take live `ListNode`/`Node` heads, and the
-determinism tests need `generate` to return something that compares
-equal across two same-seed calls — which node objects, comparing by
-identity, never will.
+handed straight to them and deep-copied per repeat. The linked-list and
+binary-tree problems can't work that way, for two reasons that pull in
+opposite directions: their entries take live `ListNode`/`Node` heads or
+`TreeNode` roots, and the determinism tests need `generate` to return
+something that compares equal across two same-seed calls — which node
+objects, comparing by identity, never will.
 
 So those problems split the job. `generate(n, rng)` returns a plain
-*description* (the values a chain would be built from, plus whatever
-shape the problem needs — a cycle index, the random-pointer targets, a
-position from the end), and an optional `build(*description)` hook turns
-that description into the real arguments. `benchmark.py` calls `build`
-fresh before every timed repeat, **outside** the timer, which is what
-makes in-place solutions measurable at all: `reverseList` and
-`reorderList` destroy the chain they're given, so without a rebuild
-repeats 2 and 3 would be timing an already-consumed list — O(1) work
-from the old head — and reporting the result as if it meant something.
+*description* (the values a chain or tree would be built from, plus
+whatever shape the problem needs — a cycle index, the random-pointer
+targets, a position from the end, which node to copy a subtree from), and
+an optional `build(*description)` hook turns that description into the
+real arguments. `benchmark.py` calls `build` fresh before every timed
+repeat, **outside** the timer, which is what makes in-place solutions
+measurable at all: `reverseList` and `reorderList` destroy the chain
+they're given, so without a rebuild repeats 2 and 3 would be timing an
+already-consumed list — O(1) work from the old head — and reporting the
+result as if it meant something.
 
 The solutions also construct `ListNode(...)`/`Node(...)` by a name their
 own file never defines (NeetCode ships those definitions as a
-commented-out header), so `load_solution` injects both classes from
+commented-out header), so `load_solution` injects them from
 `generators.py` into the exec namespace. They're the same classes the
-build hooks construct.
+build hooks construct. `TreeNode` is injected on the same principle even
+though no tree solution constructs one today: without it those
+submissions load only because the workflow pins Python 3.14, whose lazy
+annotations (PEP 649) never evaluate the `Optional[TreeNode]` in their
+signatures. `deque` is injected for the mirror-image reason — it's a name
+NeetCode's environment has already imported, so a solution can use it
+with no import line of its own.
+
+Trees are built by filling level order, which makes them complete and
+keeps their depth logarithmic in `n`, so the recursive submissions never
+approach CPython's stack limit anywhere on the ladder. Two problems pin
+their target rather than choosing it at random —
+`subtree-of-a-binary-tree` copies the subtree at the node a pre-order
+search reaches last, and `lowest-common-ancestor-in-binary-search-tree`
+puts `p` and `q` at the quarter and three-quarter in-order positions.
+Both submissions decide containment by comparing whole subtrees, so a
+randomly placed target makes each rung of the ladder measure where the
+match happened to land instead of `n`: the LCA ladder fit at r² = 0.86
+with times that *fell* as `n` doubled. Pinned, both come out at
+r² = 0.999. Each problem's `scaling_note` states what that choice costs
+— for LCA, that the answer is always the root, so a solution descending
+by value comparison stops immediately and does constant work.
+
+One submission redefines `TreeNode` in its own file
+(`level-order-traversal-of-binary-tree` submission-1, which adds a
+`children` property), so the shared `TreeNode` carries that property too
+— it returns exactly what that submission's own version returns, and all
+three of that problem's submissions are checked to produce identical
+output on the same tree. A submission that redefined the class
+*incompatibly* would need the loader to hand its own class back to the
+build hook; nothing does that yet.
 
 One consequence worth stating: the dicts and sets in these solutions are
 keyed on **node objects**, whose hashes come from CPython's identity
