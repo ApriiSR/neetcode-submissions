@@ -3,29 +3,35 @@
 Each problem in `PROBLEMS` maps to:
 - `entry`: the Solution method to call, or None for a design problem
   whose submission defines no Solution class at all (minimum-stack,
-  lru-cache).
-- `scalable`: False for problems benchmark.py can't time -- valid-sudoku
-  is a fixed 9x9 board, and minimum-stack and lru-cache are design
-  problems whose submissions define no Solution class at all;
-  benchmark.py skips scaling curves for these, so their `generate`
-  documents the input shape rather than feeding a timing run.
+  lru-cache, implement-prefix-tree, kth-largest-integer-in-a-stream).
+- `scalable`: False for problems benchmark.py can't time, for three
+  distinct reasons. valid-sudoku is a fixed 9x9 board. minimum-stack,
+  lru-cache, implement-prefix-tree and kth-largest-integer-in-a-stream
+  are design problems whose submissions define no Solution class at all.
+  subsets has an exponentially large output -- 2**k subsets for a
+  k-element array -- so the ladder's smallest size (256) is already
+  unreachable. benchmark.py skips scaling curves for all of these, so
+  their `generate` documents the input shape rather than feeding a
+  timing run.
 - `generate(n, rng)`: returns a positional-args tuple (excluding `self`)
   for `entry`, sized around n. Uses only the passed-in random.Random, so
   it's deterministic for a given seed.
 - `build(*description)`: optional, and present only where `entry` takes
   live objects rather than plain data -- the linked-list problems, whose
-  entries take ListNode/Node heads. There `generate` returns a plain,
-  comparable *description* (the values a chain would be built from) and
-  `build` turns that into the real args tuple. benchmark.py calls it
-  fresh before each timed repeat, outside the timer, which is what lets
-  in-place solutions be timed at all: every repeat gets an untouched
-  chain instead of re-timing the previous repeat's output. Keeping
-  `generate` on plain data is also what keeps it comparable, which is
-  what the determinism tests check -- node objects compare by identity,
-  so a generate that returned them could never be checked that way.
-  merge-k-sorted-linked-lists describes its chains as a tuple of tuples
-  rather than a list of lists, since its entry takes one list *of* heads
-  and the description would otherwise be mistaken for that list.
+  entries take ListNode/Node heads, and the binary-tree problems, whose
+  entries take TreeNode roots. There `generate` returns a plain,
+  comparable *description* (the values a chain or tree would be built
+  from) and `build` turns that into the real args tuple. benchmark.py
+  calls it fresh before each timed repeat, outside the timer, which is
+  what lets in-place solutions be timed at all: every repeat gets an
+  untouched structure instead of re-timing the previous repeat's output.
+  Keeping `generate` on plain data is also what keeps it comparable,
+  which is what the determinism tests check -- node objects compare by
+  identity, so a generate that returned them could never be checked that
+  way. merge-k-sorted-linked-lists describes its chains as a tuple of
+  tuples rather than a list of lists, since its entry takes one list *of*
+  heads and the description would otherwise be mistaken for that list;
+  the tree problems describe their values as a tuple for the same reason.
 - `adversarial(n)`: returns an args tuple built to trigger the worst case
   of the dict/set the entry method is expected to use, or None if the
   problem has no meaningful adversarial-hash story.
@@ -38,8 +44,9 @@ hash(0) == hash(P) == hash(2 * P) == 0. `_int_collisions(n)` returns n
 such (distinct, ascending) values.
 
 None of the problems here have a dict/set keyed on raw, unbounded
-input strings (is-anagram keys on single characters — a 26-symbol
-alphabet, too small to stress; anagram-groups keys on a computed
+input strings (is-anagram and implement-prefix-tree key on single
+characters — a 26-symbol alphabet, too small to stress; anagram-groups
+keys on a computed
 26-int signature tuple, not the input strings; string-encode-and-decode
 doesn't hash at all; the linked-list problems that hash at all key on
 node objects, whose hashes come from CPython's identity hash, so the
@@ -83,6 +90,21 @@ class Node:
         self.random = random
 
 
+class TreeNode:
+    """The binary-tree node the tree problems are written against, and what
+    their `build` hooks construct. Unlike ListNode, this one is not injected
+    into the loader namespace and doesn't need to be: no tree solution here
+    constructs a node by name, and the `TreeNode` in their annotations is
+    never evaluated -- the analysis workflow pins Python 3.14, whose lazy
+    annotations (PEP 649) leave those expressions unevaluated.
+    """
+
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+
 def _int_collisions(n):
     return [k * MERSENNE61 for k in range(n)]
 
@@ -92,6 +114,49 @@ def _chain(values):
     for value in reversed(values):
         head = ListNode(value, head)
     return head
+
+
+def _complete_tree_nodes(values):
+    # Level-order fill, so the tree is complete and its depth is
+    # floor(log2(n)): shallow enough that the recursive submissions never
+    # approach CPython's recursion limit however far up the ladder they get,
+    # and balanced, which is the no-early-exit case for the shape-sensitive
+    # ones (isBalanced never finds an imbalance to stop on).
+    nodes = [TreeNode(value) for value in values]
+    for i, node in enumerate(nodes):
+        left, right = 2 * i + 1, 2 * i + 2
+        node.left = nodes[left] if left < len(nodes) else None
+        node.right = nodes[right] if right < len(nodes) else None
+    return nodes
+
+
+def _complete_tree(values):
+    nodes = _complete_tree_nodes(values)
+    return nodes[0] if nodes else None
+
+
+def _copy_tree(node):
+    if node is None:
+        return None
+    return TreeNode(node.val, _copy_tree(node.left), _copy_tree(node.right))
+
+
+def _balanced_bst_nodes(values):
+    # `values` ascending; every subtree takes its middle element as its root,
+    # so the result is a BST of depth ceil(log2(n)). Returns the root plus
+    # the nodes in ascending (in-order) order, so a caller can name two of
+    # them by position.
+    nodes = [TreeNode(value) for value in values]
+
+    def link(lo, hi):
+        if lo > hi:
+            return None
+        mid = (lo + hi) // 2
+        nodes[mid].left = link(lo, mid - 1)
+        nodes[mid].right = link(mid + 1, hi)
+        return nodes[mid]
+
+    return link(0, len(nodes) - 1), nodes
 
 
 def _random_word(rng, min_len=3, max_len=10):
@@ -125,6 +190,18 @@ def _adv_anagram_groups(n):
 def _gen_binary_search(n, rng):
     nums = sorted(rng.sample(range(-n * 10, n * 10 + 1), n))
     return (nums, nums[rng.randrange(n)])
+
+
+def _gen_binary_tree(n, rng):
+    # Shared by balanced-binary-tree, binary-tree-diameter,
+    # depth-of-binary-tree and invert-a-binary-tree: each takes one root and
+    # reads nothing but the shape and the values. Returned as a tuple rather
+    # than a list so it can't be mistaken for an argument the entry takes.
+    return (tuple(rng.randint(-1000, 1000) for _ in range(n)),)
+
+
+def _build_one_tree(values):
+    return (_complete_tree(values),)
 
 
 def _gen_buy_and_sell_crypto(n, rng):
@@ -219,6 +296,21 @@ def _adv_find_duplicate_integer(n):
     return (values + [values[-1]],)
 
 
+def _gen_implement_prefix_tree(n, rng):
+    words = [_random_word(rng, 3, 10) for _ in range(max(1, n // 4))]
+    ops = []
+    for _ in range(n):
+        word = rng.choice(words)
+        roll = rng.random()
+        if roll < 0.4:
+            ops.append(("insert", word))
+        elif roll < 0.7:
+            ops.append(("search", word))
+        else:
+            ops.append(("startsWith", word[:rng.randint(1, len(word))]))
+    return (ops,)
+
+
 def _gen_is_anagram(n, rng):
     s = "".join(rng.choice(string.ascii_lowercase) for _ in range(n))
     t = list(s)
@@ -231,6 +323,13 @@ def _gen_is_palindrome(n, rng):
     if n % 2:
         return (half + rng.choice(string.ascii_lowercase) + half[::-1],)
     return (half + half[::-1],)
+
+
+def _gen_kth_largest_integer_in_a_stream(n, rng):
+    k = max(1, min(3, n))
+    initial = [rng.randint(-1000, 1000) for _ in range(max(k, n // 2))]
+    ops = [("add", rng.randint(-1000, 1000)) for _ in range(n)]
+    return (k, initial, ops)
 
 
 def _gen_largest_rectangle_in_histogram(n, rng):
@@ -259,6 +358,27 @@ def _gen_longest_consecutive_sequence(n, rng):
 
 def _adv_longest_consecutive_sequence(n):
     return (_int_collisions(n),)
+
+
+def _gen_longest_substring_without_duplicates(n, rng):
+    return ("".join(rng.choice(string.ascii_lowercase) for _ in range(n)),)
+
+
+def _gen_lowest_common_ancestor_in_binary_search_tree(n, rng):
+    # p and q are pinned to the quarter and three-quarter in-order positions
+    # rather than chosen at random. Random positions make the cost bimodal
+    # for a submission that decides ancestry by whole-subtree comparison --
+    # O(n) when the root is already the answer, far worse when it has to
+    # descend past a wrong branch -- and a ladder built from coin flips
+    # measures the flips, not n.
+    size = max(4, n)
+    values = sorted(rng.sample(range(-size * 10, size * 10 + 1), size))
+    return (tuple(values), size // 4, 3 * size // 4)
+
+
+def _build_lowest_common_ancestor_in_binary_search_tree(values, i, j):
+    root, nodes = _balanced_bst_nodes(values)
+    return (root, nodes[i], nodes[j])
 
 
 def _gen_lru_cache(n, rng):
@@ -348,8 +468,62 @@ def _build_one_list(values):
     return (_chain(values),)
 
 
+def _gen_same_binary_tree(n, rng):
+    return (tuple(rng.randint(-1000, 1000) for _ in range(n)),)
+
+
+def _build_same_binary_tree(values):
+    # Two structurally identical trees over the same values, so the
+    # comparison never short-circuits and always walks all n nodes twice.
+    return (_complete_tree(values), _complete_tree(values))
+
+
+def _gen_search_2d_matrix(n, rng):
+    # rows and columns both grow like sqrt(n), so neither dimension is a
+    # constant the search can be linear in for free.
+    total = max(1, n)
+    rows = max(1, math.isqrt(total))
+    cols = max(1, total // rows)
+    values = sorted(rng.sample(range(-total * 10, total * 10 + 1), rows * cols))
+    matrix = [values[r * cols:(r + 1) * cols] for r in range(rows)]
+    return (matrix, values[rng.randrange(rows * cols)])
+
+
 def _gen_string_encode_and_decode(n, rng):
     return ([_random_word(rng, 3, 12) for _ in range(n)],)
+
+
+def _gen_subsets(n, rng):
+    # Capped at 16 elements: the output is one subset per element of the
+    # power set, so anything near the benchmark ladder's smallest size (256)
+    # would be 2**256 subsets. See the entry's scaling_note.
+    return (rng.sample(range(-100, 101), min(max(1, n), 16)),)
+
+
+def _gen_subtree_of_a_binary_tree(n, rng):
+    # The node a pre-order search reaches last: from the root, take the right
+    # child while there is one and otherwise the left. Copying that node's
+    # subtree keeps the answer True while still forcing a full traversal, so
+    # the timing is the traversal rather than wherever a randomly chosen
+    # target happened to sit.
+    size = max(1, n)
+    values = list(range(size))
+    rng.shuffle(values)
+    index = 0
+    while True:
+        left, right = 2 * index + 1, 2 * index + 2
+        if right < size:
+            index = right
+        elif left < size:
+            index = left
+        else:
+            break
+    return (tuple(values), index)
+
+
+def _build_subtree_of_a_binary_tree(values, index):
+    nodes = _complete_tree_nodes(values)
+    return (nodes[0], _copy_tree(nodes[index]))
 
 
 def _gen_three_integer_sum(n, rng):
@@ -449,6 +623,16 @@ PROBLEMS = {
         "scaling_note": "n = number of words; each word's length is drawn from a fixed small range (3-8 chars) independent of n, so total character volume scales linearly with n",
         "generalized_note": "uncapped: any number of words, each of any length. The alphabet is part of the problem, not a cap \u2014 words stay lowercase English letters, so the 26-letter signature space does not grow with n.",
     },
+    "balanced-binary-tree": {
+        "entry": "isBalanced",
+        "scalable": True,
+        "generate": _gen_binary_tree,
+        "build": _build_one_tree,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of nodes; the tree is filled level order, so it is complete and its depth is floor(log2(n)) -- always balanced, which is this problem's no-early-exit case: a submission never finds an imbalance to stop on and so recurses over every node. Because the depth stays logarithmic in n, a recursive submission never approaches CPython's stack limit anywhere on the ladder, and a submission that recomputes a subtree's height at every node does work proportional to n * depth rather than the n a single bottom-up pass would take. Node values are drawn uniformly from the fixed range -1000..1000, independent of n; nothing in this problem reads them",
+        "generalized_note": "uncapped: any number of nodes, values any ints, and any shape -- a tree may be arbitrarily skewed rather than complete, so both its height and a recursive solution's stack depth can be linear in n, and the stated node-count maximum is a cap that goes. The balance condition is part of the problem, not a cap: every node's two subtrees must still differ in height by at most 1.",
+    },
     "binary-search": {
         "entry": "search",
         "scalable": True,
@@ -457,6 +641,16 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "n = array length; values are sampled without replacement from a range that scales with n (-10n..10n) and then sorted ascending, and the target is always one of the n values (never absent), so every run finds its target",
         "generalized_note": "uncapped: any array length, values any ints. Sortedness and uniqueness are part of the problem, not caps, and the target stays one of the values.",
+    },
+    "binary-tree-diameter": {
+        "entry": "diameterOfBinaryTree",
+        "scalable": True,
+        "generate": _gen_binary_tree,
+        "build": _build_one_tree,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of nodes; the tree is filled level order, so it is complete, its depth is floor(log2(n)) and every node's two subtrees are near-equal in size -- meaning the longest path runs through the root and a submission that recomputes subtree height at each node does work proportional to n * depth, where a single bottom-up pass stays proportional to n. Node values are drawn uniformly from the fixed range -1000..1000, independent of n; the diameter depends only on the shape",
+        "generalized_note": "uncapped: any number of nodes, values any ints, any shape. The diameter definition is part of the problem, not a cap -- still the longest path between any two nodes, counted in edges, and it need not pass through the root. A skewed tree makes both the height and a recursive solution's stack depth linear in n.",
     },
     "buy-and-sell-crypto": {
         "entry": "maxProfit",
@@ -495,6 +689,16 @@ PROBLEMS = {
         "scaling_note": "n = array length; each temperature is drawn uniformly from the fixed range 30..100, independent of n, so long monotonic runs (the monotonic stack's worst case) do not grow with n",
         "generalized_note": "uncapped: any array length, temperatures any ints. Nothing bounds the run lengths a monotonic stack can face.",
     },
+    "depth-of-binary-tree": {
+        "entry": "maxDepth",
+        "scalable": True,
+        "generate": _gen_binary_tree,
+        "build": _build_one_tree,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of nodes; the tree is filled level order, so it is complete and its depth is floor(log2(n)) -- the answer grows only logarithmically while the traversal still has to visit all n nodes, so the measured time tracks the node count and not the answer. Node values are drawn uniformly from the fixed range -1000..1000, independent of n; nothing in this problem reads them",
+        "generalized_note": "uncapped: any number of nodes, values any ints, any shape. Depth is still counted in nodes along the longest root-to-leaf path. A skewed tree makes that depth linear in n, so a recursive solution's stack use is linear too.",
+    },
     "duplicate-integer": {
         "entry": "hasDuplicate",
         "scalable": True,
@@ -522,6 +726,25 @@ PROBLEMS = {
         "scaling_note": "n = array length; the array is a shuffled permutation of 1..n-1 plus one extra copy of a uniformly chosen value from that same range, so exactly one value repeats and the value range scales with n. The two occurrences sit at uniformly random positions rather than being pinned to either end: a scan that stops at the first repeat therefore reaches it about two thirds of the way through on average, and an all-pairs scan reaches the earlier occurrence about a third of the way in, so both do a fixed fraction of their worst case rather than a fraction that shrinks with n",
         "generalized_note": "uncapped: any array length, values any ints — including values an adversary picks to collide in CPython's hash (multiples of 2**61-1). The precondition that some value repeats is part of the problem and stays, but the 1..n-1 value range is a cap, so it goes: that range is what lets the array be read as a function from indices to indices, so a cycle-detection or index-marking solution is correct only under it.",
     },
+    "implement-prefix-tree": {
+        "entry": None,
+        "scalable": False,
+        "generate": _gen_implement_prefix_tree,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "not benchmarked: this is a design problem -- the submission defines a PrefixTree class with insert/search/startsWith rather than a Solution class with one entry method, so benchmark.py's loader has nothing to drive; the generator builds an n-operation sequence (~40% insert, ~30% search, ~30% startsWith on a prefix of a pooled word) drawn from a pool of n // 4 lowercase words of 3-10 characters, so words repeat and both hits and misses are common, purely as documentation of the input shape",
+        "generalized_note": "uncapped: any number of operations, words of any length. The alphabet is part of the problem, not a cap -- words stay lowercase English letters, so each node's child count is bounded by 26 and does not grow with n. The contract stays too: search matches a whole inserted word, startsWith matches any inserted word's prefix.",
+    },
+    "invert-a-binary-tree": {
+        "entry": "invertTree",
+        "scalable": True,
+        "generate": _gen_binary_tree,
+        "build": _build_one_tree,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of nodes; the tree is filled level order, so it is complete, its depth is floor(log2(n)) and the inversion touches every node exactly once. Node values are drawn uniformly from the fixed range -1000..1000, independent of n, and the work depends only on the node count. The submission rewires the tree in place, so the `build` hook hands each timed repeat a freshly built, un-inverted tree -- inverting twice costs the same as inverting once here, but every repeat still measures the stated input rather than the previous repeat's output",
+        "generalized_note": "uncapped: any number of nodes, values any ints, any shape. The inversion is part of the problem, not a cap -- every node's two children are still swapped, and the tree is still rewired rather than rebuilt. A skewed tree makes recursion depth linear in n.",
+    },
     "is-anagram": {
         "entry": "isAnagram",
         "scalable": True,
@@ -539,6 +762,15 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "n = length of the input string",
         "generalized_note": "uncapped: any string length. The character set is part of the problem, not a cap \u2014 still printable ASCII.",
+    },
+    "kth-largest-integer-in-a-stream": {
+        "entry": None,
+        "scalable": False,
+        "generate": _gen_kth_largest_integer_in_a_stream,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "not benchmarked: this is a design problem -- the submission defines a KthLargest class constructed with (k, nums) and then driven by add() rather than a Solution class with one entry method, so benchmark.py's loader has nothing to drive; the generator builds k = min(3, n), an initial array of max(k, n // 2) values and a stream of n add() calls, all values drawn uniformly from the fixed range -1000..1000, purely as documentation of the input shape",
+        "generalized_note": "uncapped: any number of add() calls, any initial array length, values any ints. The contract is part of the problem, not a cap -- add still returns the kth largest value in the stream so far, counting duplicates as separate values, k stays at least 1, and the initial array still holds at least k - 1 values so that the first add() has an answer.",
     },
     "largest-rectangle-in-histogram": {
         "entry": "largestRectangleArea",
@@ -567,6 +799,25 @@ PROBLEMS = {
         "adversarial_note": "n distinct multiples of 2**61-1, all hashing to 0, so every set insert/lookup collides",
         "scaling_note": "n = array length; values are a shuffled permutation of range(n), so the value range scales with n too",
         "generalized_note": "uncapped: any array length, values any ints \u2014 including adversarially colliding ones, which the stated -10^9..10^9 range would have made impossible.",
+    },
+    "longest-substring-without-duplicates": {
+        "entry": "lengthOfLongestSubstring",
+        "scalable": True,
+        "generate": _gen_longest_substring_without_duplicates,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = length of the input string; characters are drawn uniformly from the 26 lowercase letters, independent of n. That bounds every duplicate-free window at 26 characters however large n gets (the longest is typically well under that), so a submission whose per-step work is proportional to the current window length still does a bounded amount of work per starting position and comes out linear in n -- the window length is not a second size dimension on this input",
+        "generalized_note": "uncapped: any string length. The character set is part of the problem, not a cap -- input stays printable ASCII, letters, digits, symbols and spaces. Note that even that wider alphabet lets duplicate-free windows grow with n, so a solution that rescans its whole window per step is quadratic there while measuring linear on lowercase-only input.",
+    },
+    "lowest-common-ancestor-in-binary-search-tree": {
+        "entry": "lowestCommonAncestor",
+        "scalable": True,
+        "generate": _gen_lowest_common_ancestor_in_binary_search_tree,
+        "build": _build_lowest_common_ancestor_in_binary_search_tree,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of nodes; the tree is a balanced BST built by taking each subtree's middle value as its root, so its depth is ceil(log2(n)). The n values are sampled without replacement from -10n..10n and sorted, so the value range scales with n and no value repeats. p and q are pinned to the quarter and three-quarter in-order positions, which puts them in opposite subtrees of the root with neither an ancestor of the other, so the answer is always the root itself. That is a deliberate trade: choosing the pair at random makes the cost bimodal for a solution that decides ancestry by comparing whole subtrees, and the ladder then measures the coin flip rather than n. State it plainly in both directions -- against this input a whole-subtree comparison scans a constant fraction of the n nodes and so grows linearly, while a solution that descends from the root comparing p.val and q.val against the current node stops at the first node it looks at and does constant work, not the log n its descent would cost for a deeper answer",
+        "generalized_note": "uncapped: any number of nodes, values any ints. The BST ordering is part of the problem, not a cap -- every node's left subtree still holds only smaller values and its right subtree only larger ones, values stay distinct, and p and q are still both present in the tree. The stated node-count maximum is a cap and goes, so the tree may be arbitrarily skewed and its depth linear in n.",
     },
     "lru-cache": {
         "entry": None,
@@ -654,6 +905,25 @@ PROBLEMS = {
         "scaling_note": "n = number of nodes; values are drawn from the fixed range -1000..1000, independent of n. Both submissions reverse in place, so the `build` hook hands each timed repeat a freshly built, un-reversed chain -- without that, repeats 2 and 3 would be measuring an already-reversed list, which is O(1) work from the old head",
         "generalized_note": "uncapped: any list length, node values any ints. A solution that assumes a maximum length is correct only under NeetCode's constraints.",
     },
+    "same-binary-tree": {
+        "entry": "isSameTree",
+        "scalable": True,
+        "generate": _gen_same_binary_tree,
+        "build": _build_same_binary_tree,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of nodes in each of the two trees, so 2n nodes are built per call; both are complete trees (level-order fill) over the same n values, which makes them equal -- the comparison never short-circuits on a mismatch and always visits all n node pairs, this problem's worst case. Depth stays floor(log2(n)) and values are drawn uniformly from the fixed range -1000..1000, independent of n",
+        "generalized_note": "uncapped: both trees any size, values any ints, any shape. Equality is part of the problem, not a cap -- the trees must match in structure and in values. Note that unequal trees let a solution stop at the first difference, so the equal case measured here is the worst case, and a skewed tree makes recursion depth linear in n.",
+    },
+    "search-2d-matrix": {
+        "entry": "searchMatrix",
+        "scalable": True,
+        "generate": _gen_search_2d_matrix,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = total number of cells; the matrix is isqrt(n) rows by n // isqrt(n) columns, so both dimensions grow like sqrt(n) and neither is a constant a solution can be linear in for free. Cells are sampled without replacement from -10n..10n and laid out ascending in row-major order, so the whole matrix reads as one sorted array (each row ascending, and every value larger than the last value of the row above), and the target is always one of the cells -- never absent, so every run finds it. Expect a flat, near-zero slope from a binary search: O(log n) grows by a constant per doubling of n rather than scaling with it, while a full scan of every cell would come out linear. Note the whole ladder runs in single-digit microseconds for a binary search, close enough to the clock's resolution that the fit is noisy even when the shape is unmistakably logarithmic -- read the flatness, not the r^2",
+        "generalized_note": "uncapped: any number of rows and columns, values any ints. The ordering is part of the problem, not a cap -- each row is still ascending and each row's first value still exceeds the previous row's last. The target may be absent, in which case the answer is false.",
+    },
     "string-encode-and-decode": {
         "entry": "encode",
         "scalable": True,
@@ -662,6 +932,25 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "n = number of strings; each string's length is drawn from a fixed small range (3-12 chars) independent of n, so total character volume scales linearly with n",
         "generalized_note": "uncapped: any number of strings, each of any length. The character set is part of the problem, not a cap \u2014 input is still drawn from the 256 ASCII characters, so a delimiter outside that set remains safe. Widening to arbitrary Unicode is the statement's separate follow-up, not this generalization.",
+    },
+    "subsets": {
+        "entry": "subsets",
+        "scalable": False,
+        "generate": _gen_subsets,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "not benchmarked: the output is the power set, so a k-element array produces 2**k subsets and no solution can be sub-exponential in k. The benchmark ladder starts at n = 256 and doubles to 2**20, so even its first rung would ask for 2**256 subsets -- there is no ladder to walk here, and this is a fact about the problem rather than about any submission. The generator builds a 16-element array of distinct values drawn from -100..100 purely as documentation of the input shape",
+        "generalized_note": "uncapped: any array length, values any ints. Distinctness and the output contract are part of the problem, not caps -- the input has no duplicates, and every subset must appear exactly once, in any order. The stated length maximum is a cap and goes, but note that the output alone is 2**k subsets holding k * 2**(k-1) values in total, so exponential time in the array length is a floor no solution gets under.",
+    },
+    "subtree-of-a-binary-tree": {
+        "entry": "isSubtree",
+        "scalable": True,
+        "generate": _gen_subtree_of_a_binary_tree,
+        "build": _build_subtree_of_a_binary_tree,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of nodes in the main tree; it is a complete tree (level-order fill) over a shuffled permutation of range(n), so its depth is floor(log2(n)) and every value is distinct. subRoot is a fresh copy of the subtree hanging at the one node a pre-order search reaches last, so the answer is always True but only after every node has been visited -- pinned there rather than chosen at random, since a random target would make each rung of the ladder measure where the match happened to sit instead of n. Because the values are distinct, the per-node equality check fails on its first value comparison everywhere except at the true match (which is a single leaf), so what is measured is the traversal itself and not repeated deep comparisons",
+        "generalized_note": "uncapped: both trees any size, values any ints, any shape, and values may repeat. The matching condition is part of the problem, not a cap -- a match is still a node of the main tree whose entire subtree equals subRoot in both structure and values. Note that repeated values are what make a naive scan quadratic: with duplicates the per-node equality check can run deep at every node instead of failing on its first comparison.",
     },
     "three-integer-sum": {
         "entry": "threeSum",
