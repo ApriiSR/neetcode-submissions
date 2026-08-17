@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-17T00:19:58.378035+00:00",
+  "generated_at": "2026-08-17T00:25:12.669136+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -1397,6 +1397,34 @@
           "model": "k3",
           "slug": "implement-prefix-tree",
           "solved_at": "2026-08-16T17:19:13-07:00",
+          "statement": "implement-prefix-tree"
+        },
+        {
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-17T00:25:12.510157+00:00",
+          "complexity": {
+            "benchmark_model": "n^2",
+            "correctness": "incorrect",
+            "correctness_reason": "sys is never imported, so instantiating PrefixTree raises NameError on __init__ for any input; even with the import added, words longer than the 2000 recursion cap (permitted once the 1000-char limit is lifted) would blow the stack, tying correctness to the NeetCode length cap.",
+            "hash_dependent": false,
+            "notes": "Slicing word[1:] at every level is unidiomatic and quadratic; passing an index or iterating characters would give O(L). The newly added sys.setrecursionlimit call is both missing its import and recursively fragile \u2014 an iterative loop would avoid the depth issue entirely.",
+            "relation_to_previous": "revision",
+            "space": "O(T)",
+            "summary": "Recursive trie: each node holds a dict of children keyed by single characters plus a terminal flag; insert/search/startsWith recurse on word[1:]. Each recursion level copies the remaining string via slicing, so an operation on a length-L word costs O(L^2); total space is O(T) for T total inserted characters.",
+            "time_average": "O(L^2)",
+            "time_worst": "O(L^2)"
+          },
+          "file": "Data Structures & Algorithms/implement-prefix-tree/submission-3.py",
+          "golf": {
+            "bytes": 925,
+            "characters": 925,
+            "non_blank_lines": 28,
+            "tokens": 198
+          },
+          "model": "k3",
+          "relation_to_previous": "new-approach",
+          "slug": "implement-prefix-tree",
+          "solved_at": "2026-08-16T17:24:35-07:00",
           "statement": "implement-prefix-tree"
         }
       ]
