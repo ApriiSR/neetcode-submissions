@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-17T04:52:52.462984+00:00",
+  "generated_at": "2026-08-17T05:14:53.877165+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -3763,15 +3763,67 @@
       "submissions": [
         {
           "analysis_version": 8,
-          "analyzed_at": "2026-08-17T04:02:11.706570+00:00",
+          "analyzed_at": "2026-08-17T05:14:33.857611+00:00",
+          "benchmarks": {
+            "adversarial": null,
+            "benchmark_version": 2,
+            "best_fit": "2^n",
+            "best_fit_r2": 0.9962553706705622,
+            "k3_model": "n 2^n",
+            "k3_model_r2": 0.9951355082918014,
+            "r2": 0.9512781228502344,
+            "sizes": [
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21
+            ],
+            "slope": 7.736962281110513,
+            "times_ms": [
+              0.01233300000080817,
+              0.025006999997856383,
+              0.05046500000105425,
+              0.10603799999842067,
+              0.2188700000047561,
+              0.47823600000640454,
+              0.9729840000005652,
+              2.00909499999824,
+              4.284048000002372,
+              9.157258999998419,
+              18.989501999996605,
+              39.51425200000358,
+              83.8260840000018,
+              164.6203359999987,
+              347.50888599999996,
+              745.9520830000059,
+              1609.947013000003,
+              3490.2713379999996
+            ],
+            "truncated_by": null,
+            "unmeasured": null
+          },
           "complexity": {
-            "benchmark_model": "n^3 log n",
+            "benchmark_model": "n 2^n",
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "Converting each mask to a binary string with an f-string is a bit unidiomatic; using bit shifts (i >> j) & 1 or itertools-style backtracking would be cleaner. The true complexity O(n * 2^n) is exponential, so the benchmark model is clamped to the largest representable form in the allowed grammar.",
+            "notes": "The zero-padded format string correctly handles leading zeros, so no subset is missed. Bit-testing with shifts (i >> j) & 1 would avoid building an O(n) string per mask, but the asymptotic bound is unchanged.",
             "space": "O(n * 2^n)",
-            "summary": "Iterates over all 2^n bitmasks, formats each index as an n-bit binary string, and collects elements where the bit is '1' to build every subset. The runtime and space are dominated by the output, which contains 2^n subsets of up to n elements each.",
+            "summary": "Enumerates all 2^n bitmasks, formats each index as a zero-padded n-bit binary string, and collects nums[j] wherever the j-th bit is '1'. This matches the output-size floor of n * 2^(n-1) total elements.",
             "time_average": "O(n * 2^n)",
             "time_worst": "O(n * 2^n)"
           },
