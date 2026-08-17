@@ -413,11 +413,15 @@ own — and `generators.EXPONENTIAL_MODELS` adds `2^n` and `n 2^n`.
 
 For `subsets` that's the difference between a right answer and a wrong
 one. The best polynomial reaches r² = 0.59 against its measured times;
-the exponential forms reach 0.9955 (`2^n`) and 0.9959 (`n 2^n`). Note
-those last two barely separate from each other — in log space they
-differ only by a `log n` term — so "exponential, not polynomial" is a
-strong reading of that fit and "`n 2^n` rather than `2^n`" is a weak
-one. The reported log-log **slope is meaningless** for these problems
+both exponential forms clear 0.995. Note those two barely separate from
+each other — in log space they differ only by a `log n` term — so
+"exponential, not polynomial" is a strong reading of that fit and
+"`n 2^n` rather than `2^n`" is a weak one. That isn't hypothetical: the
+first two runs of this ladder disagreed about the winner, `n 2^n` by
+0.9959 to 0.9955 on one machine and `2^n` by 0.9963 to 0.9951 on the CI
+runner. Either way the *class* is unambiguous, and K3 — which has the
+source rather than a stopwatch — says `n 2^n`. The reported log-log
+**slope is meaningless** for these problems
 (it fits `log(time)` against `log(n)`, and an exponential curve is not a
 line in those coordinates — `subsets` reports 7.79); read `best_fit`.
 
