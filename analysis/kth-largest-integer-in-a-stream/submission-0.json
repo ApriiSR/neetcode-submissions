@@ -1,0 +1,26 @@
+{
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-17T00:35:22.216091+00:00",
+  "complexity": {
+    "benchmark_model": "n",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "Correct but suboptimal: a min-heap of size k gives O(log k) per add, and even keeping the sorted-list approach, bisect.insort would replace the manual scan idiomatically (still O(n) for the insert shift). The unused-looking loop is fine but reinventing bisect hurts readability.",
+    "space": "O(n)",
+    "summary": "Maintains the stream as a sorted list (built with sorted() in the constructor, O(n log n) once); each add() linearly scans for the insertion point, inserts val (O(n) due to list shifting), and returns stream[-k].",
+    "time_average": "O(n)",
+    "time_worst": "O(n)"
+  },
+  "file": "Data Structures & Algorithms/kth-largest-integer-in-a-stream/submission-0.py",
+  "golf": {
+    "bytes": 342,
+    "characters": 342,
+    "non_blank_lines": 10,
+    "tokens": 90
+  },
+  "model": "k3",
+  "slug": "kth-largest-integer-in-a-stream",
+  "solved_at": "2026-08-16T17:35:02-07:00",
+  "statement": "kth-largest-integer-in-a-stream"
+}
