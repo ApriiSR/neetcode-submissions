@@ -1,0 +1,26 @@
+{
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-17T04:02:11.706570+00:00",
+  "complexity": {
+    "benchmark_model": "n^3 log n",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "Converting each mask to a binary string with an f-string is a bit unidiomatic; using bit shifts (i >> j) & 1 or itertools-style backtracking would be cleaner. The true complexity O(n * 2^n) is exponential, so the benchmark model is clamped to the largest representable form in the allowed grammar.",
+    "space": "O(n * 2^n)",
+    "summary": "Iterates over all 2^n bitmasks, formats each index as an n-bit binary string, and collects elements where the bit is '1' to build every subset. The runtime and space are dominated by the output, which contains 2^n subsets of up to n elements each.",
+    "time_average": "O(n * 2^n)",
+    "time_worst": "O(n * 2^n)"
+  },
+  "file": "Data Structures & Algorithms/subsets/submission-0.py",
+  "golf": {
+    "bytes": 369,
+    "characters": 369,
+    "non_blank_lines": 11,
+    "tokens": 97
+  },
+  "model": "k3",
+  "slug": "subsets",
+  "solved_at": "2026-08-16T21:01:45-07:00",
+  "statement": "subsets"
+}
