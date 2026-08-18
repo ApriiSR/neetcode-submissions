@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-18T00:43:50.595370+00:00",
+  "generated_at": "2026-08-18T04:48:38.394724+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -1246,6 +1246,48 @@
         {
           "analysis_version": 8,
           "analyzed_at": "2026-08-18T00:31:51.231761+00:00",
+          "benchmarks": {
+            "adversarial": null,
+            "benchmark_version": 2,
+            "best_fit": "n",
+            "best_fit_r2": 0.9960166697730006,
+            "k3_model": "n",
+            "k3_model_r2": 0.9960166697730006,
+            "r2": 0.9968295719074443,
+            "sizes": [
+              256,
+              512,
+              1024,
+              2048,
+              4096,
+              8192,
+              16384,
+              32768,
+              65536,
+              131072,
+              262144,
+              524288,
+              1048576
+            ],
+            "slope": 1.0293962029647425,
+            "times_ms": [
+              0.11249599999985094,
+              0.3029000000083215,
+              0.7269940000043107,
+              1.7888870000035695,
+              2.4546600000121543,
+              4.331043999997064,
+              9.117391999993174,
+              20.443827999997666,
+              42.49526899999978,
+              89.39129400000922,
+              178.19662499999822,
+              372.29880000001003,
+              810.5203420000038
+            ],
+            "truncated_by": null,
+            "unmeasured": null
+          },
           "complexity": {
             "benchmark_model": "n",
             "correctness": "general",
@@ -1271,18 +1313,60 @@
         },
         {
           "analysis_version": 8,
-          "analyzed_at": "2026-08-18T00:43:50.422153+00:00",
+          "analyzed_at": "2026-08-18T04:47:56.405219+00:00",
+          "benchmarks": {
+            "adversarial": null,
+            "benchmark_version": 2,
+            "best_fit": "n log n",
+            "best_fit_r2": 0.998925557254726,
+            "k3_model": "n log n",
+            "k3_model_r2": 0.998925557254726,
+            "r2": 0.999826290565341,
+            "sizes": [
+              256,
+              512,
+              1024,
+              2048,
+              4096,
+              8192,
+              16384,
+              32768,
+              65536,
+              131072,
+              262144,
+              524288,
+              1048576
+            ],
+            "slope": 1.0778105912758724,
+            "times_ms": [
+              0.13459100000545732,
+              0.2535669999872425,
+              0.5454810000031785,
+              1.2422470000075236,
+              2.4600980000002437,
+              5.540977999999086,
+              11.12298000001033,
+              23.61501299999702,
+              52.449136999996426,
+              109.7206939999893,
+              230.77048300000058,
+              459.82796599999176,
+              962.7454139999969
+            ],
+            "truncated_by": null,
+            "unmeasured": null
+          },
           "complexity": {
             "benchmark_model": "n log n",
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "The generator expression is a mild improvement over the previous list comprehension; math.ceil(pile/k) could be written as -(-pile // k) to stay in integers, but this is purely stylistic.",
+            "notes": "Switching from a list comprehension to a generator inside sum() avoids an intermediate O(n) list, and starting the search at 1 removes the k==0 special case from the previous version. Both are tidy improvements; ceil(pile/k) could also be written -(-pile // k) to avoid the math import.",
             "relation_to_previous": "revision",
             "space": "O(1)",
-            "summary": "Binary searches the eating speed k in [1, max(piles)], testing feasibility with a linear pass that sums ceil(pile/k) hours per pile. The monotonic predicate (higher k always feasible if lower k is) guarantees the minimal feasible k is found.",
-            "time_average": "O(n log M), where M = max(piles)",
-            "time_worst": "O(n log M), where M = max(piles)"
+            "summary": "Binary searches the eating speed k over [1, max(piles)], using an O(n) feasibility check that sums ceil(pile/k) hours across all piles and compares against h. Monotonicity of the check guarantees the first feasible k is the minimum.",
+            "time_average": "O(n log M)",
+            "time_worst": "O(n log M)"
           },
           "file": "Data Structures & Algorithms/eating-bananas/submission-2.py",
           "golf": {
@@ -1552,6 +1636,148 @@
           "slug": "find-duplicate-integer",
           "solved_at": "2026-08-14T23:57:08-07:00",
           "statement": "find-duplicate-integer"
+        }
+      ]
+    },
+    "find-minimum-in-rotated-sorted-array": {
+      "submissions": [
+        {
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-18T04:48:07.127839+00:00",
+          "benchmarks": {
+            "adversarial": null,
+            "benchmark_version": 2,
+            "best_fit": "n",
+            "best_fit_r2": 0.9977644161941494,
+            "k3_model": "n",
+            "k3_model_r2": 0.9977644161941494,
+            "r2": 0.9991828869033522,
+            "sizes": [
+              256,
+              512,
+              1024,
+              2048,
+              4096,
+              8192,
+              16384,
+              32768,
+              65536,
+              131072,
+              262144,
+              524288,
+              1048576
+            ],
+            "slope": 1.0391532008430469,
+            "times_ms": [
+              0.005698000009601856,
+              0.01407099999539696,
+              0.03038000001254204,
+              0.06334300000787607,
+              0.13019499999700201,
+              0.26161399999580226,
+              0.543036999999913,
+              1.2130289999987554,
+              2.2384560000006104,
+              4.63712900000246,
+              8.927993000000356,
+              17.873852999997553,
+              36.088285999994696
+            ],
+            "truncated_by": null,
+            "unmeasured": null
+          },
+          "complexity": {
+            "benchmark_model": "n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "The try/except-as-control-flow is unidiomatic: iterating range(len(nums)-1) and returning nums[0] after the loop expresses the same logic without a bare except. The scaling note's rotated-by-one input is exactly this algorithm's worst case, so it benchmarks linear while a binary search would be O(log n).",
+            "space": "O(1)",
+            "summary": "Linear scan for the single index where nums[i] > nums[i+1], i.e., the rotation point; the minimum is nums[i+1]. If the scan reaches the last index (array fully sorted), an IndexError is caught and nums[0] is returned.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
+          "file": "Data Structures & Algorithms/find-minimum-in-rotated-sorted-array/submission-1.py",
+          "golf": {
+            "bytes": 226,
+            "characters": 226,
+            "non_blank_lines": 7,
+            "tokens": 58
+          },
+          "model": "k3",
+          "slug": "find-minimum-in-rotated-sorted-array",
+          "solved_at": "2026-08-17T17:59:40-07:00",
+          "statement": "find-minimum-in-rotated-sorted-array"
+        },
+        {
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-18T04:48:26.662330+00:00",
+          "benchmarks": {
+            "adversarial": null,
+            "benchmark_version": 2,
+            "best_fit": "log n",
+            "best_fit_r2": 0.4277712529233856,
+            "k3_model": "log n",
+            "k3_model_r2": 0.4277712529233856,
+            "r2": 0.9542630591063567,
+            "sizes": [
+              256,
+              512,
+              1024,
+              2048,
+              4096,
+              8192,
+              16384,
+              32768,
+              65536,
+              131072,
+              262144,
+              524288,
+              1048576
+            ],
+            "slope": 0.4083976198973781,
+            "times_ms": [
+              0.0006559999974342645,
+              0.0006650000017316415,
+              0.0007800000076940705,
+              0.0009259999984578826,
+              0.0008899999954792293,
+              0.0014719999938961337,
+              0.0018439999962538423,
+              0.004246000003149675,
+              0.004164999992894991,
+              0.004904000007854847,
+              0.00964299999850482,
+              0.012310000002457855,
+              0.012581999996541526
+            ],
+            "truncated_by": null,
+            "unmeasured": null
+          },
+          "complexity": {
+            "benchmark_model": "log n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Slightly unusual formulation (half-open window plus a modular index at the end instead of the more common nums[mid] vs nums[right] test), but the invariant is sound and it handles the zero-rotation case via the modulo wrap.",
+            "relation_to_previous": "new-approach",
+            "space": "O(1)",
+            "summary": "Binary search for the rotation descent: maintains a window [start, end) in which the single drop must lie, comparing nums[start] with nums[mid] to decide which half to keep, then returns the element just after the final start index (wrapping for the unrotated case).",
+            "time_average": "O(log n)",
+            "time_worst": "O(log n)"
+          },
+          "file": "Data Structures & Algorithms/find-minimum-in-rotated-sorted-array/submission-2.py",
+          "golf": {
+            "bytes": 329,
+            "characters": 329,
+            "non_blank_lines": 11,
+            "tokens": 78
+          },
+          "model": "k3",
+          "relation_to_previous": "new-approach",
+          "slug": "find-minimum-in-rotated-sorted-array",
+          "solved_at": "2026-08-17T18:46:19-07:00",
+          "statement": "find-minimum-in-rotated-sorted-array"
         }
       ]
     },

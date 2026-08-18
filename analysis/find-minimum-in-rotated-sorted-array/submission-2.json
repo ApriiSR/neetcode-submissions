@@ -1,0 +1,28 @@
+{
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-18T04:48:26.662330+00:00",
+  "complexity": {
+    "benchmark_model": "log n",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "Slightly unusual formulation (half-open window plus a modular index at the end instead of the more common nums[mid] vs nums[right] test), but the invariant is sound and it handles the zero-rotation case via the modulo wrap.",
+    "relation_to_previous": "new-approach",
+    "space": "O(1)",
+    "summary": "Binary search for the rotation descent: maintains a window [start, end) in which the single drop must lie, comparing nums[start] with nums[mid] to decide which half to keep, then returns the element just after the final start index (wrapping for the unrotated case).",
+    "time_average": "O(log n)",
+    "time_worst": "O(log n)"
+  },
+  "file": "Data Structures & Algorithms/find-minimum-in-rotated-sorted-array/submission-2.py",
+  "golf": {
+    "bytes": 329,
+    "characters": 329,
+    "non_blank_lines": 11,
+    "tokens": 78
+  },
+  "model": "k3",
+  "relation_to_previous": "new-approach",
+  "slug": "find-minimum-in-rotated-sorted-array",
+  "solved_at": "2026-08-17T18:46:19-07:00",
+  "statement": "find-minimum-in-rotated-sorted-array"
+}

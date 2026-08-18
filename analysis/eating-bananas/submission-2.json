@@ -1,17 +1,17 @@
 {
   "analysis_version": 8,
-  "analyzed_at": "2026-08-18T00:43:50.422153+00:00",
+  "analyzed_at": "2026-08-18T04:47:56.405219+00:00",
   "complexity": {
     "benchmark_model": "n log n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "The generator expression is a mild improvement over the previous list comprehension; math.ceil(pile/k) could be written as -(-pile // k) to stay in integers, but this is purely stylistic.",
+    "notes": "Switching from a list comprehension to a generator inside sum() avoids an intermediate O(n) list, and starting the search at 1 removes the k==0 special case from the previous version. Both are tidy improvements; ceil(pile/k) could also be written -(-pile // k) to avoid the math import.",
     "relation_to_previous": "revision",
     "space": "O(1)",
-    "summary": "Binary searches the eating speed k in [1, max(piles)], testing feasibility with a linear pass that sums ceil(pile/k) hours per pile. The monotonic predicate (higher k always feasible if lower k is) guarantees the minimal feasible k is found.",
-    "time_average": "O(n log M), where M = max(piles)",
-    "time_worst": "O(n log M), where M = max(piles)"
+    "summary": "Binary searches the eating speed k over [1, max(piles)], using an O(n) feasibility check that sums ceil(pile/k) hours across all piles and compares against h. Monotonicity of the check guarantees the first feasible k is the minimum.",
+    "time_average": "O(n log M)",
+    "time_worst": "O(n log M)"
   },
   "file": "Data Structures & Algorithms/eating-bananas/submission-2.py",
   "golf": {
