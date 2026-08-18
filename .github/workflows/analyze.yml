@@ -17,6 +17,13 @@ concurrency:
 jobs:
   analyze:
     runs-on: ubuntu-latest
+    # A hung step doesn't just lose its own run: this workflow is serialized on
+    # a concurrency group, so it holds the lock and every submission pushed
+    # behind it is cancelled while queued (only one run may be pending, so each
+    # new trigger evicts the last). That happened on 2026-08-18 — a wedged
+    # render setup ran out the default 6h timeout and silently swallowed two
+    # problems. Runs normally finish in under two minutes.
+    timeout-minutes: 30
     permissions:
       contents: write
     steps:
@@ -48,29 +55,13 @@ jobs:
           PYTHONHASHSEED: "0"
         run: python3 scripts/benchmark.py
 
-      - name: Set up screenshot rendering
-        # Only meaningful when we're about to try rendering an image, i.e.
-        # analysis actually succeeded — see the announce step's condition.
-        if: always() && steps.analysis.outcome == 'success'
-        uses: ./.github/actions/setup-render
-
-      - name: Announce new submissions
-        # Runs whether or not benchmarking succeeded — a benchmark failure
-        # shouldn't swallow an otherwise-good analysis announcement — but
-        # skipped outright if the analysis step itself failed, since that's
-        # what actually produces the new-submissions list and source
-        # records announce.py reads. `if: always()` alone isn't enough
-        # (it would also fire after a failed analysis step); checking
-        # steps.analysis.outcome directly is unambiguous about which
-        # failure this is meant to tolerate. (announce.py still posts if
-        # freeze is missing or fails — better a bare embed than silence —
-        # but exits non-zero so the imageless post shows up here too.)
-        if: always() && steps.analysis.outcome == 'success'
-        env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: python3 scripts/announce.py
-
       - name: Commit and push analysis
+        # Ahead of the render and announce steps on purpose. Analysis and
+        # benchmark results are the durable output; the screenshot is
+        # cosmetic. Ordered the other way, a hang or failure in the render
+        # setup threw away a completed analysis pass — which is exactly what
+        # happened on 2026-08-18, when eating-bananas submission-2 was
+        # analyzed and benchmarked at 00:43:50 and then lost.
         if: always()
         run: |
           git config user.name "github-actions[bot]"
@@ -88,9 +79,10 @@ jobs:
           # ANALYSIS_VERSION bump, when every run rewrites every file and two
           # overlapping runs conflict on all of them: both sides are equally
           # valid regenerated output, so picking one is right and stopping is
-          # not. Failing here loses the whole pass, and silently: the
-          # announcement has already gone out by this point, so the channel
-          # says a submission landed while the site never sees it.
+          # not. Failing here loses the whole pass — and since this now runs
+          # before the announcement, the channel stays quiet about a
+          # submission the site never received, rather than claiming it
+          # landed.
           for attempt in 1 2 3; do
             if git push; then
               exit 0
@@ -102,3 +94,28 @@ jobs:
             }
           done
           git push
+
+      - name: Set up screenshot rendering
+        # Only meaningful when we're about to try rendering an image, i.e.
+        # analysis actually succeeded — see the announce step's condition.
+        # Normally 20 seconds; the apt-get inside it is what hung for hours on
+        # 2026-08-18, so it carries its own bound well under the job's.
+        if: always() && steps.analysis.outcome == 'success'
+        timeout-minutes: 5
+        uses: ./.github/actions/setup-render
+
+      - name: Announce new submissions
+        # Runs whether or not benchmarking succeeded — a benchmark failure
+        # shouldn't swallow an otherwise-good analysis announcement — but
+        # skipped outright if the analysis step itself failed, since that's
+        # what actually produces the new-submissions list and source
+        # records announce.py reads. `if: always()` alone isn't enough
+        # (it would also fire after a failed analysis step); checking
+        # steps.analysis.outcome directly is unambiguous about which
+        # failure this is meant to tolerate. (announce.py still posts if
+        # freeze is missing or fails — better a bare embed than silence —
+        # but exits non-zero so the imageless post shows up here too.)
+        if: always() && steps.analysis.outcome == 'success'
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python3 scripts/announce.py
