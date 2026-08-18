@@ -1,0 +1,28 @@
+{
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-18T05:49:25.563647+00:00",
+  "complexity": {
+    "benchmark_model": "n",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "Setting sys.setrecursionlimit(2**29) is a hack to survive deep (skewed) trees; it risks crashing the C stack for pathological depths, so an explicit iterative stack would be more robust. The conditional only triggers on the outermost call, which is fine since the default argument is -inf only there.",
+    "relation_to_previous": "revision",
+    "space": "O(n)",
+    "summary": "Recursive DFS that threads the maximum value seen on the root-to-current path, counting a node as good when its value meets or exceeds that running maximum.",
+    "time_average": "O(n)",
+    "time_worst": "O(n)"
+  },
+  "file": "Data Structures & Algorithms/count-good-nodes-in-binary-tree/submission-1.py",
+  "golf": {
+    "bytes": 562,
+    "characters": 562,
+    "non_blank_lines": 15,
+    "tokens": 88
+  },
+  "model": "k3",
+  "relation_to_previous": "new-approach",
+  "slug": "count-good-nodes-in-binary-tree",
+  "solved_at": "2026-08-17T22:49:07-07:00",
+  "statement": "count-good-nodes-in-binary-tree"
+}
