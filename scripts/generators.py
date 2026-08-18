@@ -290,6 +290,17 @@ def _adv_duplicate_integer(n):
     return (_int_collisions(n),)
 
 
+def _gen_eating_bananas(n, rng):
+    # Pile sizes grow with n, so the search over eating speeds gains rungs as
+    # the piles gain count -- a fixed pile range would have made the number of
+    # halvings a constant the search rides for free. The hour budget is 2n,
+    # which always admits an answer (eating at max(piles) clears one pile an
+    # hour, n hours) while still forcing the speed well above 1.
+    size = max(1, n)
+    piles = [rng.randint(1, 10 * size) for _ in range(size)]
+    return (piles, 2 * size)
+
+
 def _gen_evaluate_reverse_polish_notation(n, rng):
     # Builds a valid postfix expression by evaluating it as it goes, so "/"
     # is only emitted when the divisor is nonzero and "*" only when the
@@ -343,6 +354,16 @@ def _gen_find_duplicate_integer(n, rng):
 def _adv_find_duplicate_integer(n):
     values = _int_collisions(max(2, n) - 1)
     return (values + [values[-1]],)
+
+
+def _gen_find_minimum_in_rotated_sorted_array(n, rng):
+    # Rotated by exactly one position, which puts the minimum at the last
+    # index: a left-to-right scan for the one descent has to walk the whole
+    # array before it finds it, this problem's no-early-exit case, while a
+    # binary search takes the same log2(n) steps at any rotation.
+    size = max(2, n)
+    values = sorted(rng.sample(range(-size * 10, size * 10 + 1), size))
+    return (values[1:] + values[:1],)
 
 
 def _gen_implement_prefix_tree(n, rng):
@@ -759,6 +780,15 @@ PROBLEMS = {
         "scaling_note": "n = array length; values are sampled without replacement from range(4n+1), so the value range scales with n too",
         "generalized_note": "uncapped: any array length, values any ints \u2014 including values an adversary picks to collide in CPython's hash (multiples of 2**61-1), which the stated -10^9..10^9 range would have made impossible.",
     },
+    "eating-bananas": {
+        "entry": "minEatingSpeed",
+        "scalable": True,
+        "generate": _gen_eating_bananas,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of piles; pile sizes are drawn uniformly from 1..10n, so the range of candidate eating speeds grows with n too and a binary search over it takes about log2(10n) steps rather than a constant number. Each feasibility check sums a ceiling division over all n piles, so a binary-searching submission does about n log n work, while a submission that walks candidate speeds one at a time is linear in max(piles) as well as in n. The hour budget is 2n, which always leaves an answer -- eating at max(piles) clears one pile an hour, n hours, inside the budget -- and puts the answer around 3-4 times n, well away from both ends of the search range. Piles are drawn independently and may repeat; nothing in this problem requires them distinct",
+        "generalized_note": "uncapped: any number of piles, pile sizes and hour budget any positive ints. That the budget is at least the number of piles is part of the problem, not a cap -- Koko eats from only one pile per hour, so a smaller budget admits no speed at all.",
+    },
     "evaluate-reverse-polish-notation": {
         "entry": "evalRPN",
         "scalable": True,
@@ -776,6 +806,15 @@ PROBLEMS = {
         "adversarial_note": "n-1 distinct multiples of 2**61-1, all hashing to 0, followed by a repeat of the last of them -- so a set-based scan does n-1 colliding inserts before it reaches the duplicate; the repeat itself is an exact-key hit, which CPython resolves by direct slot lookup, so the degradation comes entirely from the distinct colliding keys ahead of it",
         "scaling_note": "n = array length; the array is a shuffled permutation of 1..n-1 plus one extra copy of a uniformly chosen value from that same range, so exactly one value repeats and the value range scales with n. The two occurrences sit at uniformly random positions rather than being pinned to either end: a scan that stops at the first repeat therefore reaches it about two thirds of the way through on average, and an all-pairs scan reaches the earlier occurrence about a third of the way in, so both do a fixed fraction of their worst case rather than a fraction that shrinks with n",
         "generalized_note": "uncapped: any array length, values any ints — including values an adversary picks to collide in CPython's hash (multiples of 2**61-1). The precondition that some value repeats is part of the problem and stays, but the 1..n-1 value range is a cap, so it goes: that range is what lets the array be read as a function from indices to indices, so a cycle-detection or index-marking solution is correct only under it.",
+    },
+    "find-minimum-in-rotated-sorted-array": {
+        "entry": "findMin",
+        "scalable": True,
+        "generate": _gen_find_minimum_in_rotated_sorted_array,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = array length; n distinct values are sampled without replacement from -10n..10n, sorted ascending, then rotated left by exactly one position, which puts the minimum at the last index. That is this problem's no-early-exit case for a left-to-right scan looking for the single descent: it has to walk the whole array before reaching it, so such a submission comes out linear. A binary search is unaffected by where the rotation falls -- it halves the interval a fixed log2(n) times either way -- so expect a flat, near-zero slope from one. Note the whole ladder runs in microseconds for a binary search, close to the clock's resolution, so read the flatness rather than the r^2",
+        "generalized_note": "uncapped: any array length, values any ints. Sortedness, distinctness and the rotation are part of the problem, not caps -- the array is still a strictly increasing sequence rotated some number of positions. The rotation may be zero, which leaves the array plainly sorted and its minimum first; the rotation of one used here is the opposite extreme.",
     },
     "implement-prefix-tree": {
         "entry": None,
