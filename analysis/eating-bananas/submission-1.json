@@ -1,0 +1,26 @@
+{
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-18T00:31:51.231761+00:00",
+  "complexity": {
+    "benchmark_model": "n",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "M = max(piles) is value-dependent, not size-dependent, so log M does not scale with n (and is capped at ~30 under the statement's constraints). The left debug print(start, end) should be removed. The list comprehension inside sum() builds an O(n) intermediate list; a generator expression sum(math.ceil(p/k) for p in piles) would make space O(1). The k == 0 guard is unnecessary if the search starts at 1.",
+    "space": "O(n)",
+    "summary": "Binary search over the eating rate k in [0, max(piles)+1], testing feasibility by summing ceil(pile/k) hours over all piles and narrowing toward the minimum feasible k.",
+    "time_average": "O(n log M)",
+    "time_worst": "O(n log M)"
+  },
+  "file": "Data Structures & Algorithms/eating-bananas/submission-1.py",
+  "golf": {
+    "bytes": 510,
+    "characters": 510,
+    "non_blank_lines": 18,
+    "tokens": 118
+  },
+  "model": "k3",
+  "slug": "eating-bananas",
+  "solved_at": "2026-08-17T17:31:20-07:00",
+  "statement": "eating-bananas"
+}
