@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-18T05:49:25.734938+00:00",
+  "generated_at": "2026-08-18T19:57:46.844192+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -2316,6 +2316,36 @@
           "slug": "largest-rectangle-in-histogram",
           "solved_at": "2026-08-14T11:18:17-07:00",
           "statement": "largest-rectangle-in-histogram"
+        }
+      ]
+    },
+    "last-stone-weight": {
+      "submissions": [
+        {
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-18T19:57:46.669205+00:00",
+          "complexity": {
+            "benchmark_model": "n^2 log n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "`stones.pop() and stones.pop()` is a hacky one-liner that relies on popped weights always being >= 1 (truthy) to execute the second pop; two plain `stones.pop()` calls would be clearer. Re-sorting from scratch each round is wasteful \u2014 a max-heap gives O(n log n) total.",
+            "space": "O(n)",
+            "summary": "Simulates the smash process by fully re-sorting the list each iteration, popping the two heaviest stones and pushing back the difference when they differ, until at most one stone remains.",
+            "time_average": "O(n^2 log n)",
+            "time_worst": "O(n^2 log n)"
+          },
+          "file": "Data Structures & Algorithms/last-stone-weight/submission-1.py",
+          "golf": {
+            "bytes": 410,
+            "characters": 410,
+            "non_blank_lines": 13,
+            "tokens": 92
+          },
+          "model": "k3",
+          "slug": "last-stone-weight",
+          "solved_at": "2026-08-18T12:57:22-07:00",
+          "statement": "last-stone-weight"
         }
       ]
     },
