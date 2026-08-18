@@ -98,10 +98,16 @@ jobs:
       - name: Set up screenshot rendering
         # Only meaningful when we're about to try rendering an image, i.e.
         # analysis actually succeeded — see the announce step's condition.
-        # Normally 20 seconds; the apt-get inside it is what hung for hours on
-        # 2026-08-18, so it carries its own bound well under the job's.
+        # Effectively all apt-get: on 2026-08-18 the freeze binary came from
+        # cache in 1.8s while `apt-get update` plus the two packages took
+        # 2m37s, 2m34s of which was silent fetching from the runner's mirrors
+        # before a ~3s unpack. That fetch is also what hung for hours earlier
+        # the same day, so the hang looks like the tail of this distribution
+        # rather than a distinct failure: 20s typical, 2m37s seen, unbounded
+        # seen. Hence a bound generous against the slow case (10m) but still
+        # decisive against the stuck one, under the job's own 30.
         if: always() && steps.analysis.outcome == 'success'
-        timeout-minutes: 5
+        timeout-minutes: 10
         uses: ./.github/actions/setup-render
 
       - name: Announce new submissions
