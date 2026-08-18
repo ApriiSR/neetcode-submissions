@@ -1,0 +1,26 @@
+{
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-18T05:15:01.849930+00:00",
+  "complexity": {
+    "benchmark_model": "n",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "Correct but slightly wasteful: it materializes full per-level lists when only the last node of each level is needed; peeking at current_frontier[-1] per level (or doing DFS right-first while tracking depth) avoids the intermediate lists, though the queue still costs O(n). The helper relies on deque/Optional/List being available from the LeetCode preamble, which is idiomatic there.",
+    "space": "O(n)",
+    "summary": "Runs an iterative BFS to build every level of the tree as a list, then returns the last node value of each level, which is exactly the right-side view.",
+    "time_average": "O(n)",
+    "time_worst": "O(n)"
+  },
+  "file": "Data Structures & Algorithms/binary-tree-right-side-view/submission-0.py",
+  "golf": {
+    "bytes": 893,
+    "characters": 893,
+    "non_blank_lines": 25,
+    "tokens": 137
+  },
+  "model": "k3",
+  "slug": "binary-tree-right-side-view",
+  "solved_at": "2026-08-17T22:14:42-07:00",
+  "statement": "binary-tree-right-side-view"
+}
