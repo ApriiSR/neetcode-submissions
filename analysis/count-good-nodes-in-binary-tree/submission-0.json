@@ -1,0 +1,26 @@
+{
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-18T05:31:26.412166+00:00",
+  "complexity": {
+    "benchmark_model": "n",
+    "correctness": "incorrect",
+    "correctness_reason": "A skewed (chain) tree of more than ~1000 nodes \u2014 permitted by the stated limit of 100,000 nodes \u2014 exceeds Python's default recursion limit and raises RecursionError.",
+    "hash_dependent": false,
+    "notes": "Very terse but idiomatic; using bool-as-int addition for the good-node count is clever though slightly less readable than an explicit conditional. Space is O(h) for the recursion stack, which is O(n) on a skewed tree.",
+    "space": "O(n)",
+    "summary": "Recursive DFS carrying the maximum value seen along the root-to-current path; a node is good iff its value is at least that running max, and the results from both subtrees are summed. Each node is visited once.",
+    "time_average": "O(n)",
+    "time_worst": "O(n)"
+  },
+  "file": "Data Structures & Algorithms/count-good-nodes-in-binary-tree/submission-0.py",
+  "golf": {
+    "bytes": 483,
+    "characters": 483,
+    "non_blank_lines": 13,
+    "tokens": 70
+  },
+  "model": "k3",
+  "slug": "count-good-nodes-in-binary-tree",
+  "solved_at": "2026-08-17T22:30:54-07:00",
+  "statement": "count-good-nodes-in-binary-tree"
+}
