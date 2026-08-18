@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-18T00:31:51.374971+00:00",
+  "generated_at": "2026-08-18T00:43:50.595370+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -1267,6 +1267,34 @@
           "model": "k3",
           "slug": "eating-bananas",
           "solved_at": "2026-08-17T17:31:20-07:00",
+          "statement": "eating-bananas"
+        },
+        {
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-18T00:43:50.422153+00:00",
+          "complexity": {
+            "benchmark_model": "n log n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "The generator expression is a mild improvement over the previous list comprehension; math.ceil(pile/k) could be written as -(-pile // k) to stay in integers, but this is purely stylistic.",
+            "relation_to_previous": "revision",
+            "space": "O(1)",
+            "summary": "Binary searches the eating speed k in [1, max(piles)], testing feasibility with a linear pass that sums ceil(pile/k) hours per pile. The monotonic predicate (higher k always feasible if lower k is) guarantees the minimal feasible k is found.",
+            "time_average": "O(n log M), where M = max(piles)",
+            "time_worst": "O(n log M), where M = max(piles)"
+          },
+          "file": "Data Structures & Algorithms/eating-bananas/submission-2.py",
+          "golf": {
+            "bytes": 428,
+            "characters": 428,
+            "non_blank_lines": 14,
+            "tokens": 101
+          },
+          "model": "k3",
+          "relation_to_previous": "new-approach",
+          "slug": "eating-bananas",
+          "solved_at": "2026-08-17T17:43:28-07:00",
           "statement": "eating-bananas"
         }
       ]
