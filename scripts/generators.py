@@ -242,6 +242,7 @@ def _gen_binary_search(n, rng):
 
 def _gen_binary_tree(n, rng):
     # Shared by balanced-binary-tree, binary-tree-diameter,
+    # binary-tree-right-side-view, count-good-nodes-in-binary-tree,
     # depth-of-binary-tree, invert-a-binary-tree and
     # level-order-traversal-of-binary-tree: each takes one root and reads
     # nothing but the shape and the values. Returned as a tuple rather than
@@ -404,6 +405,17 @@ def _gen_kth_largest_integer_in_a_stream(n, rng):
 
 def _gen_largest_rectangle_in_histogram(n, rng):
     return ([rng.randint(0, 10000) for _ in range(n)],)
+
+
+def _gen_last_stone_weight(n, rng):
+    # Weights are sampled without replacement, so no two stones start equal.
+    # That is what pins down the pass count: a pass destroys two stones when
+    # the heaviest two match exactly and one otherwise, so distinct starting
+    # weights mean about n passes rather than a count that drifts with how
+    # often the top of the pile happens to tie. The range scales with n for
+    # the same reason -- a fixed one would be almost all ties by the top of
+    # the ladder.
+    return (rng.sample(range(1, 4 * n + 1), n),)
 
 
 def _gen_linked_list_cycle_detection(n, rng):
@@ -619,6 +631,10 @@ def _adv_top_k_elements_in_list(n):
     return (_int_collisions(n), k)
 
 
+def _gen_trapping_rain_water(n, rng):
+    return ([rng.randint(0, 1000) for _ in range(n)],)
+
+
 def _gen_two_integer_sum(n, rng):
     nums = rng.sample(range(-n * 10, n * 10 + 1), n)
     i, j = rng.sample(range(n), 2)
@@ -724,6 +740,16 @@ PROBLEMS = {
         "scaling_note": "n = number of nodes; the tree is filled level order, so it is complete, its depth is floor(log2(n)) and every node's two subtrees are near-equal in size -- meaning the longest path runs through the root and a submission that recomputes subtree height at each node does work proportional to n * depth, where a single bottom-up pass stays proportional to n. Node values are drawn uniformly from the fixed range -1000..1000, independent of n; the diameter depends only on the shape",
         "generalized_note": "uncapped: any number of nodes, values any ints, any shape. The diameter definition is part of the problem, not a cap -- still the longest path between any two nodes, counted in edges, and it need not pass through the root. A skewed tree makes both the height and a recursive solution's stack depth linear in n.",
     },
+    "binary-tree-right-side-view": {
+        "entry": "rightSideView",
+        "scalable": True,
+        "generate": _gen_binary_tree,
+        "build": _build_one_tree,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of nodes; the tree is filled level order, so it is complete, it has floor(log2(n)) + 1 levels and each level is twice the width of the one above -- the widest level alone holds about half of all n nodes. The answer is one value per level, so it stays logarithmic in n while the traversal still has to reach every node: the measured time tracks the node count, not the output length. A submission that materialises each full level before taking its last element allocates on the order of n values of scratch on the way to that log-sized answer, and one whose per-level work is quadratic in the level width (popping from the front of a Python list, say) pays about (n/2)**2 on the widest level alone, where a deque stays linear. Node values are drawn uniformly from the fixed range -1000..1000, independent of n, and nothing reads them beyond copying the rightmost of each level into the output",
+        "generalized_note": "uncapped: any number of nodes, values any ints, any shape. The output contract is part of the problem, not a cap -- still the first node visible at each depth looking from the right, top to bottom. A skewed tree inverts this input's shape: n levels of one node each rather than log n levels whose widths double, so the answer becomes as long as the tree is tall and a recursive solution needs stack depth proportional to n.",
+    },
     "buy-and-sell-crypto": {
         "entry": "maxProfit",
         "scalable": True,
@@ -751,6 +777,16 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "n = number of nodes; each node's random pointer targets a uniformly chosen node ~75% of the time and is null the other ~25%, so the number of random pointers to follow scales linearly with n and their targets are spread across the whole list rather than clustered. Values are drawn from the fixed range -1000..1000, independent of n",
         "generalized_note": "uncapped: any number of nodes, values any ints. The pointer structure is part of the problem, not a cap — each random pointer still targets some node in the list or null. The dict here is keyed on node objects, so its hashes come from CPython's identity hash and the input cannot choose them.",
+    },
+    "count-good-nodes-in-binary-tree": {
+        "entry": "goodNodes",
+        "scalable": True,
+        "generate": _gen_binary_tree,
+        "build": _build_one_tree,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of nodes; the tree is filled level order, so it is complete and its depth is floor(log2(n)) -- shallow enough that a recursive submission never approaches CPython's stack limit anywhere on the ladder. Every node is visited whatever the values are: the running maximum of the root-to-node path is carried downward and nothing prunes, so the work is proportional to n and independent of how many nodes turn out to be good. Node values are drawn uniformly from the fixed range -1000..1000, independent of n, so a node at depth d is good with probability about 1/(d+1) and the expected number of good nodes is on the order of n / log2(n) -- the answer grows more slowly than n while the traversal does not",
+        "generalized_note": "uncapped: any number of nodes, values any ints, any shape. The definition is part of the problem, not a cap -- a node is good when no node on the path from the root down to it holds a strictly greater value, so the root is always good. A skewed tree makes both the depth and a recursive solution's stack linear in n, and makes the good-node count as large as n when values ascend along that single path.",
     },
     "daily-temperatures": {
         "entry": "dailyTemperatures",
@@ -870,6 +906,15 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "n = number of bars; each height is drawn uniformly from 0..10000, NeetCode's full stated range for heights[i], independent of n -- so a submission that sweeps every height value from 0 to max(heights) does a bounded (<=10001) number of linear passes: still O(n) in n, but with a constant large enough that the size ladder hits its per-size time cap around n = 2**13 to 2**14, depending on machine speed",
         "generalized_note": "uncapped: any number of bars, heights any non-negative ints. Note the stated 0..10000 height cap is what makes a height-indexed sweep O(n); without it such a solution scales with the largest height instead.",
+    },
+    "last-stone-weight": {
+        "entry": "lastStoneWeight",
+        "scalable": True,
+        "generate": _gen_last_stone_weight,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of stones; weights are sampled without replacement from range(1, 4n+1), so the weight range scales with n and no two stones start equal. That fixes the number of smashes at about n: a pass destroys both of the two heaviest stones only when they match exactly, and otherwise destroys one and writes their difference back, so with distinct weights the pile shrinks by one per pass. Ties can still appear later among the differences, which are small (the gap between adjacent order statistics averages about 4) and re-enter at the bottom of the order, so the top of the pile stays distinct until late. Each pass therefore sees a list one shorter than the last, and a submission that re-sorts the whole pile every pass does quadratic total work -- the per-pass sort itself stays close to linear rather than n log n, since Timsort finds one long ascending run plus the single element the previous pass disturbed -- measured at about 20x cheaper than sorting the same list shuffled -- while a heap-based submission pays n to heapify and then about n pops and pushes at log n each",
+        "generalized_note": "uncapped: any number of stones, weights any positive ints. The smash rule is part of the problem, not a cap: the two heaviest stones are destroyed outright if equal, and otherwise the heavier is replaced by the difference of the two, repeating until at most one stone is left -- the answer is that stone's weight, or 0 if none is.",
     },
     "level-order-traversal-of-binary-tree": {
         "entry": "levelOrder",
@@ -1071,6 +1116,15 @@ PROBLEMS = {
         "adversarial_note": "n distinct multiples of 2**61-1, all hashing to 0, so every dict insert/lookup collides",
         "scaling_note": "n = array length; k (the count requested) is capped at min(5, n), so k stays bounded by a constant and does not grow with n",
         "generalized_note": "uncapped: any array length, values any ints \u2014 including adversarially colliding ones, which the stated -1000..1000 range would have made impossible. k stays between 1 and the number of distinct elements.",
+    },
+    "trapping-rain-water": {
+        "entry": "trap",
+        "scalable": True,
+        "generate": _gen_trapping_rain_water,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of bars; each height is drawn uniformly from the fixed range 0..1000, independent of n, so heights repeat freely, zero-height bars do occur (about 1 in 1001) and the tallest bars are spread through the array rather than sitting at its ends. Because that range is fixed, the number of distinct water levels a sweep can encounter is bounded by a constant rather than by n: a submission that refills a level array each time the smaller of its two end heights reaches a new maximum does at most about 1000 refills of O(n) each, so it measures as linear in n -- a bound this input's fixed height range supplies, not the algorithm. Nothing in the input shortens a prefix/suffix scan, either: the maxima are spread through the array, so recomputing max(height[:i]) and max(height[i+1:]) at an index copies and scans two slices whose lengths sum to n, at every index, with no early exit available",
+        "generalized_note": "uncapped: any number of bars, heights any non-negative ints. The geometry is part of the problem, not a cap -- the water above index i is still min(tallest bar at or left of i, tallest bar at or right of i) - height[i], floored at 0, and bars stay one unit wide in input order. Note the stated height cap is what bounds a level-sweeping solution's refill count; without it that count scales with the number of distinct heights, which can grow with n.",
     },
     "two-integer-sum": {
         "entry": "twoSum",
