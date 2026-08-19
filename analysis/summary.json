@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-18T19:57:46.844192+00:00",
+  "generated_at": "2026-08-19T00:38:43.806723+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -3094,6 +3094,76 @@
           "model": "k3",
           "slug": "max-water-container",
           "solved_at": "2026-08-15T12:37:57-07:00",
+          "statement": "max-water-container"
+        },
+        {
+          "analysis_version": 8,
+          "analyzed_at": "2026-08-19T00:38:41.923130+00:00",
+          "benchmarks": {
+            "adversarial": null,
+            "benchmark_version": 2,
+            "best_fit": "n",
+            "best_fit_r2": 0.9997974862800703,
+            "k3_model": "n",
+            "k3_model_r2": 0.9997974862800703,
+            "r2": 0.9999347843212355,
+            "sizes": [
+              256,
+              512,
+              1024,
+              2048,
+              4096,
+              8192,
+              16384,
+              32768,
+              65536,
+              131072,
+              262144,
+              524288,
+              1048576
+            ],
+            "slope": 1.0118567417893594,
+            "times_ms": [
+              0.037865999999553424,
+              0.08022899999815536,
+              0.16091999999900963,
+              0.32327200000281664,
+              0.6731949999974063,
+              1.325616999999113,
+              2.693388000004404,
+              5.425574000000211,
+              10.768612999996208,
+              21.120144999997592,
+              45.35661799999957,
+              87.7044769999955,
+              174.28300599999602
+            ],
+            "truncated_by": null,
+            "unmeasured": null
+          },
+          "complexity": {
+            "benchmark_model": "n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Clean and idiomatic; could drop the intermediate variables but readability is fine as is.",
+            "relation_to_previous": "new-approach",
+            "space": "O(1)",
+            "summary": "Classic two-pointer sweep: start at both ends, compute the area, and always move the pointer at the shorter bar inward, since moving the taller one can only shrink the area. Returns the best area found.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
+          "file": "Data Structures & Algorithms/max-water-container/submission-2.py",
+          "golf": {
+            "bytes": 367,
+            "characters": 367,
+            "non_blank_lines": 12,
+            "tokens": 83
+          },
+          "model": "k3",
+          "relation_to_previous": "new-approach",
+          "slug": "max-water-container",
+          "solved_at": "2026-08-18T17:38:26-07:00",
           "statement": "max-water-container"
         }
       ]

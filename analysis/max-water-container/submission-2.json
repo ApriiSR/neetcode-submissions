@@ -1,0 +1,28 @@
+{
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-19T00:38:41.923130+00:00",
+  "complexity": {
+    "benchmark_model": "n",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "Clean and idiomatic; could drop the intermediate variables but readability is fine as is.",
+    "relation_to_previous": "new-approach",
+    "space": "O(1)",
+    "summary": "Classic two-pointer sweep: start at both ends, compute the area, and always move the pointer at the shorter bar inward, since moving the taller one can only shrink the area. Returns the best area found.",
+    "time_average": "O(n)",
+    "time_worst": "O(n)"
+  },
+  "file": "Data Structures & Algorithms/max-water-container/submission-2.py",
+  "golf": {
+    "bytes": 367,
+    "characters": 367,
+    "non_blank_lines": 12,
+    "tokens": 83
+  },
+  "model": "k3",
+  "relation_to_previous": "new-approach",
+  "slug": "max-water-container",
+  "solved_at": "2026-08-18T17:38:26-07:00",
+  "statement": "max-water-container"
+}
