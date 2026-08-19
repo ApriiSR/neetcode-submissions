@@ -22,8 +22,15 @@ jobs:
     # behind it is cancelled while queued (only one run may be pending, so each
     # new trigger evicts the last). That happened on 2026-08-18 — a wedged
     # render setup ran out the default 6h timeout and silently swallowed two
-    # problems. Runs normally finish in under two minutes.
-    timeout-minutes: 30
+    # problems. An incremental run finishes in under two minutes, but the
+    # bound has to clear the worst legitimate case, not the usual one: an
+    # ANALYSIS_VERSION bump re-analyzes every submission, and at the 36s per
+    # record measured on 2026-08-19 that is ~46 minutes for 77 of them and
+    # grows with the corpus. A job timeout is a cancellation, so even the
+    # commit step's `if: always()` would not save the work. 90 still ends a
+    # wedge decisively -- the one that started this ran past four hours --
+    # and the render step carries its own far tighter bound below.
+    timeout-minutes: 90
     permissions:
       contents: write
     steps:

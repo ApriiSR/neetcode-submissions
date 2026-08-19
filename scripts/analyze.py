@@ -86,7 +86,7 @@ SUBMISSION_RE = re.compile(r"^submission-(\d+)\.py$")
 # the same guarantee a bump gives, without putting 66 correct analyses back
 # through a nondeterministic model. Bump as usual for any prompt change that
 # is not additive in this sense.
-ANALYSIS_VERSION = 8
+ANALYSIS_VERSION = 9
 
 # Per-request read timeout. Raised from 120s when the prompt grew (statement
 # + generalized note + a longer system prompt all push response latency up)
