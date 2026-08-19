@@ -1,0 +1,26 @@
+{
+  "analysis_version": 0,
+  "analyzed_at": "2026-08-15T01:37:43.804867+00:00",
+  "complexity": {
+    "benchmark_model": "n log n",
+    "correctness": "neetcode-only",
+    "correctness_reason": "Arrival times are compared as floats, so with the generalized unbounded magnitudes an input like target=10**20+1, position=[0,1], speed=[1,1] makes both float times round to the same value and the two fleets are wrongly merged (returns 1 instead of 2); within NeetCode's caps (values <= 1e6) correctly-rounded double division keeps the comparisons exact.",
+    "hash_dependent": false,
+    "notes": "Leftover debug print of math.ceil(...) inside the loop should be removed (also adds no asymptotic cost). Using float division for arrival times is fragile; comparing via cross-multiplication (target - pos1) * speed2 >= (target - pos2) * speed1 would be exact for arbitrary integers. List needs the usual typing import.",
+    "space": "O(n)",
+    "summary": "Sorts cars by position, then scans from closest-to-target backward, comparing each car's arrival time (as a float) against the current lead fleet's time: cars that arrive no later than the lead merge into its fleet, otherwise a new fleet is counted.",
+    "time_average": "O(n log n)",
+    "time_worst": "O(n log n)"
+  },
+  "file": "Data Structures & Algorithms/car-fleet/submission-4.py",
+  "golf": {
+    "bytes": 570,
+    "characters": 570,
+    "non_blank_lines": 14,
+    "tokens": 182
+  },
+  "model": "k3",
+  "slug": "car-fleet",
+  "solved_at": "2026-08-13T20:48:38-07:00",
+  "statement": "car-fleet"
+}

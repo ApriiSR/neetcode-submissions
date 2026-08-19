@@ -1,0 +1,26 @@
+{
+  "analysis_version": 0,
+  "analyzed_at": "2026-08-15T01:36:31.074994+00:00",
+  "complexity": {
+    "benchmark_model": "n^2",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "best_buy is dead code \u2014 it is updated but never used in the profit computation, and its initializer 100 hard-codes the capped price range. The natural O(n) single-pass solution (track running minimum and best profit) would be both simpler and faster.",
+    "space": "O(1)",
+    "summary": "Brute-force: for each buy day i, scans every later day j and keeps the maximum profit, returning 0 if none is profitable.",
+    "time_average": "O(n^2)",
+    "time_worst": "O(n^2)"
+  },
+  "file": "Data Structures & Algorithms/buy-and-sell-crypto/submission-0.py",
+  "golf": {
+    "bytes": 343,
+    "characters": 343,
+    "non_blank_lines": 9,
+    "tokens": 81
+  },
+  "model": "k3",
+  "slug": "buy-and-sell-crypto",
+  "solved_at": "2026-08-13T17:30:11-07:00",
+  "statement": "buy-and-sell-crypto"
+}

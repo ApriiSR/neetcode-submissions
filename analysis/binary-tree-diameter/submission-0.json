@@ -1,0 +1,26 @@
+{
+  "analysis_version": 0,
+  "analyzed_at": "2026-08-16T05:41:06.862025+00:00",
+  "complexity": {
+    "benchmark_model": "n^2",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "Computing height and diameter in a single post-order pass (returning height while updating a running maximum) would reduce this to O(n).",
+    "space": "O(n)",
+    "summary": "At each node the diameter through that node is maxDepth(left) + maxDepth(right), and the answer is the max over all nodes, computed by recursing on both subtrees. Since maxDepth is recomputed at every node, work is O(subtree size) per node, giving O(n log n) on balanced trees but O(n^2) on a degenerate (skewed) tree.",
+    "time_average": "O(n log n)",
+    "time_worst": "O(n^2)"
+  },
+  "file": "Data Structures & Algorithms/binary-tree-diameter/submission-0.py",
+  "golf": {
+    "bytes": 681,
+    "characters": 681,
+    "non_blank_lines": 17,
+    "tokens": 112
+  },
+  "model": "k3",
+  "slug": "binary-tree-diameter",
+  "solved_at": "2026-08-15T22:40:47-07:00",
+  "statement": "binary-tree-diameter"
+}
