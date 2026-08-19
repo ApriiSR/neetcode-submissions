@@ -1,5 +1,5 @@
 {
-  "analysis_version": 8,
+  "analysis_version": 0,
   "analyzed_at": "2026-08-19T01:41:38.560027+00:00",
   "complexity": {
     "benchmark_model": "n log n",
