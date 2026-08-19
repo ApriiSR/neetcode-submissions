@@ -1,0 +1,26 @@
+{
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-19T00:58:36.721826+00:00",
+  "complexity": {
+    "benchmark_model": "n^2",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "The compressed one-liner style hurts readability and obscures the algorithm; precomputing prefix/suffix maxima (or using two pointers) would reduce this to O(n) time. The slice height[0:i] also allocates an O(n) copy per iteration, though max() could consume a view-free iterator instead.",
+    "space": "O(n)",
+    "summary": "For each bar, recomputes the max of the left slice and the max of the right slice from scratch, then adds min(left_max, right_max) - height[i] when positive. This brute-force rescans O(n) elements per bar, giving quadratic time.",
+    "time_average": "O(n^2)",
+    "time_worst": "O(n^2)"
+  },
+  "file": "Data Structures & Algorithms/trapping-rain-water/submission-1.py",
+  "golf": {
+    "bytes": 219,
+    "characters": 219,
+    "non_blank_lines": 3,
+    "tokens": 94
+  },
+  "model": "k3",
+  "slug": "trapping-rain-water",
+  "solved_at": "2026-08-18T17:58:07-07:00",
+  "statement": "trapping-rain-water"
+}
