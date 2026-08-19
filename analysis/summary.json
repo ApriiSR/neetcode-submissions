@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-19T01:11:29.895646+00:00",
+  "generated_at": "2026-08-19T01:14:14.183456+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -4567,25 +4567,25 @@
         },
         {
           "analysis_version": 8,
-          "analyzed_at": "2026-08-19T01:11:29.744090+00:00",
+          "analyzed_at": "2026-08-19T01:14:14.001395+00:00",
           "complexity": {
             "benchmark_model": "n^2",
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "Correct but quadratic: the inner loop rewrites the whole remaining range on every one of the ~n pointer moves. The classic O(n) version only updates the single position being passed (tracking running left/right maxima), which would drop the inner loop entirely. Logic is sound \u2014 when the lower side's running bottleneck v is established, the opposite pointer necessarily rests at a bar of height >= v while the range still covers i, so water[i] reaches min(maxLeft[i], maxRight[i]).",
+            "notes": "Correct but unidiomatic: the standard two-pointer solution tracks left/right maxima and accumulates water in O(1) per step for O(n) total with O(1) space, avoiding both the inner fill loop and the O(n) water array. The fill-on-record trick is what degrades this to quadratic on adversarial inputs like [1,2,3,...,n].",
             "relation_to_previous": "new-approach",
             "space": "O(n)",
-            "summary": "A two-pointer narrowing scheme: each step floods the entire current range [start, end] with min(height[start], height[end]) into a water array (taking max), then advances whichever boundary bar is lower. Effectively this computes min(maxLeft[i], maxRight[i]) - height[i] for every bar, but pays O(n) per pointer move.",
-            "time_average": "O(n^2)",
+            "summary": "A two-pointer scan from both ends that, every time the running water level (min of the two endpoint heights) reaches a new high, rewrites the whole current window of a water-level array; the answer is then summed as water[i] - height[i]. Each new record level triggers an O(n) fill, and there can be O(n) records (e.g. monotonically increasing heights), giving O(n^2) worst case; on random input records number ~log n, giving ~O(n log n).",
+            "time_average": "O(n log n)",
             "time_worst": "O(n^2)"
           },
           "file": "Data Structures & Algorithms/trapping-rain-water/submission-2.py",
           "golf": {
-            "bytes": 477,
-            "characters": 477,
-            "non_blank_lines": 13,
-            "tokens": 127
+            "bytes": 577,
+            "characters": 577,
+            "non_blank_lines": 17,
+            "tokens": 138
           },
           "model": "k3",
           "relation_to_previous": "new-approach",
