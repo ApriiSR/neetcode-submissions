@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-19T02:34:22.069263+00:00",
+  "generated_at": "2026-08-19T02:50:47.146168+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -73,7 +73,7 @@
         },
         {
           "analysis_version": 9,
-          "analyzed_at": "2026-08-19T01:49:15.351902+00:00",
+          "analyzed_at": "2026-08-19T02:50:14.001465+00:00",
           "benchmarks": {
             "adversarial": null,
             "benchmark_version": 2,
@@ -89,16 +89,16 @@
             "unmeasured": "only 2 ladder size(s) completed; a fit needs at least 3"
           },
           "complexity": {
-            "benchmark_model": "n^2",
+            "benchmark_model": "n",
             "correctness": "neetcode-only",
-            "correctness_reason": "decode and encode recurse once per node, so any list longer than CPython's recursion limit (~1000 nodes) raises RecursionError; NeetCode's cap of 100 nodes per list keeps this from triggering.",
+            "correctness_reason": "decode and encode recurse once per node, so any list longer than CPython's recursion limit (~1000 nodes) raises RecursionError \u2014 only the stated 100-node cap keeps every permitted input safe.",
             "hash_dependent": false,
-            "notes": "Decoding into one big integer changes the cost model: each level of decode multiplies an O(k)-digit number by 10, so the whole decode is O(n^2) digit work instead of O(n), and encode's repeated //10 is likewise quadratic. A single pass ||building the result digit by digit with a running carry|| (as your previous submission did) is O(n) and iterative. Both helpers also recurse once per node, which is what limits how large an input this can handle. Minor: encode relies on an implicit None return for n == 0, which happens to be exactly the base case needed, but the top-level `if a+b else ListNode(0)` guard is easy to misread as dead code.",
+            "notes": "Reported as O(n) under unit-cost arithmetic, but in digit-level terms decode/add/encode operate on n-digit numbers, so the true bit cost is higher than the per-digit carry pass of the previous submission \u2014 this is the real reason this version is slower in practice, and it also relies on CPython's arbitrary-precision ints rather than the node-wise structure of the problem. Both helpers recurse once per node, so recursion depth is O(n) (see correctness_reason). Style-wise, `encode` relies on an implicit `return None` for its base case, which works but is easy to misread; the `a+b` recomputation in the return line is a minor redundancy.",
             "relation_to_previous": "new-approach",
             "space": "O(n)",
-            "summary": "Recursively decodes each list into a single Python integer (place value via 10 * decode(next)), adds the two integers, and recursively re-encodes the sum into a list, with a special case for a sum of zero.",
-            "time_average": "O(n^2)",
-            "time_worst": "O(n^2)"
+            "summary": "Recursively decodes both lists into Python integers, adds them with built-in big-int addition, then recursively encodes the sum back into a linked list (with a special case for 0).",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
           },
           "file": "Data Structures & Algorithms/add-two-numbers/submission-2.py",
           "golf": {
@@ -115,7 +115,7 @@
         },
         {
           "analysis_version": 9,
-          "analyzed_at": "2026-08-19T01:49:46.272066+00:00",
+          "analyzed_at": "2026-08-19T02:50:46.960496+00:00",
           "benchmarks": {
             "adversarial": null,
             "benchmark_version": 2,
@@ -131,16 +131,16 @@
             "unmeasured": "only 2 ladder size(s) completed; a fit needs at least 3"
           },
           "complexity": {
-            "benchmark_model": "n^2",
+            "benchmark_model": "n",
             "correctness": "neetcode-only",
-            "correctness_reason": "Both decode and encode recurse once per digit, so any list longer than CPython's recursion limit (~1000 frames) raises RecursionError \u2014 fine under the 100-node cap, broken once it is lifted.",
+            "correctness_reason": "decode and encode recurse once per node, so lists longer than CPython's recursion limit (~1000) raise RecursionError once the 100-node cap is lifted.",
             "hash_dependent": false,
-            "notes": "Because decode/encode operate on whole n-digit integers, the multiplications and divisions by 10 at each recursion level touch O(n) machine words, so the total work is O(n^2) word operations rather than the O(n) of per-digit arithmetic. A linear approach exists: ||walk both lists in parallel, adding digit pairs with a running carry and appending result nodes||. The `or ListNode(0)` trick is neat but slightly obscure \u2014 it depends on encode returning None exactly when n == 0, which a comment or the previous explicit conditional made clearer. Recursion depth is O(n), so the cap is doing real work here.",
+            "notes": "Same approach as before with only the zero fallback respelled as `or`. Per convention the reported time treats the n-digit big-int arithmetic as unit cost, but be aware decode/encode do O(n) big-int operations whose real digit-level work is quadratic. The recursion runs once per node, and ||an iterative pass over both lists carrying the overflow digit|| would avoid both the stack-depth limit and the big integers while staying O(n).",
             "relation_to_previous": "revision",
             "space": "O(n)",
-            "summary": "Recursively decodes each list into a single integer (least-significant digit first), adds them, and recursively re-encodes the sum into a linked list, with `or ListNode(0)` covering the zero-sum case where encode returns None.",
-            "time_average": "O(n^2)",
-            "time_worst": "O(n^2)"
+            "summary": "Recursively decodes both lists into Python integers, adds them, and recursively re-encodes the sum; `encode(a+b) or ListNode(0)` covers the all-zero case since encode(0) returns None.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
           },
           "file": "Data Structures & Algorithms/add-two-numbers/submission-3.py",
           "golf": {

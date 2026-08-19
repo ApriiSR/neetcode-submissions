@@ -1,17 +1,17 @@
 {
-  "analysis_version": 0,
-  "analyzed_at": "2026-08-19T01:49:15.351902+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T02:50:14.001465+00:00",
   "complexity": {
-    "benchmark_model": "n^2",
+    "benchmark_model": "n",
     "correctness": "neetcode-only",
-    "correctness_reason": "decode and encode recurse once per node, so any list longer than CPython's recursion limit (~1000 nodes) raises RecursionError; NeetCode's cap of 100 nodes per list keeps this from triggering.",
+    "correctness_reason": "decode and encode recurse once per node, so any list longer than CPython's recursion limit (~1000 nodes) raises RecursionError \u2014 only the stated 100-node cap keeps every permitted input safe.",
     "hash_dependent": false,
-    "notes": "Decoding into one big integer changes the cost model: each level of decode multiplies an O(k)-digit number by 10, so the whole decode is O(n^2) digit work instead of O(n), and encode's repeated //10 is likewise quadratic. A single pass ||building the result digit by digit with a running carry|| (as your previous submission did) is O(n) and iterative. Both helpers also recurse once per node, which is what limits how large an input this can handle. Minor: encode relies on an implicit None return for n == 0, which happens to be exactly the base case needed, but the top-level `if a+b else ListNode(0)` guard is easy to misread as dead code.",
+    "notes": "Reported as O(n) under unit-cost arithmetic, but in digit-level terms decode/add/encode operate on n-digit numbers, so the true bit cost is higher than the per-digit carry pass of the previous submission \u2014 this is the real reason this version is slower in practice, and it also relies on CPython's arbitrary-precision ints rather than the node-wise structure of the problem. Both helpers recurse once per node, so recursion depth is O(n) (see correctness_reason). Style-wise, `encode` relies on an implicit `return None` for its base case, which works but is easy to misread; the `a+b` recomputation in the return line is a minor redundancy.",
     "relation_to_previous": "new-approach",
     "space": "O(n)",
-    "summary": "Recursively decodes each list into a single Python integer (place value via 10 * decode(next)), adds the two integers, and recursively re-encodes the sum into a list, with a special case for a sum of zero.",
-    "time_average": "O(n^2)",
-    "time_worst": "O(n^2)"
+    "summary": "Recursively decodes both lists into Python integers, adds them with built-in big-int addition, then recursively encodes the sum back into a linked list (with a special case for 0).",
+    "time_average": "O(n)",
+    "time_worst": "O(n)"
   },
   "file": "Data Structures & Algorithms/add-two-numbers/submission-2.py",
   "golf": {
