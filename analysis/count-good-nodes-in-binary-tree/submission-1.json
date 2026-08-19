@@ -1,15 +1,15 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-18T05:49:25.563647+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T01:57:36.995462+00:00",
   "complexity": {
     "benchmark_model": "n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "Setting sys.setrecursionlimit(2**29) is a hack to survive deep (skewed) trees; it risks crashing the C stack for pathological depths, so an explicit iterative stack would be more robust. The conditional only triggers on the outermost call, which is fine since the default argument is -inf only there.",
+    "notes": "Identical logic to the previous submission plus a recursion-limit bump so deep trees don't crash. The sentinel test `greatest == float('-inf')` to detect the top-level call is a bit hacky \u2014 setting the limit once at module level or wrapping the recursion in a helper would be cleaner. ||An iterative traversal with an explicit stack|| would sidestep the recursion limit entirely, though it has the same O(n) time and O(h) space.",
     "relation_to_previous": "revision",
     "space": "O(n)",
-    "summary": "Recursive DFS that threads the maximum value seen on the root-to-current path, counting a node as good when its value meets or exceeds that running maximum.",
+    "summary": "Recursive DFS carrying the maximum value seen so far; a node is counted as good when its value meets or exceeds that running max, and the sum over both subtrees is returned.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },

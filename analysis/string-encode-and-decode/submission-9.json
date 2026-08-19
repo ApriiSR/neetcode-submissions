@@ -1,14 +1,14 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-15T01:45:38.704925+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T02:26:48.831337+00:00",
   "complexity": {
     "benchmark_model": "n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "The empty-list case is handled by returning an empty encoded string, and decode('') correctly yields []. Very concise, though the trailing-delimiter-plus-pop dance is a little subtle; an explicit length-prefix scheme would be more robust and self-documenting.",
+    "notes": "Correct because the delimiter lies outside the 256-character ASCII set the problem guarantees, so it can never appear inside an input string. It would break under the statement's Unicode follow-up, where a ||length-prefix encoding (e.g. `len#string` per element)|| works for arbitrary characters without needing a forbidden delimiter. `output.pop(-1)` could be written more idiomatically as `s.split(\"\ud83d\ude00\")[:-1]`.",
     "space": "O(n)",
-    "summary": "Joins the strings with a non-ASCII emoji delimiter (with a trailing delimiter to mark the end) and decodes by splitting on that delimiter and dropping the final empty piece. Since the 256-character ASCII set is part of the problem, the delimiter can never appear in the input, making the round trip exact.",
+    "summary": "Joins the strings with a non-ASCII emoji delimiter (plus a trailing delimiter) and splits on it to decode, popping the empty tail left by the trailing separator.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },

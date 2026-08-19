@@ -1,16 +1,16 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-18T00:31:51.231761+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T01:58:59.187259+00:00",
   "complexity": {
-    "benchmark_model": "n",
+    "benchmark_model": "n log n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "M = max(piles) is value-dependent, not size-dependent, so log M does not scale with n (and is capped at ~30 under the statement's constraints). The left debug print(start, end) should be removed. The list comprehension inside sum() builds an O(n) intermediate list; a generator expression sum(math.ceil(p/k) for p in piles) would make space O(1). The k == 0 guard is unnecessary if the search starts at 1.",
+    "notes": "The leftover `print(start, end)` debug line writes to stdout on every iteration and should be removed. Wrapping the feasibility sum in a list comprehension materializes n integers needlessly; passing a generator to sum (drop the brackets) makes auxiliary space O(1). `math.ceil(pile/k)` could be the integer-only `(pile + k - 1) // k`, which avoids any float conversion for very large piles.",
     "space": "O(n)",
-    "summary": "Binary search over the eating rate k in [0, max(piles)+1], testing feasibility by summing ceil(pile/k) hours over all piles and narrowing toward the minimum feasible k.",
-    "time_average": "O(n log M)",
-    "time_worst": "O(n log M)"
+    "summary": "Binary search over the eating speed k in [0, max(piles)+1], testing feasibility each step by summing ceiling divisions over all piles; the k == 0 midpoint is guarded explicitly.",
+    "time_average": "O(n log(max(piles)))",
+    "time_worst": "O(n log(max(piles)))"
   },
   "file": "Data Structures & Algorithms/eating-bananas/submission-1.py",
   "golf": {

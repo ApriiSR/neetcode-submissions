@@ -1,14 +1,14 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-19T01:43:50.408470+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T01:51:31.545868+00:00",
   "complexity": {
     "benchmark_model": "n log n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "Correct but does redundant work: an O(n) solution exists via ||a single bottom-up pass where each recursive call returns its subtree's height (or -1 once an imbalance is found), so every node is visited once||. Also note `Optional` is used in annotations without being imported; under PEP 649 on CPython 3.14 annotations are never evaluated, so this is harmless, but importing it from `typing` would be tidier. The maxDepth calls also run even after a child subtree is already known to be unbalanced; evaluating the depth check first would short-circuit slightly sooner on unbalanced inputs.",
+    "notes": "The logic is correct but does redundant work: maxDepth re-walks each subtree once per ancestor, which is what makes the worst case quadratic on a skewed tree. A single bottom-up pass that ||returns each subtree's height from the recursion (or a sentinel like -1 once an imbalance is found)|| would be O(n) time and short-circuits early on unbalanced trees. On the benchmark ladder the tree is always complete, so this stays at O(n log n) and never trips CPython's recursion limit, but on the generalized problem a fully skewed tree would overflow the recursion stack at depth n.",
     "space": "O(n)",
-    "summary": "Top-down recursion: at each node it checks that the subtree heights differ by at most one, where each height is recomputed from scratch by a separate maxDepth traversal. Since heights are recomputed at every node, total work is proportional to n times the tree's depth.",
+    "summary": "Top-down check: at every node it recursively computes the height of both subtrees with maxDepth, compares them, and recurses into the children, so subtree heights are recomputed at each ancestor.",
     "time_average": "O(n log n)",
     "time_worst": "O(n^2)"
   },

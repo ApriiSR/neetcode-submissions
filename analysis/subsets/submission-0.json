@@ -1,14 +1,14 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-17T05:14:33.857611+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T02:27:06.071151+00:00",
   "complexity": {
     "benchmark_model": "n 2^n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "The zero-padded format string correctly handles leading zeros, so no subset is missed. Bit-testing with shifts (i >> j) & 1 would avoid building an O(n) string per mask, but the asymptotic bound is unchanged.",
+    "notes": "Reading the bits with integer operations (i >> j) & 1 avoids the string formatting overhead, though the asymptotics are unchanged. Space is dominated by the output; auxiliary space is O(n).",
     "space": "O(n * 2^n)",
-    "summary": "Enumerates all 2^n bitmasks, formats each index as a zero-padded n-bit binary string, and collects nums[j] wherever the j-th bit is '1'. This matches the output-size floor of n * 2^(n-1) total elements.",
+    "summary": "Iterates over all 2^n bitmasks, formats each index as an n-bit binary string, and collects the elements whose bit is set. This is optimal up to constants since the output itself contains n * 2^(n-1) values.",
     "time_average": "O(n * 2^n)",
     "time_worst": "O(n * 2^n)"
   },

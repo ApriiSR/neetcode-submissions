@@ -1,16 +1,16 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-16T22:55:04.381789+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T02:13:14.097885+00:00",
   "complexity": {
     "benchmark_model": "n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "The condition `s[i+length-1] in s[i:i+length]` is trivially true whenever length > 0 (the character is by construction inside the slice), so it is just an obscure way to write `if length: length -= 1`. Slicing on every check copies the window; with an unbounded alphabet this approach degrades to O(n * k) since each `in` test scans the window, whereas the idiomatic dict/set sliding window stays O(n) regardless of alphabet. Correct and fast enough here only because the ASCII cap bounds the window.",
-    "space": "O(1)",
-    "summary": "Sliding window over s: each step drops the leftmost character (decrement length) then greedily extends while the next character is not already in the window s[i:i+length], tracking the max. Each membership test is a linear scan of a copied slice, but since the window can never exceed the fixed printable-ASCII alphabet (95 chars), every scan is O(1), giving O(n) overall with O(1) extra space.",
+    "notes": "The guard `s[i+length-1] in s[i:i+length]` is always true when length > 0 (a character is trivially inside the window that ends on it), so it only serves to skip the decrement at length 0; `length = max(0, length - 1)` says the same thing without the scan. Each membership test also materializes a fresh slice copy of the window, so the per-step cost is paid twice and worst-case auxiliary space is the window size rather than O(1). On inputs whose duplicate-free windows grow with n the repeated linear scans make this quadratic; an O(n) version exists using ||a map of each character's most recent index, moving a left pointer directly past the previous occurrence instead of rescanning the window||.",
+    "space": "O(n)",
+    "summary": "Sliding window whose length carries over between starting positions: each iteration shrinks the window by one (when nonempty) and greedily re-extends it, testing each candidate character with a linear `in` scan over a slice of the current window. An early break stops once the remaining suffix is too short to beat the best length found.",
     "time_average": "O(n)",
-    "time_worst": "O(n)"
+    "time_worst": "O(n^2)"
   },
   "file": "Data Structures & Algorithms/longest-substring-without-duplicates/submission-2.py",
   "golf": {

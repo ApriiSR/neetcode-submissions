@@ -1,15 +1,15 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-16T20:58:56.138062+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T02:17:03.381404+00:00",
   "complexity": {
-    "benchmark_model": "n log n",
+    "benchmark_model": "n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "Correct but far from optimal \u2014 the BST property allows a simple O(h) walk comparing values. The copied isSameTree/isSubtree methods are dead weight for this problem and make the code harder to read; note isSubtree is only O(n) per call here because unique values make isSameTree fail in O(1) except at the single matching node.",
+    "notes": "Because the answer is decided by scanning whole subtrees, every isSubtree call costs time proportional to the subtree it searches, so even when the answer is the root the work is linear, and on a skewed tree the repeated per-level scans add up to O(n^2) worst case. The BST ordering is never used; exploiting it gives an O(h) descent (O(log n) on this balanced input, constant work given how p and q are pinned) by ||walking down from the root, stepping left when both targets are smaller than the current node, right when both are larger, and stopping at the first node that splits or equals one of them||. Style-wise, isSameTree/isSubtree are imported wholesale from other problems, the final `or` relies on TreeNode instances always being truthy (fine, but a comment wouldn't hurt), and the unevaluated Optional annotations are harmless under PEP 649.",
     "space": "O(n)",
-    "summary": "Ignores the BST ordering and instead reuses isSameTree/isSubtree helpers: at each node it checks whether p contains q (or vice versa), whether p and q split across the children, and otherwise recurses. Each node visit costs O(n) in subtree scans and up to O(n) nodes are visited, giving O(n^2) worst case on a degenerate tree.",
-    "time_average": "O(n log n)",
+    "summary": "Finds the LCA by brute-force subtree membership tests: it returns p if q lies in p's subtree (and vice versa), returns the current root once p and q lie on opposite sides, and otherwise recurses into both children. Each membership test is a full subtree scan that may run a tree-equality check per node.",
+    "time_average": "O(n)",
     "time_worst": "O(n^2)"
   },
   "file": "Data Structures & Algorithms/lowest-common-ancestor-in-binary-search-tree/submission-1.py",

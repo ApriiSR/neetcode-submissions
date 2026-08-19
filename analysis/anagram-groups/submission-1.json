@@ -1,16 +1,16 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-15T01:35:53.705390+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T01:51:07.159728+00:00",
   "complexity": {
     "benchmark_model": "n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": true,
-    "notes": "The signature is computed twice per word; a single pass with dict.setdefault(sig, []).append(word) would halve the work. ord(letter)-97 is clearer as ord(letter)-ord('a'). The annotation '-> tuple(int)' would raise under eager evaluation on older Pythons, but PEP 649 on CPython 3.14 defers it, so it is harmless here. Worst case reflects adversarial collisions on the input-controlled count-tuple keys; with the stated 3-8 char word lengths the signature space is bounded and this does not materialize.",
+    "notes": "word_tuple is recomputed for every word (once when seeding the dict, once when appending), so each string is scanned twice; a single loop with d.setdefault(sig, []).append(word) avoids that. The `tuple(int)` annotation is not a valid type expression, but under PEP 649 it is never evaluated, so it's harmless \u2014 still, `tuple[int, ...]` would be the idiomatic spelling. Since word lengths are constant in the scaling model, both the signature build and the dict work are O(1) per word, giving linear average time.",
     "space": "O(n)",
-    "summary": "Each word is mapped to a 26-element character-count tuple used as its anagram signature, and words are grouped in a dict keyed by that signature. The solution makes two passes (one to seed the dict, one to append), computing the signature twice per word.",
-    "time_average": "O(n*L)",
-    "time_worst": "O(n^2 + n*L)"
+    "summary": "Builds a 26-element letter-count tuple as each word's anagram signature, keys a dict on it, then appends every word to its signature's list in a second pass.",
+    "time_average": "O(n)",
+    "time_worst": "O(n^2)"
   },
   "file": "Data Structures & Algorithms/anagram-groups/submission-1.py",
   "golf": {

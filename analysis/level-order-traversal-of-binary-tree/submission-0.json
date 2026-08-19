@@ -1,14 +1,14 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-16T21:11:38.001075+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T02:08:57.814964+00:00",
   "complexity": {
-    "benchmark_model": "n^2",
+    "benchmark_model": "n log n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "Correct but non-idiomatic; a deque-based BFS achieves O(n) time. The repeated `left[i] + right[i]` concatenations drive the quadratic worst case. Also note the recursion depth equals tree height, so a skewed tree near the 2000-node cap can exceed CPython's default recursion limit.",
+    "notes": "Correct and quite elegant, but the merge step re-builds every list at every ancestor, which is where the extra log factor (quadratic on skewed trees) comes from. A better O(n) approach for every tree shape exists: ||a single iterative BFS with a collections.deque, popping each level's nodes and appending children||. Also note the generalized skewed case would need recursion depth n, risking RecursionError where an iterative version would not.",
     "space": "O(n)",
-    "summary": "Recursive DFS: compute level lists of both subtrees, then zip-merge them pairwise with list concatenation, prepending the root's own level. Each merge copies every element in the subtree's lists, so each node's value is recopied once per ancestor, giving O(n*h) time (O(n^2) on a skewed tree, O(n log n) on a balanced one) versus the O(n) of standard BFS.",
+    "summary": "Recursive divide-and-conquer: it computes the level-order lists of both subtrees, then merges them level by level (concatenating same-depth sublists, left before right) and prepends the root's level. Every level list is re-copied at each ancestor, so total work is the sum of all subtree sizes \u2014 O(n log n) on the complete tree here, O(n^2) on a skewed one.",
     "time_average": "O(n log n)",
     "time_worst": "O(n^2)"
   },

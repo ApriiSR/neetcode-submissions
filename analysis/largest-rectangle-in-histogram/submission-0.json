@@ -1,14 +1,14 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-15T01:42:53.782954+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T02:07:54.109876+00:00",
   "complexity": {
     "benchmark_model": "n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "Reusing `largest` as both the initial max-height bound and the running answer accumulator is confusing but harmless: the range() bound is fixed at loop creation, so updating `largest` inside the loop does not alter iteration, and max(heights) is a valid initial answer since a single tallest bar achieves that area. No hashing involved.",
+    "notes": "Correct but does one full pass per height value (~10001 passes under the stated cap), which is why it hits the size ladder's time cap near n = 2**13. A true O(n) single pass exists using ||a monotonic increasing stack of indices, where each pop computes that bar's maximal rectangle width directly||. Style: using one variable (`largest`) for both the initial max height and the running best area is confusing; a separate name would read better, and the duplicated area-update after the inner loop could be folded in by iterating runs more carefully.",
     "space": "O(1)",
-    "summary": "Brute-force height sweep: for every level i from 0 to max(heights), it scans all bars to find the widest run of bars with height >= i and records i * width. The answer is the max over all levels, which correctly characterizes the largest rectangle (its height equals the minimum bar in its span).",
+    "summary": "Brute-force sweep: for every height level i from 0 to max(heights), it makes a full pass finding the widest run of consecutive bars at least i tall and tracks the best area i * width. Reusing `largest` first as the sweep bound and then as the best area works only because range() is evaluated once up front.",
     "time_average": "O(n * max(heights))",
     "time_worst": "O(n * max(heights))"
   },

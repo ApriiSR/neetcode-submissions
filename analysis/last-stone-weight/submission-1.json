@@ -1,14 +1,14 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-18T19:57:46.669205+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T02:08:30.909783+00:00",
   "complexity": {
     "benchmark_model": "n^2 log n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "`stones.pop() and stones.pop()` is a hacky one-liner that relies on popped weights always being >= 1 (truthy) to execute the second pop; two plain `stones.pop()` calls would be clearer. Re-sorting from scratch each round is wasteful \u2014 a max-heap gives O(n log n) total.",
+    "notes": "Re-sorting the entire list every round makes this O(n^2 log n); a ||binary max-heap (e.g. heapq with negated weights)|| would bring it down to O(n log n). `stones.pop() and stones.pop()` is a needlessly cute idiom \u2014 it relies on the popped value being truthy to execute the second pop, so it would silently skip a pop if a weight were ever 0 (impossible under the stated positive-weight precondition, but two plain statements are clearer). Using `stones.sort()` in place would also avoid building a new list each round.",
     "space": "O(n)",
-    "summary": "Simulates the smash process by fully re-sorting the list each iteration, popping the two heaviest stones and pushing back the difference when they differ, until at most one stone remains.",
+    "summary": "Simulates the process directly: each round it re-sorts the whole list, pops the two heaviest stones, and pushes back the difference when they differ, until at most one stone remains.",
     "time_average": "O(n^2 log n)",
     "time_worst": "O(n^2 log n)"
   },

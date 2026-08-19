@@ -1,17 +1,17 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-16T22:57:45.366123+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T02:14:34.430108+00:00",
   "complexity": {
-    "benchmark_model": "n^2",
+    "benchmark_model": "n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "Each membership test scans (and slices, copying) the current window, so each extension costs O(window) and the whole loop is O(n^2) despite the window endpoints being monotone; a set of window characters or a last-seen-index dict would give O(n). The unconditional guarded decrement is a small tidy-up of the previous conditional check.",
+    "notes": "Each extension costs O(window) because the slice plus `in` scan rechecks the whole window, which stays linear only because printable ASCII bounds any duplicate-free window to 95 characters; on an unbounded alphabet this would be quadratic, where ||a sliding window storing each character's last-seen index|| stays O(n). The `if length:` guard has the same effect as the previous version's membership-based decrement but reads more directly.",
     "relation_to_previous": "revision",
-    "space": "O(n)",
-    "summary": "Sliding window that only ever shrinks by one per step and extends the right end, testing membership via substring scan `s[i+length] not in s[i:i+length]`. The early break skips starts that cannot beat the current best.",
-    "time_average": "O(n^2)",
-    "time_worst": "O(n^2)"
+    "space": "O(1)",
+    "summary": "Sliding window that advances the left edge one position per iteration, shrinks the window by one, then re-extends it while the next character is not already in s[i:i+length]; tracks the maximum window length and breaks early once the remaining text cannot beat it.",
+    "time_average": "O(n)",
+    "time_worst": "O(n)"
   },
   "file": "Data Structures & Algorithms/longest-substring-without-duplicates/submission-3.py",
   "golf": {

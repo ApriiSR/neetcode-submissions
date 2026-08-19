@@ -1,15 +1,14 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-15T08:14:10.129617+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T02:19:10.845722+00:00",
   "complexity": {
-    "benchmark_model": "n^2",
+    "benchmark_model": "n^1.5",
     "correctness": "incorrect",
-    "correctness_note": "Unreachable through NeetCode's own judge, which drops empty lists while deserializing: Example 3 arrives as [] rather than [None], so the submission passes. That serializer bug is reported at https://github.com/neetcode-gh/leetcode/issues/5798 . Probed directly \u2014 a solution returning len(lists) answers 0 for lists=[[]].",
-    "correctness_reason": "Crashes with AttributeError on any input containing an empty list among the k \u2014 e.g. lists = [[1,2],[],[3]] \u2014 because vals = [node.val for node in lists] dereferences the None head, and the main loop reads lists[j].val on it too. The constraints permit this (0 <= lists[i].length <= 500), and Example 3 is lists = [[]].",
+    "correctness_reason": "On the permitted input lists = [[]] (Example 3: an empty chain, head None), the line `vals = [node.val for node in lists]` raises AttributeError because None has no `.val`.",
     "hash_dependent": false,
-    "notes": "The vals list is built and maintained but never read, making it dead code (and it is what crashes on empty lists). The tie-break on prev.val is an unnecessary micro-optimization. A heap or divide-and-conquer merge would give O(n log k).",
+    "notes": "The `vals` list is dead code: it is built, updated, and shrunk but its contents are never consulted, so it can be removed entirely, saving the O(k) extra space. The short-circuit on equality only helps when consecutive emitted values tie, which is rare with a wide value range, so the scan is effectively O(k) per emitted node. A faster O(n log k) approach exists using ||a min-heap of the k chain heads|| or ||pairwise (divide-and-conquer) merging of the chains||.",
     "space": "O(k)",
-    "summary": "Selection-merge: for each output node, it linearly scans all k list heads to find the smallest value (with a shortcut that grabs the first head equal to the previously appended value), appends it, and advances that list. With total nodes n and up to k = n lists, this is O(n*k) = O(n^2).",
+    "summary": "For each output node, the code linearly scans all k current chain heads to find the minimum, short-circuiting the scan when a head equals the value just emitted; it then appends that node and advances the chain, deleting exhausted chains from the list. A parallel `vals` list is maintained but never read.",
     "time_average": "O(n*k)",
     "time_worst": "O(n*k)"
   },

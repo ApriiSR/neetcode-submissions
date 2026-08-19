@@ -1,14 +1,14 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-16T05:01:32.988355+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T02:05:06.984932+00:00",
   "complexity": {
     "benchmark_model": "n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "Clean idiomatic recursion; space is O(h) for the call stack, which is O(n) for a skewed tree and O(log n) for a balanced one.",
+    "notes": "The temp variable is load-bearing: both recursive calls must finish before either assignment happens, otherwise the first rewiring would clobber the child still needed for the second call.",
     "space": "O(n)",
-    "summary": "Recursive depth-first traversal that swaps each node's left and right subtrees after inverting them, returning the root.",
+    "summary": "Depth-first recursion: invert each subtree first, then attach the results to the swapped child slots, returning the root at every level.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },

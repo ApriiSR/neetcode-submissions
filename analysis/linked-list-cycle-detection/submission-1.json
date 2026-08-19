@@ -1,14 +1,14 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-15T01:43:16.788975+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T02:10:23.395925+00:00",
   "complexity": {
-    "benchmark_model": "1",
+    "benchmark_model": "n",
     "correctness": "neetcode-only",
-    "correctness_reason": "It hard-codes the constraint that the list has at most 1000 nodes; an acyclic list of length greater than 1005 would exhaust the loop without hitting null and wrongly return True.",
+    "correctness_reason": "Once the 1000-node cap is lifted, an acyclic list with more than 1005 nodes is incorrectly reported as having a cycle.",
     "hash_dependent": false,
-    "notes": "The hard-coded 1005 iteration limit is a non-idiomatic stand-in for proper cycle detection; Floyd's two-pointer algorithm would give a genuinely correct O(n) time, O(1) space solution. The constant-time bound reflects the hard-coded step limit, which is also what breaks correctness at scale.",
+    "notes": "This hard-codes the statement's 1000-node cap into the algorithm, so it only works while that cap holds. A proper solution runs in O(n) time, and O(1) extra space is achievable with ||Floyd's tortoise-and-hare: advance two pointers at speeds 1 and 2 and check whether they ever meet||.",
     "space": "O(1)",
-    "summary": "Walks at most 1005 nodes; if a null is reached it returns False, otherwise it assumes a cycle exists. This is a length-cap shortcut rather than a real cycle-detection algorithm like Floyd's tortoise-and-hare.",
+    "summary": "Walks the list for at most 1005 steps, returning False if a null pointer is reached and True otherwise, on the reasoning that any list longer than that must contain a cycle.",
     "time_average": "O(min(n, 1005))",
     "time_worst": "O(min(n, 1005))"
   },

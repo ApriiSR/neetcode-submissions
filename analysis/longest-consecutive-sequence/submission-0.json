@@ -1,14 +1,14 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-15T01:43:33.932371+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T02:10:52.196569+00:00",
   "complexity": {
     "benchmark_model": "n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": true,
-    "notes": "Popping an arbitrary seed and expanding both ways avoids the usual `x-1 not in numset` start-of-run check; because each element is removed upon processing, total work stays linear. Clean and idiomatic.",
+    "notes": "Each element enters the set once and is removed once, so the work is O(1) amortized per element; the algorithm meets the required O(n) average time. Worst case degrades to O(n^2) only under adversarially colliding integer hashes, which the generalized problem permits but the stated +-10^9 range makes practically unreachable. Code is clean and readable.",
     "space": "O(n)",
-    "summary": "Builds a set of the numbers, then repeatedly pops an arbitrary element and expands outward in both directions, removing each consecutive element as it goes so every element is processed exactly once.",
+    "summary": "Builds a set of the values, then repeatedly pops an element and expands outward in both directions, removing each run's members from the set as they are consumed so every value is processed once. The maximum run length seen is returned.",
     "time_average": "O(n)",
     "time_worst": "O(n^2)"
   },

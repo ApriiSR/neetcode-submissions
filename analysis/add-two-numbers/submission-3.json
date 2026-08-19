@@ -1,16 +1,17 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-15T02:36:59.341672+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T01:49:46.272066+00:00",
   "complexity": {
-    "benchmark_model": "n",
+    "benchmark_model": "n^2",
     "correctness": "neetcode-only",
-    "correctness_reason": "Lists longer than CPython's recursion limit (~1000 nodes) make decode/encode raise RecursionError; NeetCode caps list length at 100, so it is safe only under that cap.",
+    "correctness_reason": "Both decode and encode recurse once per digit, so any list longer than CPython's recursion limit (~1000 frames) raises RecursionError \u2014 fine under the 100-node cap, broken once it is lifted.",
     "hash_dependent": false,
-    "notes": "Treating arithmetic as unit cost, decode/encode are single linear passes, but each uses recursion depth equal to the list length, so the recursion stack dominates the O(n) space. The idiomatic approach is an iterative one-pass carry propagation; `encode(a+b) or ListNode(0)` is a slightly cute way to handle the zero case since encode(0) returns None.",
+    "notes": "Because decode/encode operate on whole n-digit integers, the multiplications and divisions by 10 at each recursion level touch O(n) machine words, so the total work is O(n^2) word operations rather than the O(n) of per-digit arithmetic. A linear approach exists: ||walk both lists in parallel, adding digit pairs with a running carry and appending result nodes||. The `or ListNode(0)` trick is neat but slightly obscure \u2014 it depends on encode returning None exactly when n == 0, which a comment or the previous explicit conditional made clearer. Recursion depth is O(n), so the cap is doing real work here.",
+    "relation_to_previous": "revision",
     "space": "O(n)",
-    "summary": "Recursively decodes both linked lists into integers, adds them, then recursively re-encodes the sum into a linked list (with a special case for 0).",
-    "time_average": "O(n)",
-    "time_worst": "O(n)"
+    "summary": "Recursively decodes each list into a single integer (least-significant digit first), adds them, and recursively re-encodes the sum into a linked list, with `or ListNode(0)` covering the zero-sum case where encode returns None.",
+    "time_average": "O(n^2)",
+    "time_worst": "O(n^2)"
   },
   "file": "Data Structures & Algorithms/add-two-numbers/submission-3.py",
   "golf": {

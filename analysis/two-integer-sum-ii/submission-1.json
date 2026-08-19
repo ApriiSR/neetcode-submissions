@@ -1,14 +1,14 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-15T01:47:55.095663+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T02:33:15.692659+00:00",
   "complexity": {
     "benchmark_model": "n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "Timsort on an already-sorted input is a single ascending run, so sorted() is O(n) here; the constant number of index()/pop() calls are each O(n), keeping the total linear. However, the solution violates the problem's O(1)-space requirement via the sorted copy, and the index-recovery dance (including mutation via pop) is needlessly convoluted \u2014 two pointers directly on the input would give O(n) time and O(1) space with 1-indexed positions for free.",
+    "notes": "The sort is redundant since the input is guaranteed sorted (Timsort makes it O(n) here anyway), and the copied list breaks the problem's O(1) space requirement. Because the copy is identical to the original, the index-recovery scans and the pop branch are all unnecessary work: running the same two pointers directly on the original array would return the 1-indexed positions immediately, use O(1) extra space, and drop the four linear scans at the end. `List` is used without an import, which works on NeetCode's preamble but not standalone.",
     "space": "O(n)",
-    "summary": "Copies and re-sorts the array (redundant since the input is guaranteed sorted), then runs the classic two-pointer scan to find the pair of values summing to target, and finally recovers original indices with list.index(), handling the equal-values case by popping one occurrence and searching again.",
+    "summary": "Copies and re-sorts the array, runs a two-pointer scan inward from both ends until the pair summing to target is found, then recovers the original indices with list.index() calls, popping one element to disambiguate when both values are equal.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },

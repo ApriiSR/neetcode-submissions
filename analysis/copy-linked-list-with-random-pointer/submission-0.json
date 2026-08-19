@@ -1,14 +1,14 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-15T01:41:22.762122+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T01:56:40.948035+00:00",
   "complexity": {
     "benchmark_model": "n",
     "correctness": "general",
     "correctness_reason": "",
-    "hash_dependent": true,
-    "notes": "Storing d[None] = None is a neat trick that lets the second pass assign pointers without null checks. Nodes are keyed by identity (the class defines no __hash__/__eq__), so dict operations are O(1) worst case since input cannot influence object addresses.",
+    "hash_dependent": false,
+    "notes": "Clean and idiomatic; seeding d[None] = None to avoid None checks is a nice touch. The dict keys are node objects, whose identity hashes the input cannot steer, so lookups stay O(1) even in the worst case. An O(1)-extra-space variant exists that ||interleaves each copy directly after its original node, sets random pointers via original.random.next, then unweaves the two lists||.",
     "space": "O(n)",
-    "summary": "Two-pass hashmap approach: first pass creates a new node for every original node and stores the old-to-new mapping in a dict, second pass wires up next and random pointers via the mapping.",
+    "summary": "Two-pass deep copy: first pass builds a dict mapping each original node to a fresh node with its value, second pass wires up next and random pointers through the map. The d[None] = None sentinel lets null pointers resolve through the same lookup without special-casing.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },

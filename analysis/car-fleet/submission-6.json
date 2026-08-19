@@ -1,16 +1,17 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-15T01:39:19.952030+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T01:55:32.749149+00:00",
   "complexity": {
     "benchmark_model": "n",
     "correctness": "neetcode-only",
-    "correctness_reason": "With caps lifted, two distinct arrival times can round to the same double (e.g. lead time 2^30 via distance 2^30/speed 1 and follower time 2^30 + 2^-30 via distance 2^60+1/speed 2^30), making a trailing car that should form its own fleet compare equal and get merged; within NeetCode's 10^6 caps the minimum gap between distinct times always exceeds the double ulp, so ordering is preserved.",
+    "correctness_reason": "Arrival times are compared as floats, and within NeetCode's caps (values <= 1e6) distinct fractions are always distinguishable in double precision, but with uncapped magnitudes two distinct times like 10^18/1 and (10^36-1)/10^18 round to the same double and the comparison goes the wrong way \u2014 exact integer cross-multiplication of (target-pos)*speed would stay correct at any magnitude.",
     "hash_dependent": false,
-    "notes": "The float comparison (target-lead[0])/lead[1] >= (target-cars[-1][0])/cars[-1][1] is the standard idiom but is fragile for large values; cross-multiplying to integer arithmetic ((target-lead[0])*cars[-1][1] >= (target-cars[-1][0])*lead[1]) is exact. result is seeded with 1, which silently assumes n >= 1 (guaranteed by constraints). The stored tuples never use their position element after bucketing, so storing just the speed would suffice.",
-    "space": "O(target)",
-    "summary": "Buckets each car into a target-sized array indexed by position, compacts out the empty slots (which yields cars sorted by distance from the destination), then pops from the back, merging each car into the lead fleet if its arrival time is no later than the lead's, otherwise starting a new fleet.",
-    "time_average": "O(n + target)",
-    "time_worst": "O(n + target)"
+    "notes": "Swapping the comparison sort for a position-indexed array drops the ordering step to O(target), which under the given scaling (target ~ 2n) makes the whole solution linear. The `cars.pop()` / `cars[-1]` stack walk from the previous version is unchanged. No asymptotic improvement is available for the ordering step itself since positions arrive unsorted; the remaining work is already a single linear pass.",
+    "relation_to_previous": "new-approach",
+    "space": "O(target + n)",
+    "summary": "Places each car into a position-indexed array of length target (a counting sort), compacts it, then pops from the destination end, comparing each car's arrival time to the current fleet leader's and counting a new fleet whenever a car arrives strictly later.",
+    "time_average": "O(target + n)",
+    "time_worst": "O(target + n)"
   },
   "file": "Data Structures & Algorithms/car-fleet/submission-6.py",
   "golf": {
@@ -20,6 +21,7 @@
     "tokens": 149
   },
   "model": "k3",
+  "relation_to_previous": "new-approach",
   "slug": "car-fleet",
   "solved_at": "2026-08-13T21:12:01-07:00",
   "statement": "car-fleet"

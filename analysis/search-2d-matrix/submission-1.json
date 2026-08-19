@@ -1,16 +1,16 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-16T04:54:58.705453+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T02:25:04.776207+00:00",
   "complexity": {
     "benchmark_model": "log n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "The final return `not (start == end or nums(start) != target)` is a convoluted way of writing `start < end and nums(start) == target`; the binary search bounds (start inclusive, end exclusive) are correct but the guard against start == end makes the code harder to read than a standard lo/hi template.",
+    "notes": "divmod(n, row_length) is a tidier spelling of the index mapping. The final return expression works but is hard to read; `return nums(start) == target` says the same thing directly since start < end is guaranteed when the loop exits (m, n >= 1 keeps end >= 1 and the loop preserves start < end). This already meets the O(log(m*n)) target.",
     "space": "O(1)",
-    "summary": "Treats the matrix as a single flattened sorted array (valid because each row starts after the previous row ends) and runs one binary search over all m*n cells, mapping an index to (row, col) via divmod-style arithmetic.",
-    "time_average": "O(log(m * n))",
-    "time_worst": "O(log(m * n))"
+    "summary": "Treats the matrix as one sorted array of length m*n and runs a single binary search over virtual indices, mapping each index back to (row, col) via // and %.",
+    "time_average": "O(log(m*n))",
+    "time_worst": "O(log(m*n))"
   },
   "file": "Data Structures & Algorithms/search-2d-matrix/submission-1.py",
   "golf": {

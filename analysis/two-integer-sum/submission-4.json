@@ -1,14 +1,14 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-15T01:47:07.456087+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T02:32:35.899299+00:00",
   "complexity": {
     "benchmark_model": "n log n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "Correct but convoluted: it mutates the caller's input list via pop, relies on negative-index arithmetic for the high pointer, and does up to three O(n) linear scans with list.index. A single-pass hash map of value -> index would be O(n) average time and far more idiomatic.",
+    "notes": "No hashing, so worst case equals average case. The index()/pop() reconstruction is convoluted and does up to three O(n) scans plus a mid-list pop; sorting (index, value) pairs with the original indices attached would let you read the answer off directly and drop the whole equal-values special case. Starting high at -1 relies on negative indexing, which works but is obscure. A faster O(n) average approach exists using ||a single pass with a hash map from value to index, checking whether target - x was already seen||.",
     "space": "O(n)",
-    "summary": "Sorts a copy of the array, runs a two-pointer scan to find the two values summing to target, then maps the values back to original indices via list.index (with a pop-and-shift trick for duplicate values).",
+    "summary": "Sorts a copy of the array, uses two pointers to find the pair of values summing to target, then recovers original positions with index() calls, popping to disambiguate when both values are equal.",
     "time_average": "O(n log n)",
     "time_worst": "O(n log n)"
   },

@@ -1,14 +1,14 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-19T01:44:31.213015+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T01:52:41.175870+00:00",
   "complexity": {
     "benchmark_model": "n^2",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "best_buy is dead code \u2014 it is updated every iteration but never used in the profit calculation, which reads prices[i] directly; its initialization to 100 also only makes sense under the capped value range. A better approach exists that solves this in O(n) time and O(1) space: ||a single pass tracking the minimum price seen so far, checking the profit of selling at each day against that minimum||.",
+    "notes": "best_buy is dead code \u2014 it is updated each outer iteration but never used, since the profit is computed from prices[i] directly; its initializer of 100 would also be wrong for generalized prices above 100 if it ever were used. A better approach exists reaching O(n): a single pass tracking ||the minimum price seen so far and the best profit of selling today against that minimum||.",
     "space": "O(1)",
-    "summary": "Brute force: for each buy day i, scan all later days j and take the maximum price difference, keeping a running best.",
+    "summary": "Brute force: for each buy day i, scans every later sell day j and tracks the maximum profit, returning 0 if none is positive. Correct on all inputs, but quadratic.",
     "time_average": "O(n^2)",
     "time_worst": "O(n^2)"
   },

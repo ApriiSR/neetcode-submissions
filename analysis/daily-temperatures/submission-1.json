@@ -1,14 +1,14 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-15T01:41:28.615566+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T01:57:48.615241+00:00",
   "complexity": {
     "benchmark_model": "n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "Works but could be tightened idiomatically: use enumerate instead of range(len(...)), and store plain indices on the stack (comparing temperatures[stack[-1]]) rather than (temp, index) tuples. The scaling note about bounded temperature range does not change the bound: the stack invariant guarantees amortized O(1) per element regardless of value distribution.",
+    "notes": "Each element is pushed once and popped once, so the while loop is amortized O(1) per iteration \u2014 O(n) worst case, not O(n^2). Storing just the index on the stack and comparing temperatures[stack[-1]] would avoid the tuple unpacking and be slightly cleaner; the pair works fine as-is.",
     "space": "O(n)",
-    "summary": "Monotonic decreasing stack of (temperature, index) pairs; each new temperature pops all cooler pending days and records their wait. Each index is pushed and popped at most once, so total work is linear.",
+    "summary": "Monotonic decreasing stack of (temperature, index) pairs: each new temperature pops all cooler pending days and records their wait, then pushes itself. Each index is pushed and popped at most once, so the total work is linear even on adversarial inputs.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },

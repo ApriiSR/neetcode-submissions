@@ -1,14 +1,15 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-15T01:48:43.407711+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T02:34:21.891698+00:00",
   "complexity": {
     "benchmark_model": "n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "The dict is keyed by three fixed characters from a constant bracket alphabet, so lookups are O(1) even adversarially; 'bracket in \"({[\"' is a clean constant-time membership check on a 3-char string.",
+    "notes": "The dict is keyed by a fixed 3-character set, so lookups are O(1) worst case, not just average case. `bracket in \"({[\"` is perfectly idiomatic for a tiny fixed alphabet. This is the same approach as the previous version, just with the elif chain collapsed into the lookup.",
+    "relation_to_previous": "revision",
     "space": "O(n)",
-    "summary": "Classic stack solution: push opening brackets, and on a closing bracket pop and verify it matches via a fixed close-to-open map; the string is valid iff the stack empties with no mismatches.",
+    "summary": "Single pass with an explicit stack: push openers, and on a closer pop and compare against a fixed dict mapping closers to their openers. Valid iff every pop matches and the stack ends empty.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },
@@ -20,7 +21,9 @@
     "tokens": 72
   },
   "model": "k3",
+  "relation_to_previous": "revision",
   "slug": "validate-parentheses",
   "solved_at": "2026-08-13T19:26:35-07:00",
-  "statement": "validate-parentheses"
+  "statement": "validate-parentheses",
+  "supersedes": "submission-1"
 }

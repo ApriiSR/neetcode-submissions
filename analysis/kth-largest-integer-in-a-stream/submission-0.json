@@ -1,16 +1,16 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-17T00:35:22.216091+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T02:07:08.672434+00:00",
   "complexity": {
-    "benchmark_model": "n",
+    "benchmark_model": "n^2",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "Correct but suboptimal: a min-heap of size k gives O(log k) per add, and even keeping the sorted-list approach, bisect.insort would replace the manual scan idiomatically (still O(n) for the insert shift). The unused-looking loop is fine but reinventing bisect hurts readability.",
+    "notes": "The manual scan-and-insert can be replaced by bisect.insort, though insertion into the list stays O(n) either way. A faster design reaches O(log k) per add by keeping ||only the k largest values in a min-heap, whose root is the answer||; that would make n adds O(n log k) total instead of O(n^2). Minor: List is used in the annotation without an import; under PEP 649 deferred evaluation this never raises, but importing from typing would be cleaner.",
     "space": "O(n)",
-    "summary": "Maintains the stream as a sorted list (built with sorted() in the constructor, O(n log n) once); each add() linearly scans for the insertion point, inserts val (O(n) due to list shifting), and returns stream[-k].",
-    "time_average": "O(n)",
-    "time_worst": "O(n)"
+    "summary": "Keeps the stream in a sorted list; each add does a linear scan to find the insertion point, inserts, and returns the element at index -k. Across n adds on a growing list this is O(n^2) total.",
+    "time_average": "O(n) per add (O(m log m) construction for m initial values)",
+    "time_worst": "O(n) per add (O(m log m) construction for m initial values)"
   },
   "file": "Data Structures & Algorithms/kth-largest-integer-in-a-stream/submission-0.py",
   "golf": {

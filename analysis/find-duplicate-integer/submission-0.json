@@ -1,14 +1,14 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-15T06:38:17.744848+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T02:00:54.485461+00:00",
   "complexity": {
     "benchmark_model": "n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": true,
-    "notes": "Simple and idiomatic, but does not meet the follow-up's O(1) extra space requirement (Floyd's cycle detection or binary search on the value range would).",
+    "notes": "Clean and idiomatic. Worst case is O(n^2) because the hashed ints are input-controlled (adversarial multiples of 2**61-1 collide), though average lookups stay O(1). The follow-up's O(1)-space target is reachable in O(n) time via ||Floyd's cycle detection, reading the array as a linked list where nums[i] is the next pointer|| \u2014 but that trick is only valid while values stay in [1, n]; it does not survive generalization.",
     "space": "O(n)",
-    "summary": "Scans the array once, inserting each value into a hash set and returning the first value already present.",
+    "summary": "Single pass that adds each value to a seen-set and returns the first value already present. Under the scaling note the duplicate's second occurrence sits about two thirds of the way through on average, so the scan does a fixed fraction of the array.",
     "time_average": "O(n)",
     "time_worst": "O(n^2)"
   },

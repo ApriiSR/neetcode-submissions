@@ -1,16 +1,16 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-15T07:36:59.863174+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T02:18:07.177673+00:00",
   "complexity": {
-    "benchmark_model": "n",
+    "benchmark_model": "n^2",
     "correctness": "general",
     "correctness_reason": "",
-    "hash_dependent": true,
-    "notes": "Membership test `key in self.stored`, `list.remove`, and `del self.stored[0]` are all O(n); the standard O(1) approach is a dict plus a doubly-linked list (or collections.OrderedDict). Also, eviction removes the key from `stored` but never from `self.cache`, so the dict leaks memory, growing with the total number of distinct keys ever inserted rather than staying bounded by capacity. The double `key in self.stored` in get is redundant.",
-    "space": "O(n)",
-    "summary": "Uses a plain list `stored` to track recency order (front = least recent) plus a dict for values. Each get/put does a linear membership test and list.remove, so every operation is O(n) in the number of cached keys rather than the required O(1) average.",
-    "time_average": "O(n)",
-    "time_worst": "O(n)"
+    "hash_dependent": false,
+    "notes": "Behaviorally correct, but two flaws. First, a memory leak: on eviction the key is removed from `stored` yet left in `self.cache`, so the dict never shrinks \u2014 it stays correct only because `get` gates the returned value on `stored` membership; the eviction branch should also delete the key from the dict. Second, `get` tests `key in self.stored` twice; evaluating it once and reusing the result would be tidier. The stated O(1)-per-operation requirement is not met: O(1) average per operation is achievable with ||a hashmap whose values point into a doubly linked list, or simply collections.OrderedDict with move_to_end and popitem(last=False)||.",
+    "space": "O(distinct keys ever inserted) \u2014 evicted keys are deleted from the list but never from the dict, so it grows unboundedly; the recency list itself is O(capacity)",
+    "summary": "Stores values in a dict and tracks recency in a plain list, moving touched keys to the tail and dropping the head on overflow. Membership tests, remove(), and del list[0] are all linear in the capacity, so each operation costs O(capacity) rather than O(1).",
+    "time_average": "O(capacity) per get/put; the dict operations are O(1) average but every operation pays a linear scan, remove, or front-deletion on the recency list",
+    "time_worst": "O(capacity) per get/put; adversarial int-hash collisions in the dict cannot exceed the already-linear list operations"
   },
   "file": "Data Structures & Algorithms/lru-cache/submission-5.py",
   "golf": {

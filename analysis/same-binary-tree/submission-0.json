@@ -1,14 +1,14 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-16T20:32:03.218536+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T02:24:47.582518+00:00",
   "complexity": {
     "benchmark_model": "n",
-    "correctness": "general",
-    "correctness_reason": "",
+    "correctness": "neetcode-only",
+    "correctness_reason": "A left- or right-skewed tree with more than roughly 1000 nodes (impossible under NeetCode's 100-node cap, but permitted once it is lifted) exceeds CPython's default recursion limit and raises RecursionError.",
     "hash_dependent": false,
-    "notes": "Concise and idiomatic; the XOR check cleanly handles the one-null case. Recursion depth equals tree height, so worst-case space is O(n) for a skewed tree (O(log n) for balanced).",
+    "notes": "Correct and readable. Stylistically, `not p and not q` is more idiomatic than `not (p or q)`, and comparing `p.val == q.val` before recursing would let unequal trees short-circuit slightly earlier. Space is O(h) recursion depth \u2014 O(log n) on balanced trees but O(n) on skewed ones, and because it recurses, a skewed tree deep enough to exceed Python's recursion limit would raise RecursionError; ||an iterative traversal with an explicit stack|| avoids that.",
     "space": "O(n)",
-    "summary": "Recursive structural comparison: returns True when both nodes are null, False when exactly one is null, and otherwise checks value equality plus recursive equality of both subtrees with short-circuit evaluation.",
+    "summary": "Recursive simultaneous traversal of both trees: equal if both are None, unequal if exactly one is None, otherwise recurse on both children and compare values.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },

@@ -1,14 +1,14 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-15T19:56:22.614692+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T02:18:20.644265+00:00",
   "complexity": {
     "benchmark_model": "n^2",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "Correct but quadratic; the classic two-pointer approach solves this in O(n) time with the same O(1) space.",
+    "notes": "Correct but quadratic. A linear solution exists: ||two pointers starting at both ends, always moving the pointer at the shorter bar inward \u2014 the shorter bar is the binding constraint on height, and shrinking the width can only help if the short bar is replaced||. That runs in O(n) time with O(1) space. Minor style point: the outer loop bound len(heights)-1 is fine but `range(len(heights))` would read more naturally since the inner loop guards the empty case.",
     "space": "O(1)",
-    "summary": "Brute-force enumeration of all pairs of bars, computing (end - start) * min(heights[start], heights[end]) for each and keeping the maximum.",
+    "summary": "Brute force: iterates over every ordered pair of bars, computes (j - i) * min(h[i], h[j]) for each, and keeps the maximum.",
     "time_average": "O(n^2)",
     "time_worst": "O(n^2)"
   },

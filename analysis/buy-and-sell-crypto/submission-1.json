@@ -1,14 +1,15 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-15T01:36:45.945169+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T01:52:59.951857+00:00",
   "complexity": {
     "benchmark_model": "n",
     "correctness": "neetcode-only",
-    "correctness_reason": "With the price cap lifted, e.g. prices = [200, 300], best_buy starts at 100 (never an actual price) and the code returns 200 instead of the true maximum profit of 100.",
+    "correctness_reason": "best_buy is hard-coded to the capped maximum price 100, so on the generalized input prices = [200, 300] it returns 200 instead of the true answer 100.",
     "hash_dependent": false,
-    "notes": "Hard-coding best_buy = 100 only works because the statement caps prices at 100; initializing to prices[0] or float('inf') would be correct and equally idiomatic.",
+    "notes": "Clean single pass. The initialization best_buy = 100 bakes in the statement's price cap; float('inf') or prices[0] would make it robust for any price range.",
+    "relation_to_previous": "new-approach",
     "space": "O(1)",
-    "summary": "Single pass tracking the minimum buy price seen so far and the best profit achievable by selling at each day, returning the maximum (floored at 0 since best_profit starts at 0).",
+    "summary": "Single pass over prices, maintaining the lowest price seen so far as the buy candidate and updating the best profit at each day. O(n) time, O(1) space.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },
@@ -20,6 +21,7 @@
     "tokens": 61
   },
   "model": "k3",
+  "relation_to_previous": "new-approach",
   "slug": "buy-and-sell-crypto",
   "solved_at": "2026-08-13T17:45:07-07:00",
   "statement": "buy-and-sell-crypto"

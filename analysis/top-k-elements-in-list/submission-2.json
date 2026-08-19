@@ -1,14 +1,14 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-15T01:46:33.996047+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T02:29:31.349620+00:00",
   "complexity": {
     "benchmark_model": "n log n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": true,
-    "notes": "Counting is non-idiomatic (`num in num_counts` then a second lookup; `dict.get(num, 0) + 1` or `collections.Counter` is cleaner), and the O(k*m) reverse lookup plus list(set(...)) dedup is convoluted \u2014 sorting items by count or using a heap would be simpler and faster. Correctness hinges on the statement's unique-answer precondition: if a frequency tie straddled the k-th boundary, the value-based reverse lookup would emit more than k keys.",
+    "notes": "The conditional increment does two dict lookups per element; dict.get(num, 0) or a defaultdict would do one. The final list(set(...)) is only needed because a repeated frequency in the top-k slice causes the same keys to be collected twice \u2014 iterating over dict items and sorting by count directly would avoid both the rescans and the dedup. The O(n log n) sort is not optimal: an O(n) approach exists via ||bucket sort indexed by frequency||, which the generalized problem allows since counts lie in [1, n].",
     "space": "O(n)",
-    "summary": "Builds a frequency dict, sorts the frequency values and keeps the top k, then reverse-looks-up every key whose count matches one of those frequencies and dedups via set().",
+    "summary": "Builds a frequency dict, sorts the frequency values, takes the top k, then rescans the dict once per chosen frequency to collect every key with that count, deduplicating with a set at the end.",
     "time_average": "O(n log n)",
     "time_worst": "O(n^2)"
   },

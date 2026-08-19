@@ -1,14 +1,14 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-15T01:43:55.484484+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T02:22:53.213159+00:00",
   "complexity": {
     "benchmark_model": "n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "The float('inf') sentinel avoids an empty-check in push/getMin; using a stack of (value, min-so-far) pairs is a common alternative with identical bounds. An n-operation sequence costs O(n) total.",
+    "notes": "The float('inf') sentinel at the base of min_stack is a clean way to avoid an empty-check on the first push. An equivalent variant stores ||(value, current-min) pairs on a single stack||; it saves a second list but is the same idea and the same complexity.",
     "space": "O(n)",
-    "summary": "Maintains a main stack plus a parallel min-stack (seeded with +infinity) that records a new value only when it is <= the current minimum; pop mirrors the removal when the popped value equals the current min, so getMin is a constant-time peek. Duplicated minima are handled by the <= comparison.",
+    "summary": "Maintains a parallel stack of the running minimum: push appends val to the min stack only when val is at most the current minimum, and pop pops the min stack only when the removed value equals it, so getMin is just the min stack's top.",
     "time_average": "O(1) per operation",
     "time_worst": "O(1) per operation"
   },

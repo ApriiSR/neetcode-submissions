@@ -1,17 +1,17 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-15T08:55:05.043817+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T02:22:21.133042+00:00",
   "complexity": {
-    "benchmark_model": "n^2",
+    "benchmark_model": "n^1.5",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "Selecting each of the N output nodes by an O(k) head scan costs O(N*k) overall; a heap or divide-and-conquer merge would give O(N log k). The ListNode(NotImplemented) sentinel works (int == NotImplemented is False) but is obscure compared to a plain None/dummy check. Merging the explicit '< min_val' test with the min() call is redundant bookkeeping.",
+    "notes": "Every emitted node costs a scan of up to k heads, so this is O(n*k) = O(n^1.5) on the given ladder; O(n log k) is reachable via ||a min-heap holding one entry per chain head|| or ||recursively merging the k lists in pairs (divide and conquer)||. The short-circuit on equality with the last emitted value is correct because all remaining heads are always >= that value, but with values spread over 0..4n ties are rare, so it almost never fires. Using ListNode(NotImplemented) as the dummy works only because int == NotImplemented happens to be False; a dedicated object() sentinel (or a first-iteration flag) would be clearer than relying on that quirk.",
     "relation_to_previous": "revision",
-    "space": "O(1)",
-    "summary": "Repeatedly linear-scans the current list heads to find the minimum-valued node, appends it to the result, and advances that list, dropping empty lists as they are exhausted; a shortcut breaks the scan early when a head equals the previously appended value.",
-    "time_average": "O(n^2)",
-    "time_worst": "O(n^2)"
+    "space": "O(k)",
+    "summary": "Filters out empty chains up front, then for each output node rescans every chain head to find the minimum value, short-circuiting the scan when a head equals the last emitted value; the chosen node is spliced onto the result and the input lists are rewired in place.",
+    "time_average": "O(n*k)",
+    "time_worst": "O(n*k)"
   },
   "file": "Data Structures & Algorithms/merge-k-sorted-linked-lists/submission-7.py",
   "golf": {

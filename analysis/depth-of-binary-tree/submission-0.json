@@ -1,14 +1,14 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-16T05:09:10.298714+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T01:58:14.750449+00:00",
   "complexity": {
     "benchmark_model": "n",
-    "correctness": "general",
-    "correctness_reason": "",
+    "correctness": "neetcode-only",
+    "correctness_reason": "A skewed tree deeper than CPython's recursion limit (~1000 frames) raises RecursionError, which the 100-node cap prevents but the generalized problem allows.",
     "hash_dependent": false,
-    "notes": "Idiomatic and minimal; recursion depth equals tree height, so a pathologically skewed tree could hit Python's recursion limit, but that is acceptable here.",
-    "space": "O(h)",
-    "summary": "Classic recursive DFS: depth of an empty tree is 0, otherwise one plus the max depth of the two subtrees.",
+    "notes": "Space is O(h) for the recursion stack: O(log n) on the balanced trees the benchmark generates, but O(n) on a skewed tree. Converting to an explicit-stack or level-order iteration would remove the recursion-depth failure mode at the cost of the same O(n) auxiliary space. The else after a return is unneeded but harmless.",
+    "space": "O(n)",
+    "summary": "Plain recursive DFS: the depth of a node is 1 plus the max of its children's depths, with an empty tree returning 0. Every node is visited exactly once.",
     "time_average": "O(n)",
     "time_worst": "O(n)"
   },

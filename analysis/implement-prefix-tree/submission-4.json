@@ -1,17 +1,17 @@
 {
-  "analysis_version": 8,
-  "analyzed_at": "2026-08-17T00:28:46.616719+00:00",
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-19T02:04:54.492934+00:00",
   "complexity": {
-    "benchmark_model": "n^2",
+    "benchmark_model": "n",
     "correctness": "neetcode-only",
-    "correctness_reason": "Recursion depth equals the word length and the limit is hard-coded to 2000, so once the 1000-character cap is lifted, inserting or searching a word longer than ~2000 characters raises RecursionError.",
+    "correctness_reason": "Recursion is one frame per character and the limit is hard-set to 2000, so any word longer than ~1998 characters \u2014 allowed once the 1000-character cap is lifted \u2014 raises RecursionError on insert/search/startsWith.",
     "hash_dependent": false,
-    "notes": "The word[1:] slicing copies the remaining string at every recursion level, so each operation costs O(L^2) time instead of the usual O(L) for an iterative trie walk, and the recursion stack holds O(L^2) bytes of slices transiently. Keys are single characters from a bounded alphabet, so dict lookups are O(1) worst case. sys.setrecursionlimit is mutated as a side effect of every node construction, which is poor style (it also runs per-node, needlessly).",
+    "notes": "Each operation re-slices the string at every level, which is what costs O(L^2); ||walking the characters iteratively (or recursing on an index into the original word) removes the copies and gives O(L) per operation||. sys.setrecursionlimit(2000) is re-executed on every node construction, since each child is a new PrefixTree \u2014 it only needs to run once, and arguably the design would be cleaner with a separate node type rather than making every node a full PrefixTree. The added `import sys` fixes the previous version's NameError. On CPython 3.14 nothing annotation-related matters here.",
     "relation_to_previous": "revision",
-    "space": "O(n + L^2)",
-    "summary": "A recursive trie where each node is itself a PrefixTree with a dict of children keyed by first character; each call strips the first character via word[1:] and recurses, marking terminal nodes with a present flag.",
-    "time_average": "O(L^2)",
-    "time_worst": "O(L^2)"
+    "space": "O(T) total for the trie, where T is the number of characters inserted across all words, plus O(L) recursion stack per call",
+    "summary": "A recursive trie where each PrefixTree node holds a dict of children and a terminal flag; insert/search/startsWith peel off the first character and recurse on the remainder of the string.",
+    "time_average": "O(L^2) per operation, where L is the word/prefix length",
+    "time_worst": "O(L^2) per operation: each recursive level copies the remaining string via word[1:], summing to O(L^2); dict lookups are on single characters from a fixed 26-letter alphabet, so no adversarial collision degradation"
   },
   "file": "Data Structures & Algorithms/implement-prefix-tree/submission-4.py",
   "golf": {
