@@ -1,0 +1,28 @@
+{
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-19T01:11:29.744090+00:00",
+  "complexity": {
+    "benchmark_model": "n^2",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "Correct but quadratic: the inner loop rewrites the whole remaining range on every one of the ~n pointer moves. The classic O(n) version only updates the single position being passed (tracking running left/right maxima), which would drop the inner loop entirely. Logic is sound \u2014 when the lower side's running bottleneck v is established, the opposite pointer necessarily rests at a bar of height >= v while the range still covers i, so water[i] reaches min(maxLeft[i], maxRight[i]).",
+    "relation_to_previous": "new-approach",
+    "space": "O(n)",
+    "summary": "A two-pointer narrowing scheme: each step floods the entire current range [start, end] with min(height[start], height[end]) into a water array (taking max), then advances whichever boundary bar is lower. Effectively this computes min(maxLeft[i], maxRight[i]) - height[i] for every bar, but pays O(n) per pointer move.",
+    "time_average": "O(n^2)",
+    "time_worst": "O(n^2)"
+  },
+  "file": "Data Structures & Algorithms/trapping-rain-water/submission-2.py",
+  "golf": {
+    "bytes": 477,
+    "characters": 477,
+    "non_blank_lines": 13,
+    "tokens": 127
+  },
+  "model": "k3",
+  "relation_to_previous": "new-approach",
+  "slug": "trapping-rain-water",
+  "solved_at": "2026-08-18T18:07:40-07:00",
+  "statement": "trapping-rain-water"
+}
