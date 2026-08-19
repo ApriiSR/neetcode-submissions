@@ -1,14 +1,14 @@
 {
-  "analysis_version": 0,
-  "analyzed_at": "2026-08-16T18:43:33.069586+00:00",
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-19T01:38:49.459846+00:00",
   "complexity": {
-    "benchmark_model": "n^2",
+    "benchmark_model": "n log n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "Correct but redundant: maxDepth is recomputed for every subtree. A bottom-up pass returning (height, balanced) pairs or a sentinel like -1 achieves O(n) time. Also, generalized inputs deeper than CPython's recursion limit (~1000) would hit RecursionError, though the stated cap of 1000 nodes makes this a non-issue here.",
+    "notes": "Correct but does redundant work: maxDepth re-walks each subtree once per ancestor. A single ||bottom-up pass that returns each subtree's height (or a sentinel like -1 once an imbalance is found)|| would reach O(n) time with the same O(h) stack. Space is O(h) recursion depth \u2014 O(log n) for balanced trees, O(n) in the worst case of a fully skewed tree.",
     "space": "O(n)",
-    "summary": "Top-down check: at every node it recomputes the heights of both subtrees with a separate maxDepth traversal and compares them, recursing into children. On a balanced tree each level's heights cost O(n) total giving O(n log n), but on a degenerate (chain) tree the repeated height computations sum to O(n^2).",
+    "summary": "Top-down recursion: at each node it checks the balance condition by recomputing the height of both subtrees with a separate maxDepth traversal, then recurses into the children. Since heights are recomputed at every level, a node at depth d pays for its subtree's height repeatedly, giving O(n log n) on balanced trees and O(n^2) on skewed ones.",
     "time_average": "O(n log n)",
     "time_worst": "O(n^2)"
   },

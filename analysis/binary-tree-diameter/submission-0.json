@@ -1,14 +1,14 @@
 {
-  "analysis_version": 0,
-  "analyzed_at": "2026-08-16T05:41:06.862025+00:00",
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-19T01:39:11.844982+00:00",
   "complexity": {
-    "benchmark_model": "n^2",
+    "benchmark_model": "n log n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "Computing height and diameter in a single post-order pass (returning height while updating a running maximum) would reduce this to O(n).",
+    "notes": "The repeated maxDepth calls redo work already done by deeper calls, so each node's subtree gets re-scanned at every ancestor; a single pass returning ||both the subtree height and the best diameter found inside it|| from one recursive call would be O(n). Also, recursion depth equals tree height, so a skewed generalized tree can exceed Python's recursion limit even though the algorithm itself is correct.",
     "space": "O(n)",
-    "summary": "At each node the diameter through that node is maxDepth(left) + maxDepth(right), and the answer is the max over all nodes, computed by recursing on both subtrees. Since maxDepth is recomputed at every node, work is O(subtree size) per node, giving O(n log n) on balanced trees but O(n^2) on a degenerate (skewed) tree.",
+    "summary": "Top-down recursion: at each node it computes the through-root candidate as maxDepth(left) + maxDepth(right), then recurses into both subtrees, recomputing maxDepth from scratch at every node.",
     "time_average": "O(n log n)",
     "time_worst": "O(n^2)"
   },

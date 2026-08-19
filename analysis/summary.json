@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-19T01:14:14.183456+00:00",
+  "generated_at": "2026-08-19T01:41:38.751310+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -265,7 +265,7 @@
       "submissions": [
         {
           "analysis_version": 8,
-          "analyzed_at": "2026-08-16T18:43:33.069586+00:00",
+          "analyzed_at": "2026-08-19T01:38:49.459846+00:00",
           "benchmarks": {
             "adversarial": null,
             "benchmark_version": 2,
@@ -309,13 +309,13 @@
             "unmeasured": null
           },
           "complexity": {
-            "benchmark_model": "n^2",
+            "benchmark_model": "n log n",
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "Correct but redundant: maxDepth is recomputed for every subtree. A bottom-up pass returning (height, balanced) pairs or a sentinel like -1 achieves O(n) time. Also, generalized inputs deeper than CPython's recursion limit (~1000) would hit RecursionError, though the stated cap of 1000 nodes makes this a non-issue here.",
+            "notes": "Correct but does redundant work: maxDepth re-walks each subtree once per ancestor. A single ||bottom-up pass that returns each subtree's height (or a sentinel like -1 once an imbalance is found)|| would reach O(n) time with the same O(h) stack. Space is O(h) recursion depth \u2014 O(log n) for balanced trees, O(n) in the worst case of a fully skewed tree.",
             "space": "O(n)",
-            "summary": "Top-down check: at every node it recomputes the heights of both subtrees with a separate maxDepth traversal and compares them, recursing into children. On a balanced tree each level's heights cost O(n) total giving O(n log n), but on a degenerate (chain) tree the repeated height computations sum to O(n^2).",
+            "summary": "Top-down recursion: at each node it checks the balance condition by recomputing the height of both subtrees with a separate maxDepth traversal, then recurses into the children. Since heights are recomputed at every level, a node at depth d pays for its subtree's height repeatedly, giving O(n log n) on balanced trees and O(n^2) on skewed ones.",
             "time_average": "O(n log n)",
             "time_worst": "O(n^2)"
           },
@@ -473,7 +473,7 @@
       "submissions": [
         {
           "analysis_version": 8,
-          "analyzed_at": "2026-08-16T05:41:06.862025+00:00",
+          "analyzed_at": "2026-08-19T01:39:11.844982+00:00",
           "benchmarks": {
             "adversarial": null,
             "benchmark_version": 2,
@@ -517,13 +517,13 @@
             "unmeasured": null
           },
           "complexity": {
-            "benchmark_model": "n^2",
+            "benchmark_model": "n log n",
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "Computing height and diameter in a single post-order pass (returning height while updating a running maximum) would reduce this to O(n).",
+            "notes": "The repeated maxDepth calls redo work already done by deeper calls, so each node's subtree gets re-scanned at every ancestor; a single pass returning ||both the subtree height and the best diameter found inside it|| from one recursive call would be O(n). Also, recursion depth equals tree height, so a skewed generalized tree can exceed Python's recursion limit even though the algorithm itself is correct.",
             "space": "O(n)",
-            "summary": "At each node the diameter through that node is maxDepth(left) + maxDepth(right), and the answer is the max over all nodes, computed by recursing on both subtrees. Since maxDepth is recomputed at every node, work is O(subtree size) per node, giving O(n log n) on balanced trees but O(n^2) on a degenerate (skewed) tree.",
+            "summary": "Top-down recursion: at each node it computes the through-root candidate as maxDepth(left) + maxDepth(right), then recurses into both subtrees, recomputing maxDepth from scratch at every node.",
             "time_average": "O(n log n)",
             "time_worst": "O(n^2)"
           },
@@ -575,7 +575,7 @@
       "submissions": [
         {
           "analysis_version": 8,
-          "analyzed_at": "2026-08-15T01:36:31.074994+00:00",
+          "analyzed_at": "2026-08-19T01:39:24.599262+00:00",
           "benchmarks": {
             "adversarial": null,
             "benchmark_version": 2,
@@ -607,9 +607,9 @@
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "best_buy is dead code \u2014 it is updated but never used in the profit computation, and its initializer 100 hard-codes the capped price range. The natural O(n) single-pass solution (track running minimum and best profit) would be both simpler and faster.",
+            "notes": "best_buy is dead code: it is updated each outer iteration but the inner loop uses prices[i] instead, so the code still checks every pair. Note that using best_buy in place of prices[i] would not by itself remove the inner loop. A single pass keeping ||the minimum price seen so far and comparing each price against it|| would reach O(n).",
             "space": "O(1)",
-            "summary": "Brute-force: for each buy day i, scans every later day j and keeps the maximum profit, returning 0 if none is profitable.",
+            "summary": "Brute force over all buy/sell day pairs, tracking the maximum difference with the buy day before the sell day. A running minimum is maintained but never actually used in the profit calculation.",
             "time_average": "O(n^2)",
             "time_worst": "O(n^2)"
           },
@@ -697,7 +697,7 @@
       "submissions": [
         {
           "analysis_version": 8,
-          "analyzed_at": "2026-08-15T01:37:43.804867+00:00",
+          "analyzed_at": "2026-08-19T01:41:38.560027+00:00",
           "benchmarks": {
             "adversarial": null,
             "benchmark_version": 2,
@@ -741,11 +741,11 @@
           "complexity": {
             "benchmark_model": "n log n",
             "correctness": "neetcode-only",
-            "correctness_reason": "Arrival times are compared as floats, so with the generalized unbounded magnitudes an input like target=10**20+1, position=[0,1], speed=[1,1] makes both float times round to the same value and the two fleets are wrongly merged (returns 1 instead of 2); within NeetCode's caps (values <= 1e6) correctly-rounded double division keeps the comparisons exact.",
+            "correctness_reason": "Relies on float division for comparing arrival times, which is provably safe only because NeetCode caps target and speed at 10^6 (minimum distinct-time gap ~1e-12 stays well above rounding error); once the caps are lifted, e.g. target near 10^10 with times like 9999990001/999999 vs 10000000001/1000000 differing by ~1e-12, both quotients can round to the same double and flip a fleet decision.",
             "hash_dependent": false,
-            "notes": "Leftover debug print of math.ceil(...) inside the loop should be removed (also adds no asymptotic cost). Using float division for arrival times is fragile; comparing via cross-multiplication (target - pos1) * speed2 >= (target - pos2) * speed1 would be exact for arbitrary integers. List needs the usual typing import.",
+            "notes": "The print() call is leftover debugging: it computes math.ceil values that are never used and adds O(n) I/O per run \u2014 delete it. List is not imported; harmless since CPython 3.14 defers annotation evaluation (PEP 649), but `from typing import List` would be tidier. The float division for arrival times is the only fragile part: comparing times with ||exact integer cross-multiplication, (target-p1)*s2 vs (target-p2)*s1|| would remove all precision concerns. Sorted order could also be produced without the full pairwise list via ||zip(position, speed) sorted by position||, which is purely cosmetic.",
             "space": "O(n)",
-            "summary": "Sorts cars by position, then scans from closest-to-target backward, comparing each car's arrival time (as a float) against the current lead fleet's time: cars that arrive no later than the lead merge into its fleet, otherwise a new fleet is counted.",
+            "summary": "Sorts cars by position and scans from the car nearest the target backward, merging a car into the fleet ahead whenever its float arrival time is at most the lead car's and counting a new fleet otherwise.",
             "time_average": "O(n log n)",
             "time_worst": "O(n log n)"
           },
