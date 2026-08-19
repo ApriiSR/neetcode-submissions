@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-19T04:37:48.297718+00:00",
+  "generated_at": "2026-08-19T22:34:53.661070+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -1369,6 +1369,36 @@
           "slug": "depth-of-binary-tree",
           "solved_at": "2026-08-15T22:08:43-07:00",
           "statement": "depth-of-binary-tree"
+        }
+      ]
+    },
+    "design-word-search-data-structure": {
+      "submissions": [
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-19T22:34:53.475313+00:00",
+          "complexity": {
+            "benchmark_model": "n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "word[1:] copies the remainder of the string at every recursion level, so strictly each level costs O(word length) rather than O(1); passing an index into a helper would avoid the copies. Dict keys are single characters from a fixed alphabet, so lookups are O(1) even adversarially. Recursion depth equals word length, which is fine at the stated cap of 25 but would need an iterative formulation for arbitrarily long words.",
+            "space": "O(n)",
+            "summary": "A recursive trie: each WordDictionary node holds a dict of single-character children plus a terminal flag. addWord walks/creates one node per character; search follows the matching child and on '.' tries every child, so a dot-heavy pattern can explore the whole trie (n = total characters stored).",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
+          "file": "Data Structures & Algorithms/design-word-search-data-structure/submission-0.py",
+          "golf": {
+            "bytes": 743,
+            "characters": 743,
+            "non_blank_lines": 21,
+            "tokens": 172
+          },
+          "model": "k3",
+          "slug": "design-word-search-data-structure",
+          "solved_at": "2026-08-19T15:33:25-07:00",
+          "statement": "design-word-search-data-structure"
         }
       ]
     },
