@@ -1,14 +1,14 @@
 {
-  "analysis_version": 0,
-  "analyzed_at": "2026-08-19T01:39:24.599262+00:00",
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-19T01:44:31.213015+00:00",
   "complexity": {
     "benchmark_model": "n^2",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "best_buy is dead code: it is updated each outer iteration but the inner loop uses prices[i] instead, so the code still checks every pair. Note that using best_buy in place of prices[i] would not by itself remove the inner loop. A single pass keeping ||the minimum price seen so far and comparing each price against it|| would reach O(n).",
+    "notes": "best_buy is dead code \u2014 it is updated every iteration but never used in the profit calculation, which reads prices[i] directly; its initialization to 100 also only makes sense under the capped value range. A better approach exists that solves this in O(n) time and O(1) space: ||a single pass tracking the minimum price seen so far, checking the profit of selling at each day against that minimum||.",
     "space": "O(1)",
-    "summary": "Brute force over all buy/sell day pairs, tracking the maximum difference with the buy day before the sell day. A running minimum is maintained but never actually used in the profit calculation.",
+    "summary": "Brute force: for each buy day i, scan all later days j and take the maximum price difference, keeping a running best.",
     "time_average": "O(n^2)",
     "time_worst": "O(n^2)"
   },

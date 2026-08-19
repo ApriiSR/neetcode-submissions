@@ -1,14 +1,14 @@
 {
-  "analysis_version": 0,
-  "analyzed_at": "2026-08-19T01:39:11.844982+00:00",
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-19T01:44:15.327160+00:00",
   "complexity": {
     "benchmark_model": "n log n",
-    "correctness": "general",
-    "correctness_reason": "",
+    "correctness": "neetcode-only",
+    "correctness_reason": "On a skewed (linked-list-shaped) tree of more than about 1000 nodes \u2014 permitted once the 100-node cap is lifted \u2014 the recursion exceeds CPython's default recursion limit and raises RecursionError.",
     "hash_dependent": false,
-    "notes": "The repeated maxDepth calls redo work already done by deeper calls, so each node's subtree gets re-scanned at every ancestor; a single pass returning ||both the subtree height and the best diameter found inside it|| from one recursive call would be O(n). Also, recursion depth equals tree height, so a skewed generalized tree can exceed Python's recursion limit even though the algorithm itself is correct.",
+    "notes": "There is an O(n) approach with O(n) time regardless of shape: a single bottom-up pass that ||returns each subtree's height and best diameter together, updating the answer as leftHeight + rightHeight at each node|| instead of rescanning subtrees. Stylistically, max(a, b, c) works directly on three arguments (no list needed), and the else after return is redundant. Recursion depth also becomes linear on skewed inputs, which is what trips the correctness limit below.",
     "space": "O(n)",
-    "summary": "Top-down recursion: at each node it computes the through-root candidate as maxDepth(left) + maxDepth(right), then recurses into both subtrees, recomputing maxDepth from scratch at every node.",
+    "summary": "Top-down recursion: at each node it computes the heights of both subtrees with a separate maxDepth call and takes the max of leftHeight + rightHeight against the diameters of the two subtrees. Heights are recomputed at every node, so total work is O(n * depth) \u2014 linearithmic on a balanced tree, quadratic on a skewed one.",
     "time_average": "O(n log n)",
     "time_worst": "O(n^2)"
   },

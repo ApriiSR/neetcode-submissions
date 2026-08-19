@@ -1,14 +1,14 @@
 {
-  "analysis_version": 0,
-  "analyzed_at": "2026-08-19T01:38:49.459846+00:00",
+  "analysis_version": 8,
+  "analyzed_at": "2026-08-19T01:43:50.408470+00:00",
   "complexity": {
     "benchmark_model": "n log n",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": false,
-    "notes": "Correct but does redundant work: maxDepth re-walks each subtree once per ancestor. A single ||bottom-up pass that returns each subtree's height (or a sentinel like -1 once an imbalance is found)|| would reach O(n) time with the same O(h) stack. Space is O(h) recursion depth \u2014 O(log n) for balanced trees, O(n) in the worst case of a fully skewed tree.",
+    "notes": "Correct but does redundant work: an O(n) solution exists via ||a single bottom-up pass where each recursive call returns its subtree's height (or -1 once an imbalance is found), so every node is visited once||. Also note `Optional` is used in annotations without being imported; under PEP 649 on CPython 3.14 annotations are never evaluated, so this is harmless, but importing it from `typing` would be tidier. The maxDepth calls also run even after a child subtree is already known to be unbalanced; evaluating the depth check first would short-circuit slightly sooner on unbalanced inputs.",
     "space": "O(n)",
-    "summary": "Top-down recursion: at each node it checks the balance condition by recomputing the height of both subtrees with a separate maxDepth traversal, then recurses into the children. Since heights are recomputed at every level, a node at depth d pays for its subtree's height repeatedly, giving O(n log n) on balanced trees and O(n^2) on skewed ones.",
+    "summary": "Top-down recursion: at each node it checks that the subtree heights differ by at most one, where each height is recomputed from scratch by a separate maxDepth traversal. Since heights are recomputed at every node, total work is proportional to n times the tree's depth.",
     "time_average": "O(n log n)",
     "time_worst": "O(n^2)"
   },
