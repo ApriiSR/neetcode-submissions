@@ -1,0 +1,26 @@
+{
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-20T03:03:44.002760+00:00",
+  "complexity": {
+    "benchmark_model": "n",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "Clean and idiomatic one-liner; the format spec handles the leading-zero padding that makes bit reversal nontrivial in string form. A bit-by-bit loop would have the same O(n) cost in the bit-width n; for a fixed width like 32, ||a divide-and-conquer swap that exchanges adjacent bits, then pairs, nibbles, bytes, and halves|| cuts the operation count to O(log n).",
+    "space": "O(n)",
+    "summary": "Formats n as a zero-padded 32-bit binary string, reverses the string with slicing, and parses it back with int(..., 2).",
+    "time_average": "O(n)",
+    "time_worst": "O(n)"
+  },
+  "file": "Data Structures & Algorithms/reverse-bits/submission-0.py",
+  "golf": {
+    "bytes": 98,
+    "characters": 98,
+    "non_blank_lines": 3,
+    "tokens": 34
+  },
+  "model": "k3",
+  "slug": "reverse-bits",
+  "solved_at": "2026-08-19T20:03:03-07:00",
+  "statement": "reverse-bits"
+}
