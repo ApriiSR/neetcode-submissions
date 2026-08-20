@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-19T22:34:53.661070+00:00",
+  "generated_at": "2026-08-20T00:35:00.924599+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -1013,6 +1013,36 @@
           "slug": "car-fleet",
           "solved_at": "2026-08-13T21:22:28-07:00",
           "statement": "car-fleet"
+        }
+      ]
+    },
+    "combination-target-sum": {
+      "submissions": [
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-20T00:35:00.776256+00:00",
+          "complexity": {
+            "benchmark_model": "n 2^n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Correct but does redundant work: the sort is unnecessary because the index-restricted recursion (each level only looks at nums[i:]) already prevents duplicate combinations, so `needs_sort` and the whole sorting step are dead weight; the extra public `needs_sort` parameter is also an awkward API wart. Each node pays O(n) for the `target in nums` scan, the nums[i:] slice copy, and the [nums[i]] + x concatenation; the standard idiom of passing a start index and mutating one shared path list with append/pop eliminates all of that copying without changing the algorithm. Space figure is recursion stack depth (t/min(nums)) excluding the output list, which is itself exponential.",
+            "space": "O(t/min(nums))",
+            "summary": "Recursive backtracking: sorts the array once, then for each starting index recurses on the suffix nums[i:] with target reduced by nums[i], prepending nums[i] to each returned combination. The `target in nums` membership test catches the single-element completion, and the target<=0 guard prunes overshoot.",
+            "time_average": "O(n^(t/min(nums)+1))",
+            "time_worst": "O(n^(t/min(nums)+1))"
+          },
+          "file": "Data Structures & Algorithms/combination-target-sum/submission-0.py",
+          "golf": {
+            "bytes": 474,
+            "characters": 474,
+            "non_blank_lines": 13,
+            "tokens": 115
+          },
+          "model": "k3",
+          "slug": "combination-target-sum",
+          "solved_at": "2026-08-19T17:32:52-07:00",
+          "statement": "combination-target-sum"
         }
       ]
     },
