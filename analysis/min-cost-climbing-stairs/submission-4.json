@@ -1,0 +1,29 @@
+{
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-20T01:45:06.865081+00:00",
+  "complexity": {
+    "benchmark_model": "n",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "Dropping the len==2 special case was the right call: with two elements the loop never runs and min(mid, big) is exactly the old base-case answer, so it folds in cleanly. The while-loop with a manual i counter could be a for-loop over range(len(cost)-3, -1, -1), which reads more idiomatically.",
+    "relation_to_previous": "revision",
+    "space": "O(1)",
+    "summary": "Bottom-up DP from the end of the array, keeping only the best costs to reach the top from the two floors ahead, so each index is visited once with constant extra space.",
+    "time_average": "O(n)",
+    "time_worst": "O(n)"
+  },
+  "file": "Data Structures & Algorithms/min-cost-climbing-stairs/submission-4.py",
+  "golf": {
+    "bytes": 302,
+    "characters": 302,
+    "non_blank_lines": 11,
+    "tokens": 74
+  },
+  "model": "k3",
+  "relation_to_previous": "revision",
+  "slug": "min-cost-climbing-stairs",
+  "solved_at": "2026-08-19T18:44:48-07:00",
+  "statement": "min-cost-climbing-stairs",
+  "supersedes": "submission-3"
+}
