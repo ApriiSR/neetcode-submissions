@@ -1,0 +1,29 @@
+{
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-20T01:48:38.919306+00:00",
+  "complexity": {
+    "benchmark_model": "n",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "Swapping the manual while-loop counter for a reversed range is cleaner and less error-prone. The recurrence is correct and the constant-space rolling state is already the optimal shape for this problem; no asymptotic improvement is possible since every cost must be read at least once.",
+    "relation_to_previous": "revision",
+    "space": "O(1)",
+    "summary": "Bottom-up DP walking from the end of the array, keeping only the minimum costs to reach the top from the next two indices in two rolling variables; the answer is the cheaper of starting at index 0 or 1.",
+    "time_average": "O(n)",
+    "time_worst": "O(n)"
+  },
+  "file": "Data Structures & Algorithms/min-cost-climbing-stairs/submission-5.py",
+  "golf": {
+    "bytes": 282,
+    "characters": 282,
+    "non_blank_lines": 9,
+    "tokens": 77
+  },
+  "model": "k3",
+  "relation_to_previous": "revision",
+  "slug": "min-cost-climbing-stairs",
+  "solved_at": "2026-08-19T18:48:17-07:00",
+  "statement": "min-cost-climbing-stairs",
+  "supersedes": "submission-4"
+}
