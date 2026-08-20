@@ -1,0 +1,28 @@
+{
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-20T22:53:25.167355+00:00",
+  "complexity": {
+    "benchmark_model": "n^0.5",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "Stray print(a) debug line should be removed, and the loop variable i is unused (for _ in range(...) reads better). The true cost is Theta((log n)^2) multiplications \u2014 the benchmark model clamps this to n^0.5, the tightest expressible form. A faster O(log n) approach exists: ||standard binary exponentiation, squaring the base and halving the exponent in a single pass instead of recursing on the remainder||, because this version recomputes all lower squarings at every recursion level.",
+    "relation_to_previous": "new-approach",
+    "space": "O(log n)",
+    "summary": "Recursive exponentiation: squares x up to the largest power of two not exceeding n, then multiplies by the recursive result for the remaining exponent, handling negative n via the reciprocal. Each recursion level redoes its squarings from scratch, so the total number of multiplications is O((log n)^2).",
+    "time_average": "O((log n)^2)",
+    "time_worst": "O((log n)^2)"
+  },
+  "file": "Data Structures & Algorithms/pow-x-n/submission-4.py",
+  "golf": {
+    "bytes": 409,
+    "characters": 409,
+    "non_blank_lines": 15,
+    "tokens": 102
+  },
+  "model": "k3",
+  "relation_to_previous": "new-approach",
+  "slug": "pow-x-n",
+  "solved_at": "2026-08-20T15:52:15-07:00",
+  "statement": "pow-x-n"
+}
