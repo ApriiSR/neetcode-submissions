@@ -3,21 +3,27 @@
 Each problem in `PROBLEMS` maps to:
 - `entry`: the Solution method to call, or None for a design problem
   whose submission defines no Solution class at all (minimum-stack,
-  lru-cache, implement-prefix-tree, kth-largest-integer-in-a-stream).
-- `scalable`: False for problems benchmark.py can't time -- valid-sudoku
-  is a fixed 9x9 board, and minimum-stack, lru-cache,
-  implement-prefix-tree and kth-largest-integer-in-a-stream are design
-  problems whose submissions define no Solution class at all.
-  benchmark.py skips scaling curves for these, so their `generate`
-  documents the input shape rather than feeding a timing run.
-- `sizes` / `models`: optional, and set together. A problem whose output
-  is exponential in the input size can't walk the default 256..2**20
-  ladder -- one doubling of n squares the work, so its first rung is
-  already unreachable -- and can't be described by any of benchmark.py's
+  lru-cache, implement-prefix-tree, kth-largest-integer-in-a-stream,
+  design-word-search-data-structure).
+- `scalable`: False for problems benchmark.py can't time. Three have no
+  size to vary -- valid-sudoku is a fixed 9x9 board, and reverse-bits and
+  sum-of-two-integers are pinned to 32 bits by the submissions
+  themselves, which format to exactly 32 binary digits or loop over
+  exactly 32 bit positions. The other five -- minimum-stack, lru-cache,
+  implement-prefix-tree, kth-largest-integer-in-a-stream and
+  design-word-search-data-structure -- are design problems whose
+  submissions define no Solution class at all. benchmark.py skips scaling
+  curves for all of them, so their `generate` documents the input shape
+  rather than feeding a timing run.
+- `sizes` / `models`: optional, and set together. A problem whose output is
+  exponential in the input size can't walk the default 256..2**20 ladder
+  -- one doubling of n squares the work, so its first rung is already
+  unreachable -- and can't be described by any of benchmark.py's
   polynomial CANDIDATE_MODELS either. Such a problem carries its own
   ladder and its own extra candidate models instead; see
-  EXPONENTIAL_SIZES and EXPONENTIAL_MODELS below, which subsets uses.
-  Everything else inherits benchmark.py's defaults.
+  EXPONENTIAL_SIZES and EXPONENTIAL_MODELS below (subsets) and
+  FIBONACCI_SIZES and FIBONACCI_MODELS (climbing-stairs). Everything else
+  inherits benchmark.py's defaults.
 - `generate(n, rng)`: returns a positional-args tuple (excluding `self`)
   for `entry`, sized around n. Uses only the passed-in random.Random, so
   it's deterministic for a given seed.
@@ -49,8 +55,9 @@ hash(0) == hash(P) == hash(2 * P) == 0. `_int_collisions(n)` returns n
 such (distinct, ascending) values.
 
 None of the problems here have a dict/set keyed on raw, unbounded
-input strings (is-anagram and implement-prefix-tree key on single
-characters — a 26-symbol alphabet, too small to stress; anagram-groups
+input strings (is-anagram, implement-prefix-tree and
+design-word-search-data-structure key on single characters — a 26-symbol
+alphabet, too small to stress; anagram-groups
 keys on a computed 26-int signature tuple, not the input strings;
 string-encode-and-decode doesn't hash at all; the linked-list problems
 that hash at all, and level-order-traversal-of-binary-tree submission-1,
@@ -98,6 +105,22 @@ EXPONENTIAL_MODELS = (
     ("n 2^n", lambda n: n * 2.0**n),
 )
 
+
+# climbing-stairs' ladder, and the same idea as EXPONENTIAL_SIZES with a much
+# smaller constant factor: the plain recursion there builds no output, so it
+# only clears a microsecond around n = 15 and stays under SIZE_CAP_SECONDS
+# until about n = 36. Stepping by 1 from 4 to 39 puts that whole measurable
+# range on the ladder and lets the per-size cap truncate it wherever the
+# machine happens to land.
+FIBONACCI_SIZES = tuple(range(4, 40))
+
+# Paired with FIBONACCI_SIZES via "models". The naive climbing-stairs
+# recursion recomputes the Fibonacci tree, so its call count is Theta(phi**n),
+# not 2**n -- close enough to look exponential on a chart, far enough that
+# fitting it against 2**n leaves a residual growing linearly in n. Carried
+# alongside EXPONENTIAL_MODELS so the winner can be the right exponential.
+GOLDEN_RATIO = (1 + math.sqrt(5)) / 2
+FIBONACCI_MODELS = (("phi^n", lambda n: GOLDEN_RATIO**n),) + EXPONENTIAL_MODELS
 
 class ListNode:
     """The singly-linked node NeetCode hands the linked-list problems, whose
@@ -265,6 +288,22 @@ def _gen_car_fleet(n, rng):
     return (target, position, speed)
 
 
+def _gen_climbing_stairs(n, rng):
+    # The entry takes the stair count itself, so the ladder value is the whole
+    # input and there is nothing to sample.
+    return (n,)
+
+
+def _gen_combination_target_sum(n, rng):
+    # Every candidate is at least the target and exactly one equals it, so the
+    # answer is a single one-element combination and every recursive call dies
+    # on its target <= 0 guard. Without that the search is exponential in
+    # target / min(candidates) and there is nothing to put on a ladder.
+    nums = [n] + rng.sample(range(n + 1, 3 * n), n - 1)
+    rng.shuffle(nums)
+    return (nums, n)
+
+
 def _gen_copy_linked_list_with_random_pointer(n, rng):
     values = [rng.randint(-1000, 1000) for _ in range(n)]
     randoms = [rng.randrange(n) if rng.random() < 0.75 else None for _ in range(n)]
@@ -279,8 +318,29 @@ def _build_copy_linked_list_with_random_pointer(values, randoms):
     return (nodes[0] if nodes else None,)
 
 
+def _gen_counting_bits(n, rng):
+    return (n,)
+
+
 def _gen_daily_temperatures(n, rng):
     return ([rng.randint(30, 100) for _ in range(n)],)
+
+
+def _gen_design_word_search_data_structure(n, rng):
+    words = [_random_word(rng, 3, 10) for _ in range(max(1, n // 4))]
+    ops = []
+    for _ in range(n):
+        word = rng.choice(words)
+        roll = rng.random()
+        if roll < 0.4:
+            ops.append(("addWord", word))
+        elif roll < 0.7:
+            ops.append(("search", word))
+        else:
+            pattern = list(word)
+            pattern[rng.randrange(len(pattern))] = "."
+            ops.append(("search", "".join(pattern)))
+    return (ops,)
 
 
 def _gen_duplicate_integer(n, rng):
@@ -365,6 +425,10 @@ def _gen_find_minimum_in_rotated_sorted_array(n, rng):
     size = max(2, n)
     values = sorted(rng.sample(range(-size * 10, size * 10 + 1), size))
     return (values[1:] + values[:1],)
+
+
+def _gen_house_robber(n, rng):
+    return ([rng.randint(0, 1000) for _ in range(n)],)
 
 
 def _gen_implement_prefix_tree(n, rng):
@@ -510,6 +574,12 @@ def _build_merge_two_sorted_linked_lists(list1, list2):
     return (_chain(list1), _chain(list2))
 
 
+def _gen_min_cost_climbing_stairs(n, rng):
+    # Floored at two steps, which is where the recurrence starts; the ladder
+    # never goes near that floor.
+    return ([rng.randint(0, 1000) for _ in range(max(2, n))],)
+
+
 def _gen_minimum_stack(n, rng):
     ops = []
     depth = 0
@@ -521,6 +591,21 @@ def _gen_minimum_stack(n, rng):
             ops.append(("push", rng.randint(-1000, 1000)))
             depth += 1
     return (ops,)
+
+
+def _gen_missing_number(n, rng):
+    # A shuffled permutation of 0..n-1, so the absent value is always n --
+    # the deterministic worst case for a scan that stops at the gap.
+    nums = list(range(n))
+    rng.shuffle(nums)
+    return (nums,)
+
+
+def _gen_number_of_one_bits(n, rng):
+    # n is the width in bits, not a length: the top bit is forced set so the
+    # value really is n bits wide and the ladder means what it says.
+    bits = max(1, n)
+    return (rng.getrandbits(bits) | 1 << (bits - 1),)
 
 
 def _gen_products_of_array_discluding_self(n, rng):
@@ -550,6 +635,10 @@ def _build_one_list(values):
     return (_chain(values),)
 
 
+def _gen_reverse_bits(n, rng):
+    return (rng.getrandbits(32),)
+
+
 def _gen_same_binary_tree(n, rng):
     return (tuple(rng.randint(-1000, 1000) for _ in range(n)),)
 
@@ -569,6 +658,17 @@ def _gen_search_2d_matrix(n, rng):
     values = sorted(rng.sample(range(-total * 10, total * 10 + 1), rows * cols))
     matrix = [values[r * cols:(r + 1) * cols] for r in range(rows)]
     return (matrix, values[rng.randrange(rows * cols)])
+
+
+def _gen_single_number(n, rng):
+    # (n - 1) // 2 pairs plus one unpaired value, sampled without replacement
+    # so no pair shares a value with another, then shuffled so the pairs are
+    # scattered rather than adjacent.
+    pairs = max(0, (n - 1) // 2)
+    values = rng.sample(range(-4 * n, 4 * n), pairs + 1)
+    nums = values[:pairs] * 2 + values[pairs:]
+    rng.shuffle(nums)
+    return (nums,)
 
 
 def _gen_string_encode_and_decode(n, rng):
@@ -608,6 +708,10 @@ def _gen_subtree_of_a_binary_tree(n, rng):
 def _build_subtree_of_a_binary_tree(values, index):
     nodes = _complete_tree_nodes(values)
     return (nodes[0], _copy_tree(nodes[index]))
+
+
+def _gen_sum_of_two_integers(n, rng):
+    return (rng.randint(-1000, 1000), rng.randint(-1000, 1000))
 
 
 def _gen_three_integer_sum(n, rng):
@@ -768,6 +872,26 @@ PROBLEMS = {
         "scaling_note": "n = number of cars; target (the finish line) is set to 2n+1 and the n distinct positions are sampled without replacement from range(target), so both the target and the position range scale linearly with n -- meaning the counting-array submissions, which allocate a list of length target, stay O(n) rather than being dominated by a fixed target; speeds are drawn from the fixed range 1..100, independent of n",
         "generalized_note": "uncapped: any number of cars, and target/speed/position any positive ints. The invariants stay: positions are distinct and all below target, speeds are positive. Note this makes target independent of n, so a solution that allocates an array of size target is no longer O(n).",
     },
+    "climbing-stairs": {
+        "entry": "climbStairs",
+        "scalable": True,
+        "generate": _gen_climbing_stairs,
+        "sizes": FIBONACCI_SIZES,
+        "models": FIBONACCI_MODELS,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = the number of stairs, and it is the entire input -- the entry takes one integer, so the size being varied is that integer's value rather than any length, and the generator samples nothing. The ladder is this problem's own: n steps by 1 from 4 to 39 rather than doubling from 256, because the plain recursion recomputes the Fibonacci tree and makes about 2 * fib(n+1) calls, which passes a second somewhere near n = 36 and would never return at the default ladder's first rung. Two things follow for reading the numbers. The reported log-log slope is meaningless here -- it fits log(time) against log(n), and an exponential curve is not a line in those coordinates -- so read best_fit, which is chosen from phi^n, 2^n and n * 2^n alongside the usual polynomials; phi^n (the golden ratio, about 1.618) is the shape the naive recursion actually has, and 2^n overstates it. And the ladder that makes that submission measurable is far too short for the other two: the memoised one runs 0.25 to 1.5 microseconds across the whole of it and the matrix-power one 2 to 5, so their curves are as much timer resolution and call overhead as they are complexity, and their fits should be read that way",
+        "generalized_note": "uncapped: any number of stairs. The step set is part of the problem, not a cap -- a move is still 1 or 2 stairs, so the answer is fib(n+1). Note that n is a value rather than a length, so it costs only about log2(n) bits to write down: an O(n) solution is already exponential in the size of its input, and the answer itself is an O(n)-bit number, which is a floor on any solution that prints it.",
+    },
+    "combination-target-sum": {
+        "entry": "combinationSum",
+        "scalable": True,
+        "generate": _gen_combination_target_sum,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of candidate values, and it is the target as well: the candidates are n distinct values, exactly one of them equal to the target n and the rest drawn from n+1..3n-1, then shuffled. That no candidate is smaller than the target is the whole design. It means every recursive call the submission makes returns immediately on its `target <= 0` guard, which is what keeps the run finite and pins the answer to one combination, [n]; on candidates spread down toward 1 the search is instead exponential in target / min(candidates) and there is nothing to put on a ladder at all. What is left to measure is the cost the submissions pay per candidate regardless of whether the branch survives: they recurse on the slice nums[i:] rather than on an index, so one pass over n candidates copies about n**2 / 2 elements. That is the quadratic the ladder shows. It is C-level copying rather than interpreted work, so the constant is small and the curve only leaves a millisecond around n = 2000 -- but it is quadratic, and it is the slicing rather than the search",
+        "generalized_note": "uncapped: any number of candidates, values any positive ints, target any positive int. Distinctness and the reuse rule are part of the problem, not caps -- the candidates are distinct, each may be used any number of times, and every combination appears exactly once as a multiset, in any order. Note the answer size is not bounded by the candidate count: with candidates small relative to the target the number of combinations, and so any solution's running time, grows exponentially in target / min(candidates).",
+    },
     "copy-linked-list-with-random-pointer": {
         "entry": "copyRandomList",
         "scalable": True,
@@ -788,6 +912,15 @@ PROBLEMS = {
         "scaling_note": "n = number of nodes; the tree is filled level order, so it is complete and its depth is floor(log2(n)) -- shallow enough that a recursive submission never approaches CPython's stack limit anywhere on the ladder. Every node is visited whatever the values are: the running maximum of the root-to-node path is carried downward and nothing prunes, so the work is proportional to n and independent of how many nodes turn out to be good. Node values are drawn uniformly from the fixed range -1000..1000, independent of n, so a node at depth d is good with probability about 1/(d+1) and the expected number of good nodes is on the order of n / log2(n) -- the answer grows more slowly than n while the traversal does not",
         "generalized_note": "uncapped: any number of nodes, values any ints, any shape. The definition is part of the problem, not a cap -- a node is good when no node on the path from the root down to it holds a strictly greater value, so the root is always good. A skewed tree makes both the depth and a recursive solution's stack linear in n, and makes the good-node count as large as n when values ascend along that single path.",
     },
+    "counting-bits": {
+        "entry": "countBits",
+        "scalable": True,
+        "generate": _gen_counting_bits,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = the input integer, which is the entire input and also fixes the output length: the answer is a list of n + 1 popcounts, one for each integer from 0 through n. The generator samples nothing. The submission recomputes each count with its own divide-by-2 loop, so the work is the sum of bit_length(i) over i <= n, about n * log2(n) -- the log factor here is the integers' width, not a data structure",
+        "generalized_note": "uncapped: any n. The output contract is part of the problem, not a cap -- still one popcount per integer from 0 through n, in order, so the output alone is n + 1 numbers and no solution beats linear in n. Note that n is a value rather than a length, so linear in n is already exponential in the size of the input, which is about log2(n) bits.",
+    },
     "daily-temperatures": {
         "entry": "dailyTemperatures",
         "scalable": True,
@@ -806,6 +939,15 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "n = number of nodes; the tree is filled level order, so it is complete and its depth is floor(log2(n)) -- the answer grows only logarithmically while the traversal still has to visit all n nodes, so the measured time tracks the node count and not the answer. Node values are drawn uniformly from the fixed range -1000..1000, independent of n; nothing in this problem reads them",
         "generalized_note": "uncapped: any number of nodes, values any ints, any shape. Depth is still counted in nodes along the longest root-to-leaf path. A skewed tree makes that depth linear in n, so a recursive solution's stack use is linear too.",
+    },
+    "design-word-search-data-structure": {
+        "entry": None,
+        "scalable": False,
+        "generate": _gen_design_word_search_data_structure,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "not benchmarked: this is a design problem -- the submission defines a WordDictionary class with addWord/search rather than a Solution class with one entry method, so benchmark.py's loader has nothing to drive; the generator builds an n-operation sequence (~40% addWord, ~30% exact search, ~30% search with one character replaced by the '.' wildcard) drawn from a pool of n // 4 lowercase words of 3-10 characters, so words repeat and both hits and misses are common, purely as documentation of the input shape",
+        "generalized_note": "uncapped: any number of operations, words of any length. The alphabet and the wildcard are part of the problem, not caps -- words stay lowercase English letters, so each node's child count is bounded by 26 and does not grow with n, and '.' in a search pattern still matches any single letter. Note the wildcard is what makes search more than a walk down one path: a pattern with k dots can force a branch across every child at each of those positions, so its cost is not bounded by the pattern length alone.",
     },
     "duplicate-integer": {
         "entry": "hasDuplicate",
@@ -851,6 +993,15 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "n = array length; n distinct values are sampled without replacement from -10n..10n, sorted ascending, then rotated left by exactly one position, which puts the minimum at the last index. That is this problem's no-early-exit case for a left-to-right scan looking for the single descent: it has to walk the whole array before reaching it, so such a submission comes out linear. A binary search is unaffected by where the rotation falls -- it halves the interval a fixed log2(n) times either way -- so expect a flat, near-zero slope from one. Note the whole ladder runs in microseconds for a binary search, close to the clock's resolution, so read the flatness rather than the r^2",
         "generalized_note": "uncapped: any array length, values any ints. Sortedness, distinctness and the rotation are part of the problem, not caps -- the array is still a strictly increasing sequence rotated some number of positions. The rotation may be zero, which leaves the array plainly sorted and its minimum first; the rotation of one used here is the opposite extreme.",
+    },
+    "house-robber": {
+        "entry": "rob",
+        "scalable": True,
+        "generate": _gen_house_robber,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = array length; each value is drawn uniformly from the fixed range 0..1000, independent of n. The values do not move the measurement at all -- the submission is a single left-to-right pass doing one max per index, and both sides of that comparison cost the same -- so the range is arbitrary and only the length matters",
+        "generalized_note": "uncapped: any array length, values any non-negative ints. The adjacency rule is part of the problem, not a cap -- no two chosen houses may be adjacent in the array, and the answer is the largest total that respects that.",
     },
     "implement-prefix-tree": {
         "entry": None,
@@ -1002,6 +1153,15 @@ PROBLEMS = {
         "scaling_note": "n = total number of nodes across both lists, split n // 2 and n - n // 2; each list's values are drawn independently from the fixed range -1000..1000 and then sorted, so the two interleave throughout instead of one being entirely below the other -- meaning the merge alternates between the chains rather than exhausting one and splicing the rest",
         "generalized_note": "uncapped: both lists any length, node values any ints. Sortedness is part of the problem, not a cap — both inputs are still ascending, and the result must be too.",
     },
+    "min-cost-climbing-stairs": {
+        "entry": "minCostClimbingStairs",
+        "scalable": True,
+        "generate": _gen_min_cost_climbing_stairs,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of steps, floored at 2 because that is where the recurrence starts (the ladder never goes near that floor). Each cost is drawn uniformly from the fixed range 0..1000, independent of n. The costs do not move the measurement -- every submission here is a single right-to-left pass doing one min per step, and both sides of that comparison cost the same -- so only the length matters; what separates the submissions is allocation rather than branching, two of them building an n-element table and three carrying two running values",
+        "generalized_note": "uncapped: any number of steps, costs any non-negative ints. The movement rule is part of the problem, not a cap -- you start at step 0 or step 1, a step's cost is paid on leaving it, and each move goes one or two steps forward until you are past the end.",
+    },
     "minimum-stack": {
         "entry": None,
         "scalable": False,
@@ -1010,6 +1170,24 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "not benchmarked: this is a design problem -- the submission defines a MinStack class with push/pop/top/getMin rather than a Solution class with one entry method, so benchmark.py's loader has nothing to drive; the generator builds an n-operation sequence (~60% push, ~40% pop, never popping an empty stack) purely as documentation of the input shape",
         "generalized_note": "uncapped: any number of operations, values any ints. The preconditions are part of the problem \u2014 pop/top/getMin are still only called on a non-empty stack.",
+    },
+    "missing-number": {
+        "entry": "missingNumber",
+        "scalable": True,
+        "generate": _gen_missing_number,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = array length; the array is a shuffled permutation of 0..n-1, so the absent value is always n itself. That is pinned deliberately rather than placed at random: the submission scans with `i not in nums` and stops at the gap, so a randomly placed gap would make each rung of the ladder measure where the gap happened to sit instead of n. As pinned, every i below n is found after about n / 2 comparisons before the final scan for n fails outright, so the work is about n**2 / 2 and the particular shuffle does not change it. The scan is over a list, not a set, so nothing here hashes",
+        "generalized_note": "uncapped: any array length. The value range is the problem's structure rather than a size limit -- the array still holds n distinct integers drawn from 0..n, with exactly one of that range absent, which is what makes the sum and xor solutions work at all.",
+    },
+    "number-of-one-bits": {
+        "entry": "hammingWeight",
+        "scalable": True,
+        "generate": _gen_number_of_one_bits,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = the input's width in bits, not an array length: the generator draws a uniformly random n-bit integer with its top bit forced set, so the value really is n bits wide and about half of them are ones. This is the stated 32-bit input uncapped, and it is the only thing here that can scale at all. The two submissions separate sharply on that ladder: the divide-by-2 loop runs one iteration per bit and each `n // 2` rebuilds an O(n)-bit integer, so it is quadratic in n and the per-size cap truncates it partway up, while `int.bit_count()` reads the value a machine word at a time and walks the whole ladder without leaving the microseconds -- about 80 nanoseconds at the bottom and ten microseconds at the top. Only its last few rungs are big enough to outweigh the fixed cost of the call, so its curve reads flatter than the linear scan it actually is",
+        "generalized_note": "uncapped: any non-negative integer, of any width. What is counted is part of the problem, not a cap -- still the number of set bits. Note the stated 32-bit width is exactly what makes this constant-time as posed; once the width is the input size, a per-bit loop is no longer free, and the floor is reading the input, which is linear in the number of bits.",
     },
     "products-of-array-discluding-self": {
         "entry": "productExceptSelf",
@@ -1050,6 +1228,15 @@ PROBLEMS = {
         "scaling_note": "n = number of nodes; values are drawn from the fixed range -1000..1000, independent of n. Both submissions reverse in place, so the `build` hook hands each timed repeat a freshly built, un-reversed chain -- without that, repeats 2 and 3 would be measuring an already-reversed list, which is O(1) work from the old head",
         "generalized_note": "uncapped: any list length, node values any ints. A solution that assumes a maximum length is correct only under NeetCode's constraints.",
     },
+    "reverse-bits": {
+        "entry": "reverseBits",
+        "scalable": False,
+        "generate": _gen_reverse_bits,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "not scalable: the input is always a 32-bit integer and the submission bakes that width in, formatting to exactly 32 binary digits, so there is no size to vary; the generator draws a uniformly random 32-bit value purely as documentation of the input shape",
+        "generalized_note": "nothing to uncap: reversal is defined against a fixed width, and 32 bits is that definition rather than a size limit -- the same value reversed under a different width is a different number. Any solution here is constant-work by construction.",
+    },
     "same-binary-tree": {
         "entry": "isSameTree",
         "scalable": True,
@@ -1068,6 +1255,15 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "n = total number of cells; the matrix is isqrt(n) rows by n // isqrt(n) columns, so both dimensions grow like sqrt(n) and neither is a constant a solution can be linear in for free. Cells are sampled without replacement from -10n..10n and laid out ascending in row-major order, so the whole matrix reads as one sorted array (each row ascending, and every value larger than the last value of the row above), and the target is always one of the cells -- never absent, so every run finds it. Expect a flat, near-zero slope from a binary search: O(log n) grows by a constant per doubling of n rather than scaling with it, while a full scan of every cell would come out linear. Note the whole ladder runs in single-digit microseconds for a binary search, close enough to the clock's resolution that the fit is noisy even when the shape is unmistakably logarithmic -- read the flatness, not the r^2",
         "generalized_note": "uncapped: any number of rows and columns, values any ints. The ordering is part of the problem, not a cap -- each row is still ascending and each row's first value still exceeds the previous row's last. The target may be absent, in which case the answer is false.",
+    },
+    "single-number": {
+        "entry": "singleNumber",
+        "scalable": True,
+        "generate": _gen_single_number,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = requested array length, rounded down to the nearest odd number: the array is (n - 1) // 2 pairs plus one unpaired value, so an even n yields n - 1 elements, and since every ladder size is a power of two each rung is in fact one element short of its label. Values are sampled without replacement from -4n..4n and then shuffled, so no pair shares a value with another and the pairs are scattered through the array rather than adjacent. Neither of those affects the work -- the submission is one xor per element regardless of order or value -- so only the length moves the measurement",
+        "generalized_note": "uncapped: any odd array length, values any ints. The multiplicity contract is part of the problem, not a cap -- every value appears exactly twice except one, which appears once and is the answer.",
     },
     "string-encode-and-decode": {
         "entry": "encode",
@@ -1098,6 +1294,15 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "n = number of nodes in the main tree; it is a complete tree (level-order fill) over a shuffled permutation of range(n), so its depth is floor(log2(n)) and every value is distinct. subRoot is a fresh copy of the subtree hanging at the one node a pre-order search reaches last, so the answer is always True but only after every node has been visited -- pinned there rather than chosen at random, since a random target would make each rung of the ladder measure where the match happened to sit instead of n. Because the values are distinct, the per-node equality check fails on its first value comparison everywhere except at the true match (which is a single leaf), so what is measured is the traversal itself and not repeated deep comparisons",
         "generalized_note": "uncapped: both trees any size, values any ints, any shape, and values may repeat. The matching condition is part of the problem, not a cap -- a match is still a node of the main tree whose entire subtree equals subRoot in both structure and values. Note that repeated values are what make a naive scan quadratic: with duplicates the per-node equality check can run deep at every node instead of failing on its first comparison.",
+    },
+    "sum-of-two-integers": {
+        "entry": "getSum",
+        "scalable": False,
+        "generate": _gen_sum_of_two_integers,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "not scalable: the input is two integers, and the submissions that do the addition by hand bake in a 32-bit width -- formatting to exactly 32 binary digits, or looping over exactly 32 bit positions -- so there is no size to vary; the generator draws a uniformly random pair from the stated -1000..1000 purely as documentation of the input shape",
+        "generalized_note": "nothing to uncap in the size: two fixed-width integers is the problem's structure. The constraint that matters here is the one a size cap hides -- the point is to add without using + or -, which the bit-by-bit submissions honour and the ones calling + or sum() do not. Any solution here is constant-work by construction.",
     },
     "three-integer-sum": {
         "entry": "threeSum",
