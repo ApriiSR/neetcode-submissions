@@ -1,0 +1,26 @@
+{
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-20T03:00:16.417010+00:00",
+  "complexity": {
+    "benchmark_model": "n log n",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "A true O(n) solution exists: build the table once with ||the recurrence dp[i] = dp[i >> 1] + (i & 1), reusing an already-computed answer|| instead of re-counting each number from scratch. Also, on modern Python i.bit_count() is the idiomatic spelling of hammingWeight and removes the helper entirely.",
+    "space": "O(n)",
+    "summary": "For each i in [0, n], counts set bits by repeatedly taking i % 2 and halving, so each number costs O(log n) bit-extraction steps and the whole table costs O(n log n). The O(n) space is the required output array itself; auxiliary space is O(1).",
+    "time_average": "O(n log n)",
+    "time_worst": "O(n log n)"
+  },
+  "file": "Data Structures & Algorithms/counting-bits/submission-0.py",
+  "golf": {
+    "bytes": 224,
+    "characters": 224,
+    "non_blank_lines": 9,
+    "tokens": 62
+  },
+  "model": "k3",
+  "slug": "counting-bits",
+  "solved_at": "2026-08-19T19:59:41-07:00",
+  "statement": "counting-bits"
+}
