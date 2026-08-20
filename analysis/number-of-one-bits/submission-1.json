@@ -1,0 +1,28 @@
+{
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-20T03:06:12.055885+00:00",
+  "complexity": {
+    "benchmark_model": "log n",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "Idiomatic Python 3.10+ one-liner; the loop from the previous submission is no longer needed. The O(log n) figure reflects scanning the machine words of an unbounded integer once the 32-bit cap is lifted.",
+    "relation_to_previous": "new-approach",
+    "space": "O(1)",
+    "summary": "Returns n.bit_count(), the built-in that counts set bits directly, replacing the manual bit-extraction loop.",
+    "time_average": "O(log n)",
+    "time_worst": "O(log n)"
+  },
+  "file": "Data Structures & Algorithms/number-of-one-bits/submission-1.py",
+  "golf": {
+    "bytes": 88,
+    "characters": 88,
+    "non_blank_lines": 3,
+    "tokens": 21
+  },
+  "model": "k3",
+  "relation_to_previous": "new-approach",
+  "slug": "number-of-one-bits",
+  "solved_at": "2026-08-19T20:05:34-07:00",
+  "statement": "number-of-one-bits"
+}
