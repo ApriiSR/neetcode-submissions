@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-20T00:35:00.924599+00:00",
+  "generated_at": "2026-08-20T00:43:26.213383+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -1042,6 +1042,34 @@
           "model": "k3",
           "slug": "combination-target-sum",
           "solved_at": "2026-08-19T17:32:52-07:00",
+          "statement": "combination-target-sum"
+        },
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-20T00:43:26.022836+00:00",
+          "complexity": {
+            "benchmark_model": "n 2^n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Dropping the previous version's sort loses nothing: the nums[i:] slicing already enforces a canonical order over combinations, so sorting was never load-bearing. Each call slices nums[i:] and builds [nums[i]] + x, adding O(n) and O(depth) copying per tree node; these are absorbed in the reported tree-size bound, though carrying a single path list with append/pop would avoid them. The `target in nums` check is a linear scan per call, likewise absorbed. Space quoted is for the recursion stack, where each frame retains its own slice; the output list itself can be exponentially large in t.",
+            "relation_to_previous": "revision",
+            "space": "O(n * t)",
+            "summary": "Pure top-down recursion: for each index i, prepend nums[i] to every combination of nums[i:] summing to target - nums[i], plus a direct [target] hit when target appears in nums; recursing only over the suffix nums[i:] prevents duplicate combinations. In the bounds, n = len(nums), t = target, m = min(nums): the recursion tree has depth at most t/m and branching n, so its size is O(n^(t/m)), equivalently O(k * t/m) output-sensitive for k output combinations.",
+            "time_average": "O(n^(t/m))",
+            "time_worst": "O(n^(t/m))"
+          },
+          "file": "Data Structures & Algorithms/combination-target-sum/submission-1.py",
+          "golf": {
+            "bytes": 393,
+            "characters": 393,
+            "non_blank_lines": 11,
+            "tokens": 100
+          },
+          "model": "k3",
+          "relation_to_previous": "new-approach",
+          "slug": "combination-target-sum",
+          "solved_at": "2026-08-19T17:41:35-07:00",
           "statement": "combination-target-sum"
         }
       ]
