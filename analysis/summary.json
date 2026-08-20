@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-20T21:26:00.227891+00:00",
+  "generated_at": "2026-08-20T22:21:38.719589+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -4894,6 +4894,36 @@
           "slug": "number-of-one-bits",
           "solved_at": "2026-08-19T20:05:34-07:00",
           "statement": "number-of-one-bits"
+        }
+      ]
+    },
+    "plus-one": {
+      "submissions": [
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-20T22:21:38.519639+00:00",
+          "complexity": {
+            "benchmark_model": "n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Correct but does a full digit-array -> string -> big-integer -> string -> digit-array round trip. As usual, bit-level bignum work is not counted in the reported complexity, but in practice the string/integer conversions are exactly what make this slower than the intended approach: ||a single pass from the least significant digit, turning trailing 9s into 0s and stopping as soon as a digit below 9 is found (prepending a 1 only when every digit was 9)||, which is also O(n) time but avoids the conversions entirely and needs no intermediate number. The nested generator expressions are a bit hard to read; a direct loop would be clearer.",
+            "space": "O(n)",
+            "summary": "Joins the digits into a string, parses it as one big integer, adds one, and splits the result back into a list of digit characters converted to ints.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
+          "file": "Data Structures & Algorithms/plus-one/submission-0.py",
+          "golf": {
+            "bytes": 157,
+            "characters": 157,
+            "non_blank_lines": 3,
+            "tokens": 52
+          },
+          "model": "k3",
+          "slug": "plus-one",
+          "solved_at": "2026-08-20T15:20:57-07:00",
+          "statement": "plus-one"
         }
       ]
     },
