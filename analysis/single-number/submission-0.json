@@ -1,0 +1,26 @@
+{
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-20T02:55:44.680946+00:00",
+  "complexity": {
+    "benchmark_model": "n",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "Idiomatic and meets the required O(n) time / O(1) space bounds. Python's arbitrary-precision ints mean negative values XOR-cancel correctly, so no special handling is needed.",
+    "space": "O(1)",
+    "summary": "XOR-accumulates every element; pairs cancel out, leaving the unique element.",
+    "time_average": "O(n)",
+    "time_worst": "O(n)"
+  },
+  "file": "Data Structures & Algorithms/single-number/submission-0.py",
+  "golf": {
+    "bytes": 144,
+    "characters": 144,
+    "non_blank_lines": 6,
+    "tokens": 31
+  },
+  "model": "k3",
+  "slug": "single-number",
+  "solved_at": "2026-08-19T19:55:27-07:00",
+  "statement": "single-number"
+}
