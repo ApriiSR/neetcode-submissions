@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-20T20:16:59.223430+00:00",
+  "generated_at": "2026-08-20T21:26:00.227891+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -5310,6 +5310,35 @@
           "slug": "reverse-integer",
           "solved_at": "2026-08-20T13:15:13-07:00",
           "statement": "reverse-integer"
+        },
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-20T21:26:00.071729+00:00",
+          "complexity": {
+            "benchmark_model": "n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "The two branches for positive and negative x do essentially the same work and could be unified by splitting off the sign with abs(x) first. An ||arithmetic digit-extraction loop (repeatedly taking x % 10)|| is the classic alternative and has the same O(n) complexity here, so the string approach is fine.",
+            "relation_to_previous": "revision",
+            "space": "O(n)",
+            "summary": "Converts x to a string, reverses the digit characters (slicing off the sign for negatives), and lexicographically compares the 10-digit result against the 32-bit bound strings to decide between the reversed value and 0.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
+          "file": "Data Structures & Algorithms/reverse-integer/submission-1.py",
+          "golf": {
+            "bytes": 447,
+            "characters": 447,
+            "non_blank_lines": 15,
+            "tokens": 114
+          },
+          "model": "k3",
+          "relation_to_previous": "revision",
+          "slug": "reverse-integer",
+          "solved_at": "2026-08-20T14:25:06-07:00",
+          "statement": "reverse-integer",
+          "supersedes": "submission-0"
         }
       ]
     },
