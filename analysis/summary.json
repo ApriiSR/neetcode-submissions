@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-20T00:43:26.213383+00:00",
+  "generated_at": "2026-08-20T01:02:05.114375+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -1013,6 +1013,36 @@
           "slug": "car-fleet",
           "solved_at": "2026-08-13T21:22:28-07:00",
           "statement": "car-fleet"
+        }
+      ]
+    },
+    "climbing-stairs": {
+      "submissions": [
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-20T01:02:04.981063+00:00",
+          "complexity": {
+            "benchmark_model": "2^n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Correct but exponentially slow; even n = 45 takes long. ||Memoizing the recursion (or iterating bottom-up keeping two running values)|| brings this to O(n) time, since ||each subproblem only needs to be solved once||.",
+            "space": "O(n)",
+            "summary": "Plain recursive enumeration of the Fibonacci recurrence: ways(n) = ways(n-1) + ways(n-2), with base cases at n = 0 and negative n. Every call branches twice with no caching, so overlapping subproblems are recomputed exponentially many times.",
+            "time_average": "O(2^n)",
+            "time_worst": "O(2^n)"
+          },
+          "file": "Data Structures & Algorithms/climbing-stairs/submission-0.py",
+          "golf": {
+            "bytes": 218,
+            "characters": 218,
+            "non_blank_lines": 8,
+            "tokens": 49
+          },
+          "model": "k3",
+          "slug": "climbing-stairs",
+          "solved_at": "2026-08-19T18:01:43-07:00",
+          "statement": "climbing-stairs"
         }
       ]
     },
