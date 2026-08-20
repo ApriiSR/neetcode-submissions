@@ -1,0 +1,28 @@
+{
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-20T01:09:56.193159+00:00",
+  "complexity": {
+    "benchmark_model": "log n",
+    "correctness": "neetcode-only",
+    "correctness_reason": "numpy's int64 overflows once n exceeds 92 (F(93) > 2^63), producing wrapped negative values as soon as the n <= 45 cap is lifted.",
+    "hash_dependent": false,
+    "notes": "The reported O(log n) is unit-cost arithmetic; the Fibonacci values have \u0398(n) bits, so the true bit-level cost of the big multiplications is higher \u2014 worth knowing, though digit work is never folded into the reported figure. Pulling in numpy for a two-line recurrence is a heavy dependency, and it is also the source of the correctness issue: numpy uses fixed-width int64, so the result silently wraps once F(n) exceeds 2^63. A pure-Python version of the same matrix power (or any fast doubling) uses arbitrary-precision ints and would be correct for all n at the same unit-cost complexity.",
+    "relation_to_previous": "new-approach",
+    "space": "O(1)",
+    "summary": "Computes the n-th Fibonacci number by raising the 2x2 transition matrix [[1,1],[1,0]] to the n-th power with numpy's binary-exponentiation matrix_power.",
+    "time_average": "O(log n)",
+    "time_worst": "O(log n)"
+  },
+  "file": "Data Structures & Algorithms/climbing-stairs/submission-2.py",
+  "golf": {
+    "bytes": 157,
+    "characters": 157,
+    "non_blank_lines": 4,
+    "tokens": 55
+  },
+  "model": "k3",
+  "relation_to_previous": "new-approach",
+  "slug": "climbing-stairs",
+  "solved_at": "2026-08-19T18:09:15-07:00",
+  "statement": "climbing-stairs"
+}
