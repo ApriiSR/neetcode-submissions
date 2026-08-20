@@ -394,8 +394,18 @@ def load_k3_model(slug, path):
 
 def benchmark_submission(slug, spec, path):
     rng = random.Random(f"{SEED}-{slug}-{path.name}")
-    solution = load_solution(path)
-    entry = getattr(solution, spec["entry"])
+    # Loading is inside the guard for the same reason the timed calls below
+    # are: a submission that won't even import is a fact about that
+    # submission, not a reason to abandon every problem alphabetically after
+    # it. climbing-stairs submission-2 supplied the case -- it imports numpy,
+    # which the solution genuinely uses and a runner may not have, and an
+    # uncaught ModuleNotFoundError there took down a whole CI run on
+    # 2026-08-20 rather than costing one record.
+    try:
+        solution = load_solution(path)
+        entry = getattr(solution, spec["entry"])
+    except Exception as exc:
+        return {"error": f"{type(exc).__name__}: {exc}"}
     build = spec.get("build")
 
     small_args = spec["generate"](CORRECTNESS_N, rng)

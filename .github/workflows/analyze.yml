@@ -44,6 +44,17 @@ jobs:
           # annotations that would raise if evaluated eagerly (e.g. `tuple(int)`)
           python-version: "3.14"
 
+      - name: Install submission dependencies
+        # Not for the scripts, which are stdlib-only -- for the submissions
+        # themselves, which benchmark.py execs directly. Two of them import
+        # numpy (climbing-stairs submission-2 does the whole problem with
+        # matrix_power), and NeetCode's judge has it. continue-on-error
+        # because this is an enhancement, not a requirement: if no wheel is
+        # available for the runner's Python, those submissions record an
+        # import error and every other one is measured as usual.
+        continue-on-error: true
+        run: python3 -m pip install --quiet numpy
+
       - name: Run analysis
         id: analysis
         env:
