@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-20T04:51:55.348076+00:00",
+  "generated_at": "2026-08-20T20:16:59.223430+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -5280,6 +5280,36 @@
           "slug": "reverse-bits",
           "solved_at": "2026-08-19T20:03:03-07:00",
           "statement": "reverse-bits"
+        }
+      ]
+    },
+    "reverse-integer": {
+      "submissions": [
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-20T20:16:59.023852+00:00",
+          "complexity": {
+            "benchmark_model": "n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "The whole strint class with its recursive __gt__ is over-engineered: the bound strings have a fixed 10-digit length, so the recursion and substring copying can never exceed that, but ||Python integers are arbitrary precision, so the 32-bit restriction can simply be ignored and the reversed value compared with a plain int comparison||, collapsing this to a few lines. Even staying with strings, ||direct lexicographic comparison of equal-length strings is built into Python||, so the recursive hand-rolled comparator is redundant.",
+            "space": "O(n)",
+            "summary": "Wraps the input in a custom string-backed integer class, reverses the digit string, and lexicographically compares it against the string forms of the 2^31 bounds to decide whether to return 0 or the signed reversed value.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
+          "file": "Data Structures & Algorithms/reverse-integer/submission-0.py",
+          "golf": {
+            "bytes": 1098,
+            "characters": 1098,
+            "non_blank_lines": 36,
+            "tokens": 278
+          },
+          "model": "k3",
+          "slug": "reverse-integer",
+          "solved_at": "2026-08-20T13:15:13-07:00",
+          "statement": "reverse-integer"
         }
       ]
     },
