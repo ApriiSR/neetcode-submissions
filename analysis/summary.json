@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-20T03:06:12.253635+00:00",
+  "generated_at": "2026-08-20T03:07:39.721112+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -4078,6 +4078,36 @@
           "slug": "minimum-stack",
           "solved_at": "2026-08-13T19:49:04-07:00",
           "statement": "minimum-stack"
+        }
+      ]
+    },
+    "missing-number": {
+      "submissions": [
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-20T03:07:39.570512+00:00",
+          "complexity": {
+            "benchmark_model": "n^2",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Correct and O(1) space, but each `in` check on a list is a full scan, making this quadratic. An O(n)-time, O(1)-space solution exists using ||the arithmetic-series sum n(n+1)/2 minus sum(nums), or XOR-ing all indices and values||; an O(n)-time alternative with O(n) space uses ||a set of the values for O(1) membership checks||.",
+            "space": "O(1)",
+            "summary": "For each candidate value from 0 to n, linearly scans the list with `in` until the absent one is found.",
+            "time_average": "O(n^2)",
+            "time_worst": "O(n^2)"
+          },
+          "file": "Data Structures & Algorithms/missing-number/submission-0.py",
+          "golf": {
+            "bytes": 160,
+            "characters": 160,
+            "non_blank_lines": 5,
+            "tokens": 39
+          },
+          "model": "k3",
+          "slug": "missing-number",
+          "solved_at": "2026-08-19T20:07:18-07:00",
+          "statement": "missing-number"
         }
       ]
     },
