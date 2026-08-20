@@ -1,0 +1,29 @@
+{
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-20T03:51:12.560720+00:00",
+  "complexity": {
+    "benchmark_model": "1",
+    "correctness": "neetcode-only",
+    "correctness_reason": "The loop is hard-coded to 32 bits, so with the value caps lifted a = -2**31, b = 0 returns +2**31 instead of -2**31, and a = b = 2**31 returns 0 instead of 2**32.",
+    "hash_dependent": false,
+    "notes": "(a // 2**i) % 2 is a roundabout spelling of (a >> i) & 1, and 2**i is recomputed every iteration where a running mask shifted left would do. The len(range(...)) trick is O(1) (range length is computed arithmetically) but obscure. The sign test d > 2**31 is off by one \u2014 d == 2**31 should also be negative \u2014 though that input is outside the stated caps. The standard tidier form of this idea ||repeats a, b = a ^ b, (a & b) << 1 under a 32-bit mask until the carry is zero||, looping only as long as carries remain.",
+    "relation_to_previous": "revision",
+    "space": "O(1)",
+    "summary": "Simulates a 32-bit ripple-carry adder: at each of 32 fixed positions, XOR of the operands' bits and the running carry gives the sum bit, a majority function propagates the carry, and the unsigned 32-bit result is mapped back to signed, using len(range(d, 2**32)) to compute the offset without the banned minus operator.",
+    "time_average": "O(1)",
+    "time_worst": "O(1)"
+  },
+  "file": "Data Structures & Algorithms/sum-of-two-integers/submission-9.py",
+  "golf": {
+    "bytes": 478,
+    "characters": 478,
+    "non_blank_lines": 16,
+    "tokens": 137
+  },
+  "model": "k3",
+  "relation_to_previous": "revision",
+  "slug": "sum-of-two-integers",
+  "solved_at": "2026-08-19T20:48:50-07:00",
+  "statement": "sum-of-two-integers",
+  "supersedes": "submission-7"
+}
