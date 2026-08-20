@@ -1,0 +1,28 @@
+{
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-20T01:43:16.719482+00:00",
+  "complexity": {
+    "benchmark_model": "n",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "Same recurrence as before with the auxiliary array replaced by two rolling variables, dropping space from O(n) to O(1). The len(cost) == 2 special case could be folded away by seeding big and mid as 0 and letting the loop run over all indices, but the guard is harmless.",
+    "relation_to_previous": "revision",
+    "space": "O(1)",
+    "summary": "Bottom-up DP scanning backward from the end, but keeping only the last two computed values in rolling variables instead of a full array, so each index's best cost is cost[i] + min(next two).",
+    "time_average": "O(n)",
+    "time_worst": "O(n)"
+  },
+  "file": "Data Structures & Algorithms/min-cost-climbing-stairs/submission-3.py",
+  "golf": {
+    "bytes": 370,
+    "characters": 370,
+    "non_blank_lines": 13,
+    "tokens": 95
+  },
+  "model": "k3",
+  "relation_to_previous": "new-approach",
+  "slug": "min-cost-climbing-stairs",
+  "solved_at": "2026-08-19T18:42:44-07:00",
+  "statement": "min-cost-climbing-stairs"
+}
