@@ -1,0 +1,29 @@
+{
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-20T03:21:41.205789+00:00",
+  "complexity": {
+    "benchmark_model": "1",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "The dropped `import math` was dead code; good cleanup. sum() honors the letter of the constraint but not its spirit \u2014 the intended approach uses ||bitwise XOR for the carry-free sum and (a & b) << 1 for the carry, looping until the carry is zero||, which is O(1) for machine-width integers. Two-element list construction is fine, though sum((a, b)) avoids allocating a list.",
+    "relation_to_previous": "revision",
+    "space": "O(1)",
+    "summary": "Sidesteps the operator ban by calling the built-in sum() on the two-element list [a, b].",
+    "time_average": "O(1)",
+    "time_worst": "O(1)"
+  },
+  "file": "Data Structures & Algorithms/sum-of-two-integers/submission-5.py",
+  "golf": {
+    "bytes": 86,
+    "characters": 86,
+    "non_blank_lines": 3,
+    "tokens": 28
+  },
+  "model": "k3",
+  "relation_to_previous": "revision",
+  "slug": "sum-of-two-integers",
+  "solved_at": "2026-08-19T20:21:08-07:00",
+  "statement": "sum-of-two-integers",
+  "supersedes": "submission-4"
+}
