@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-20T01:02:05.114375+00:00",
+  "generated_at": "2026-08-20T01:04:05.860865+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -1042,6 +1042,34 @@
           "model": "k3",
           "slug": "climbing-stairs",
           "solved_at": "2026-08-19T18:01:43-07:00",
+          "statement": "climbing-stairs"
+        },
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-20T01:04:05.671177+00:00",
+          "complexity": {
+            "benchmark_model": "n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Space can be reduced to O(1) since only ||the two most recent values|| are ever needed, and O(log n) time is achievable via ||fast doubling on the Fibonacci recurrence||. Under the unit-cost model this is O(n) time, but note the digit-level reality: F(n) has \u0398(n) bits, so each addition really costs \u0398(n) digit work \u2014 bit-level cost is O(n^2). The dict works but is overkill here; keys 0..n hash to consecutive slots so lookups are effectively collision-free, and a list would do the same job without hashing at all.",
+            "relation_to_previous": "new-approach",
+            "space": "O(n)",
+            "summary": "Iterative bottom-up Fibonacci: seeds a dict with the base cases 0, 1, 2 and fills in each count up to n as the sum of the two previous counts.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
+          "file": "Data Structures & Algorithms/climbing-stairs/submission-1.py",
+          "golf": {
+            "bytes": 190,
+            "characters": 190,
+            "non_blank_lines": 6,
+            "tokens": 65
+          },
+          "model": "k3",
+          "relation_to_previous": "new-approach",
+          "slug": "climbing-stairs",
+          "solved_at": "2026-08-19T18:03:24-07:00",
           "statement": "climbing-stairs"
         }
       ]
