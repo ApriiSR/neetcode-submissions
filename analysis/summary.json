@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-20T02:55:44.868841+00:00",
+  "generated_at": "2026-08-20T02:58:30.536386+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -4048,6 +4048,36 @@
           "slug": "minimum-stack",
           "solved_at": "2026-08-13T19:49:04-07:00",
           "statement": "minimum-stack"
+        }
+      ]
+    },
+    "number-of-one-bits": {
+      "submissions": [
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-20T02:58:30.355601+00:00",
+          "complexity": {
+            "benchmark_model": "n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Per-iteration cost is constant since the number halves each time. A faster variant, ||clearing the lowest set bit with n & (n - 1)||, iterates only once per set bit rather than once per bit position; Python's built-in int.bit_count() does this in one call.",
+            "space": "O(1)",
+            "summary": "Repeatedly reads the lowest bit with n % 2 and shifts right via integer division, accumulating the count until n becomes 0. Runs one iteration per bit of the input's binary length.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
+          "file": "Data Structures & Algorithms/number-of-one-bits/submission-0.py",
+          "golf": {
+            "bytes": 153,
+            "characters": 153,
+            "non_blank_lines": 7,
+            "tokens": 33
+          },
+          "model": "k3",
+          "slug": "number-of-one-bits",
+          "solved_at": "2026-08-19T19:58:01-07:00",
+          "statement": "number-of-one-bits"
         }
       ]
     },
