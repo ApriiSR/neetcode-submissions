@@ -1,0 +1,26 @@
+{
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-20T03:08:33.025699+00:00",
+  "complexity": {
+    "benchmark_model": "1",
+    "correctness": "incorrect",
+    "correctness_reason": "The problem explicitly forbids the + operator, so `return a + b` violates the stated requirement on every input even though the numeric result is right.",
+    "hash_dependent": false,
+    "notes": "The one-liner is idiomatic Python but sidesteps the entire exercise. A compliant solution would simulate addition with ||bitwise operations: XOR for the sum without carries, AND-plus-shift for the carry, looping until the carry is zero||, and in Python (which has arbitrary-precision ints) it would also need ||a fixed-width mask such as 32 bits with a sign correction|| to handle negative numbers.",
+    "space": "O(1)",
+    "summary": "Returns a + b directly using the built-in addition operator.",
+    "time_average": "O(1)",
+    "time_worst": "O(1)"
+  },
+  "file": "Data Structures & Algorithms/sum-of-two-integers/submission-0.py",
+  "golf": {
+    "bytes": 79,
+    "characters": 79,
+    "non_blank_lines": 3,
+    "tokens": 23
+  },
+  "model": "k3",
+  "slug": "sum-of-two-integers",
+  "solved_at": "2026-08-19T20:07:42-07:00",
+  "statement": "sum-of-two-integers"
+}
