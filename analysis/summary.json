@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-20T22:21:38.719589+00:00",
+  "generated_at": "2026-08-20T22:37:14.602887+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -4924,6 +4924,36 @@
           "slug": "plus-one",
           "solved_at": "2026-08-20T15:20:57-07:00",
           "statement": "plus-one"
+        }
+      ]
+    },
+    "pow-x-n": {
+      "submissions": [
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-20T22:37:14.445210+00:00",
+          "complexity": {
+            "benchmark_model": "1",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "This computes correct results but sidesteps the problem entirely: the statement forbids built-in library functions, and the intended exercise is implementing ||binary exponentiation (repeated squaring)|| yourself in O(log n). CPython evaluates float**int via C library pow, which is why this is O(1) here; on an int base with a large exponent the same operator would do O(log n) big-integer multiplications.",
+            "space": "O(1)",
+            "summary": "Returns x**n in one line, delegating everything to Python's built-in exponentiation operator on floats.",
+            "time_average": "O(1)",
+            "time_worst": "O(1)"
+          },
+          "file": "Data Structures & Algorithms/pow-x-n/submission-0.py",
+          "golf": {
+            "bytes": 83,
+            "characters": 83,
+            "non_blank_lines": 3,
+            "tokens": 23
+          },
+          "model": "k3",
+          "slug": "pow-x-n",
+          "solved_at": "2026-08-20T15:36:37-07:00",
+          "statement": "pow-x-n"
         }
       ]
     },
