@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-20T01:48:39.109194+00:00",
+  "generated_at": "2026-08-20T02:05:45.023736+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -2179,6 +2179,36 @@
           "slug": "find-minimum-in-rotated-sorted-array",
           "solved_at": "2026-08-17T18:46:19-07:00",
           "statement": "find-minimum-in-rotated-sorted-array"
+        }
+      ]
+    },
+    "house-robber": {
+      "submissions": [
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-20T02:05:44.833889+00:00",
+          "complexity": {
+            "benchmark_model": "n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Clean and idiomatic. The in-place mutation of the copied list is fine since nums is rebound to a new list. Space can be reduced to O(1) by keeping only ||the previous two DP values in rolling variables|| instead of the whole array.",
+            "space": "O(n)",
+            "summary": "Classic one-dimensional DP: after prepending a zero, each position takes the max of robbing the current house (plus the best two back) or skipping it (best one back), so the last entry holds the answer.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
+          "file": "Data Structures & Algorithms/house-robber/submission-1.py",
+          "golf": {
+            "bytes": 204,
+            "characters": 204,
+            "non_blank_lines": 6,
+            "tokens": 70
+          },
+          "model": "k3",
+          "slug": "house-robber",
+          "solved_at": "2026-08-19T19:05:24-07:00",
+          "statement": "house-robber"
         }
       ]
     },
