@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-20T01:31:06.800841+00:00",
+  "generated_at": "2026-08-20T01:31:51.641858+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -3873,6 +3873,35 @@
           "slug": "min-cost-climbing-stairs",
           "solved_at": "2026-08-19T18:30:47-07:00",
           "statement": "min-cost-climbing-stairs"
+        },
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-20T01:31:51.454494+00:00",
+          "complexity": {
+            "benchmark_model": "n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Compared to the previous version, this copies cost directly so the last two entries are already correct and the base-case assignments are dropped \u2014 a nice tidy-up. Space can be reduced from O(n) to O(1) since ||only the last two computed values are ever needed, so two rolling variables suffice instead of the full array||.",
+            "relation_to_previous": "revision",
+            "space": "O(n)",
+            "summary": "Bottom-up DP walking backwards: a[i] is the min cost to reach the top from index i, computed as cost[i] plus the cheaper of the next two entries; the answer is min(a[0], a[1]).",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
+          "file": "Data Structures & Algorithms/min-cost-climbing-stairs/submission-2.py",
+          "golf": {
+            "bytes": 221,
+            "characters": 221,
+            "non_blank_lines": 6,
+            "tokens": 82
+          },
+          "model": "k3",
+          "relation_to_previous": "revision",
+          "slug": "min-cost-climbing-stairs",
+          "solved_at": "2026-08-19T18:31:32-07:00",
+          "statement": "min-cost-climbing-stairs",
+          "supersedes": "submission-1"
         }
       ]
     },
