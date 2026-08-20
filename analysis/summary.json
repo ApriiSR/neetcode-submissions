@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-20T01:09:56.398329+00:00",
+  "generated_at": "2026-08-20T01:31:06.800841+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -3843,6 +3843,36 @@
           "slug": "merge-two-sorted-linked-lists",
           "solved_at": "2026-08-14T13:53:07-07:00",
           "statement": "merge-two-sorted-linked-lists"
+        }
+      ]
+    },
+    "min-cost-climbing-stairs": {
+      "submissions": [
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-20T01:31:06.612921+00:00",
+          "complexity": {
+            "benchmark_model": "n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Correct and clear. Since each entry only reads the next two, the array could be replaced by two rolling variables for O(1) space, but the time complexity is already optimal.",
+            "space": "O(n)",
+            "summary": "Bottom-up DP from the end: a[i] is the minimum cost to reach the top starting from step i, computed as cost[i] plus the cheaper of the next two entries; the answer is min(a[0], a[1]).",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
+          "file": "Data Structures & Algorithms/min-cost-climbing-stairs/submission-1.py",
+          "golf": {
+            "bytes": 279,
+            "characters": 279,
+            "non_blank_lines": 8,
+            "tokens": 108
+          },
+          "model": "k3",
+          "slug": "min-cost-climbing-stairs",
+          "solved_at": "2026-08-19T18:30:47-07:00",
+          "statement": "min-cost-climbing-stairs"
         }
       ]
     },
