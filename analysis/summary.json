@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-20T22:57:11.457106+00:00",
+  "generated_at": "2026-08-20T23:11:37.780889+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -4758,6 +4758,36 @@
           "slug": "missing-number",
           "solved_at": "2026-08-19T20:07:18-07:00",
           "statement": "missing-number"
+        }
+      ]
+    },
+    "non-cyclical-number": {
+      "submissions": [
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-20T23:11:37.578528+00:00",
+          "complexity": {
+            "benchmark_model": "log n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": true,
+            "notes": "The set stores O(log n) values: after the first step the value is at most 81 times the digit count of n, i.e. O(log n), and it only shrinks from there, so the loop runs O(log n) iterations. The sq dict is fine but slightly redundant \u2014 int(d) ** 2 or a small tuple indexed by digit would spell the same thing without a ten-entry literal. There is a well-known O(1)-space alternative: ||Floyd's tortoise-and-hare cycle detection, advancing one pointer one step and the other two steps through the digit-square sequence||, which removes the set and the hash dependence entirely.",
+            "space": "O(log n)",
+            "summary": "Set-based cycle detection: repeatedly replace n with the sum of the squares of its digits (via a digit-to-square lookup dict) until it hits 1 or a value already seen. Each visited value is stored in a set, and a repeat proves a cycle not containing 1.",
+            "time_average": "O(log n)",
+            "time_worst": "O((log n)^2)"
+          },
+          "file": "Data Structures & Algorithms/non-cyclical-number/submission-1.py",
+          "golf": {
+            "bytes": 353,
+            "characters": 353,
+            "non_blank_lines": 10,
+            "tokens": 100
+          },
+          "model": "k3",
+          "slug": "non-cyclical-number",
+          "solved_at": "2026-08-20T16:09:45-07:00",
+          "statement": "non-cyclical-number"
         }
       ]
     },
