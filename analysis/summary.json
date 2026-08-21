@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-21T04:37:47.272120+00:00",
+  "generated_at": "2026-08-21T05:48:58.177147+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -2647,6 +2647,36 @@
           "slug": "house-robber",
           "solved_at": "2026-08-19T19:05:24-07:00",
           "statement": "house-robber"
+        }
+      ]
+    },
+    "house-robber-ii": {
+      "submissions": [
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-21T05:48:58.056942+00:00",
+          "complexity": {
+            "benchmark_model": "n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Both rob1's padded copy and the two slices make this O(n) space; O(1) is easy by tracking two rolling totals (prev, curr) instead of writing into a list. The len(nums) > 1 guard is needed since nums[1:] would be empty for a single house.",
+            "space": "O(n)",
+            "summary": "Reduces the circular problem to two linear House Robber runs \u2014 one over nums[:-1], one over nums[1:] \u2014 and takes the max, using the standard in-place DP where each house is either robbed (adding to i-2) or skipped (taking i-1).",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
+          "file": "Data Structures & Algorithms/house-robber-ii/submission-1.py",
+          "golf": {
+            "bytes": 305,
+            "characters": 305,
+            "non_blank_lines": 8,
+            "tokens": 117
+          },
+          "model": "k3",
+          "slug": "house-robber-ii",
+          "solved_at": "2026-08-20T22:48:25-07:00",
+          "statement": "house-robber-ii"
         }
       ]
     },
