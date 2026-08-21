@@ -1,0 +1,26 @@
+{
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-21T06:29:31.589344+00:00",
+  "complexity": {
+    "benchmark_model": "n^2",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "The lands counter is dead code: it is computed and decremented but never read, since termination is driven by the row scan. Two things make this quadratic rather than linear: the linear membership test q not in queue on every neighbor check, and rescanning the grid from row 0 to locate each new island (up to O(n) scan work per island). ||Marking a cell as visited when it is enqueued, rather than when it is popped, removes the need for the membership test entirely and restores O(n).|| The border-padding rewrite is a neat way to avoid bounds checks, though it copies the whole grid; iterating neighbors with index arithmetic would avoid that.",
+    "space": "O(n)",
+    "summary": "Pads the grid with a water border, then repeatedly scans rows for a remaining '1' and flood-fills that island with an explicit-stack DFS, zeroing cells as they are popped and counting one island per fill.",
+    "time_average": "O(n^2)",
+    "time_worst": "O(n^2)"
+  },
+  "file": "Data Structures & Algorithms/count-number-of-islands/submission-0.py",
+  "golf": {
+    "bytes": 938,
+    "characters": 938,
+    "non_blank_lines": 26,
+    "tokens": 279
+  },
+  "model": "k3",
+  "slug": "count-number-of-islands",
+  "solved_at": "2026-08-20T23:28:34-07:00",
+  "statement": "count-number-of-islands"
+}
