@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-21T06:47:07.234159+00:00",
+  "generated_at": "2026-08-21T07:46:32.511470+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -1827,6 +1827,36 @@
           "slug": "counting-bits",
           "solved_at": "2026-08-19T19:59:41-07:00",
           "statement": "counting-bits"
+        }
+      ]
+    },
+    "course-schedule": {
+      "submissions": [
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-21T07:46:32.296043+00:00",
+          "complexity": {
+            "benchmark_model": "n^2",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": true,
+            "notes": "The repeated `in`/`remove` operations on `starts`, `parent[w]`, and `prerequisites` are linear scans, making the algorithm quadratic; it also mutates the caller's `prerequisites` list. An O(V + E) version is possible with ||Kahn's algorithm using an indegree array and a queue of currently unlocked courses||. The `parent`/`child` names are counterintuitive: `child[course]` stores that course's prerequisites, while `parent[prerequisite]` stores its dependents.",
+            "space": "O(V + E)",
+            "summary": "This performs a reverse topological elimination: it starts from courses that are not prerequisites for anything, repeatedly removes satisfied prerequisite edges, and returns whether every edge was removed.",
+            "time_average": "O(VE + E^2)",
+            "time_worst": "O(VE + E^2)"
+          },
+          "file": "Data Structures & Algorithms/course-schedule/submission-0.py",
+          "golf": {
+            "bytes": 906,
+            "characters": 906,
+            "non_blank_lines": 27,
+            "tokens": 197
+          },
+          "model": "k3",
+          "slug": "course-schedule",
+          "solved_at": "2026-08-21T00:43:53-07:00",
+          "statement": "course-schedule"
         }
       ]
     },
