@@ -1,0 +1,26 @@
+{
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-21T00:31:48.810196+00:00",
+  "complexity": {
+    "benchmark_model": "n log n",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "Sorting directly with a key on the points (e.g. sorted(points, key=...)) would avoid building the tuple list. Faster alternatives exist: ||a max-heap of size k runs in O(n log k)||, and ||quickselect (e.g. nth_element / heapq.nsmallest-style partial selection) reaches expected O(n)||.",
+    "space": "O(n)",
+    "summary": "Builds (distance, point) pairs for all points, sorts them, and returns the first k points. Sorting dominates at O(n log n).",
+    "time_average": "O(n log n)",
+    "time_worst": "O(n log n)"
+  },
+  "file": "Data Structures & Algorithms/k-closest-points-to-origin/submission-0.py",
+  "golf": {
+    "bytes": 197,
+    "characters": 197,
+    "non_blank_lines": 4,
+    "tokens": 79
+  },
+  "model": "k3",
+  "slug": "k-closest-points-to-origin",
+  "solved_at": "2026-08-20T17:31:21-07:00",
+  "statement": "k-closest-points-to-origin"
+}
