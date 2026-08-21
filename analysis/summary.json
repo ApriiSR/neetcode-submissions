@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-21T06:29:31.797617+00:00",
+  "generated_at": "2026-08-21T06:47:07.234159+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -1355,6 +1355,36 @@
           "slug": "climbing-stairs",
           "solved_at": "2026-08-19T18:09:15-07:00",
           "statement": "climbing-stairs"
+        }
+      ]
+    },
+    "clone-graph": {
+      "submissions": [
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-21T06:47:07.045282+00:00",
+          "complexity": {
+            "benchmark_model": "n^2",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Two performance issues, neither affecting correctness: pop(0) on a list costs O(queue length) per pop where collections.deque.popleft() is O(1), and nodes are only marked visited when dequeued, so a node is enqueued once per neighbor processed before it, letting the queue hold O(E) entries. On dense graphs this degrades the traversal to O(E^2) (Theta(n^4) in node count on a complete graph); adding nodes to a visited set at enqueue time restores O(V + E). The second pass building neighbor lists is clean and the empty-graph case is handled.",
+            "space": "O(V + E)",
+            "summary": "BFS from the start node, creating a blank clone for each original node in a dict keyed by the original node (identity hash), then a second pass wires up each clone's neighbor list through the old-to-new map.",
+            "time_average": "O(V^2 + E)",
+            "time_worst": "O(E^2)"
+          },
+          "file": "Data Structures & Algorithms/clone-graph/submission-0.py",
+          "golf": {
+            "bytes": 678,
+            "characters": 678,
+            "non_blank_lines": 22,
+            "tokens": 110
+          },
+          "model": "k3",
+          "slug": "clone-graph",
+          "solved_at": "2026-08-20T23:43:05-07:00",
+          "statement": "clone-graph"
         }
       ]
     },
