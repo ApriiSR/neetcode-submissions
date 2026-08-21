@@ -1,0 +1,33 @@
+{
+  "generated_at": "2026-08-21T04:37:47.242106+00:00",
+  "python_hash_seed": "0",
+  "slug": "plus-one",
+  "submissions": {
+    "submission-0.py": {
+      "adversarial": null,
+      "benchmark_version": 2,
+      "best_fit": "n log n",
+      "best_fit_r2": 0.9945014329600445,
+      "k3_model": "n",
+      "k3_model_r2": 0.9888748995330446,
+      "r2": 0.9971336851552177,
+      "sizes": [
+        256,
+        512,
+        1024,
+        2048,
+        4096
+      ],
+      "slope": 1.1001201577038249,
+      "times_ms": [
+        0.04756100000236074,
+        0.09255799999863257,
+        0.19196699999923794,
+        0.4193959999980734,
+        1.0115600000020208
+      ],
+      "truncated_by": "ValueError: Exceeds the limit (4300 digits) for integer string conversion: value has 8192 digits; use sys.set_int_max_str_digits() to increase the limit",
+      "unmeasured": null
+    }
+  }
+}
