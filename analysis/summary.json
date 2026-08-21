@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-21T08:08:32.175712+00:00",
+  "generated_at": "2026-08-21T20:11:14.306249+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -5244,6 +5244,36 @@
           "slug": "number-of-one-bits",
           "solved_at": "2026-08-19T20:05:34-07:00",
           "statement": "number-of-one-bits"
+        }
+      ]
+    },
+    "permutations": {
+      "submissions": [
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-21T20:11:14.136872+00:00",
+          "complexity": {
+            "benchmark_model": "n 2^n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Correct and quite clever, but each of the n pops per permutation deletes from the middle of a list, which is O(n), so decoding costs O(n^2) per permutation rather than the O(n) a ||backtracking approach that builds each permutation by swapping elements in place|| achieves, making the total O(n^2 * n!) instead of O(n * n!). The recursion in `iterate` bottoms out with a `[-1]` sentinel that grows the returned list by one (harmless here since the loop just checks membership), and `place = 0` as a mutable-default-looking parameter is fine since it's only ever read. Freeing `iterate` from the class is a reasonable choice; a plain iterative increment would avoid the recursion overhead.",
+            "space": "O(n * n!)",
+            "summary": "Treats a length-n list as a mixed-radix counter (a factorial number system / Lehmer-style code), increments it n! times, and decodes each state into a permutation by popping the coded indices from a fresh copy of nums.",
+            "time_average": "O(n^2 * n!)",
+            "time_worst": "O(n^2 * n!)"
+          },
+          "file": "Data Structures & Algorithms/permutations/submission-0.py",
+          "golf": {
+            "bytes": 522,
+            "characters": 522,
+            "non_blank_lines": 18,
+            "tokens": 148
+          },
+          "model": "k3",
+          "slug": "permutations",
+          "solved_at": "2026-08-21T13:09:19-07:00",
+          "statement": "permutations"
         }
       ]
     },
