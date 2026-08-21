@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-21T08:06:06.805681+00:00",
+  "generated_at": "2026-08-21T08:08:32.175712+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -4229,6 +4229,36 @@
           "slug": "max-water-container",
           "solved_at": "2026-08-18T17:38:26-07:00",
           "statement": "max-water-container"
+        }
+      ]
+    },
+    "meeting-schedule": {
+      "submissions": [
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-21T08:08:31.964659+00:00",
+          "complexity": {
+            "benchmark_model": "n log n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Clean and optimal. Timsort's O(n) auxiliary space is the only extra memory; sorting in place is fine here since mutating the caller's list is generally acceptable for this problem.",
+            "space": "O(n)",
+            "summary": "Sorts intervals by start time, then checks each adjacent pair for overlap; if any meeting starts before the previous one ends, returns False.",
+            "time_average": "O(n log n)",
+            "time_worst": "O(n log n)"
+          },
+          "file": "Data Structures & Algorithms/meeting-schedule/submission-1.py",
+          "golf": {
+            "bytes": 421,
+            "characters": 421,
+            "non_blank_lines": 14,
+            "tokens": 66
+          },
+          "model": "k3",
+          "slug": "meeting-schedule",
+          "solved_at": "2026-08-21T01:08:06-07:00",
+          "statement": "meeting-schedule"
         }
       ]
     },
