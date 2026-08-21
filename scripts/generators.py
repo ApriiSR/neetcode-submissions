@@ -460,6 +460,19 @@ def _gen_is_palindrome(n, rng):
     return (half + half[::-1],)
 
 
+def _gen_k_closest_points_to_origin(n, rng):
+    # Coordinates are drawn from a box that grows with n, so squared distances
+    # stay spread out and exact ties -- which would drop the sorting
+    # submission's tuple comparison through to comparing the coordinate lists
+    # themselves -- stay vanishingly rare. k is a quarter of the points rather
+    # than a fixed handful, so the answer grows with n too.
+    limit = 4 * n
+    points = [
+        [rng.randint(-limit, limit), rng.randint(-limit, limit)] for _ in range(n)
+    ]
+    return (points, max(1, n // 4))
+
+
 def _gen_kth_largest_integer_in_a_stream(n, rng):
     k = max(1, min(3, n))
     initial = [rng.randint(-1000, 1000) for _ in range(max(k, n // 2))]
@@ -601,11 +614,35 @@ def _gen_missing_number(n, rng):
     return (nums,)
 
 
+def _gen_non_cyclical_number(n, rng):
+    # n is the input value itself rather than a length, so the generator
+    # samples nothing and what the ladder varies is the digit count, about
+    # log10(n) of it.
+    return (n,)
+
+
 def _gen_number_of_one_bits(n, rng):
     # n is the width in bits, not a length: the top bit is forced set so the
     # value really is n bits wide and the ladder means what it says.
     bits = max(1, n)
     return (rng.getrandbits(bits) | 1 << (bits - 1),)
+
+
+def _gen_plus_one(n, rng):
+    # n = the number of digits, and the leading one is never 0 so the list is
+    # really n digits wide. The rest are uniform over 0..9, which makes a carry
+    # die at the last digit nine times in ten and reach the front only about
+    # 10**-n of the time.
+    return ([rng.randint(1, 9)] + [rng.randint(0, 9) for _ in range(n - 1)],)
+
+
+def _gen_pow_x_n(n, rng):
+    # n is the exponent -- a value rather than a length, so what grows along
+    # the ladder is only its bit length. The base is held inside the unit
+    # interval (uniform magnitude 0.5..1.0, random sign) so that repeated
+    # squaring underflows toward 0.0 instead of raising OverflowError: any
+    # base above 1 overflows a float long before the top of the ladder.
+    return (rng.choice((-1.0, 1.0)) * rng.uniform(0.5, 1.0), n)
 
 
 def _gen_products_of_array_discluding_self(n, rng):
@@ -637,6 +674,10 @@ def _build_one_list(values):
 
 def _gen_reverse_bits(n, rng):
     return (rng.getrandbits(32),)
+
+
+def _gen_reverse_integer(n, rng):
+    return (rng.randint(-(2**31), 2**31 - 1),)
 
 
 def _gen_same_binary_tree(n, rng):
@@ -1040,6 +1081,15 @@ PROBLEMS = {
         "scaling_note": "n = length of the input string",
         "generalized_note": "uncapped: any string length. The character set is part of the problem, not a cap \u2014 still printable ASCII.",
     },
+    "k-closest-points-to-origin": {
+        "entry": "kClosest",
+        "scalable": True,
+        "generate": _gen_k_closest_points_to_origin,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of points, and k scales with it: k is n // 4, so the answer is a quarter of the input rather than a fixed handful and its length grows with n. Both coordinates of every point are drawn uniformly and independently from -4n..4n, so the box grows with n and exact ties in distance stay vanishingly rare -- which matters because the sorting submission keys on the tuple (distance, point), and a tie would drop through to comparing the coordinate lists themselves. Points are not required distinct and may repeat. Because k grows with n, a full sort at n log n and a size-k heap at n log k are separated only by the log(4) between them here, so those two shapes are not distinguishable on this ladder; a linear-average selection (quickselect) is the one that would show up as a different curve",
+        "generalized_note": "uncapped: any number of points, coordinates any ints, k anywhere from 1 to the number of points. The output contract is part of the problem, not a cap -- still exactly k points, closest to the origin by Euclidean distance, in any order, with ties broken arbitrarily. Note that k need not grow with n: at a fixed k a heap solution is n log k, effectively linear, where a full sort stays n log n.",
+    },
     "kth-largest-integer-in-a-stream": {
         "entry": None,
         "scalable": False,
@@ -1180,6 +1230,15 @@ PROBLEMS = {
         "scaling_note": "n = array length; the array is a shuffled permutation of 0..n-1, so the absent value is always n itself. That is pinned deliberately rather than placed at random: the submission scans with `i not in nums` and stops at the gap, so a randomly placed gap would make each rung of the ladder measure where the gap happened to sit instead of n. As pinned, every i below n is found after about n / 2 comparisons before the final scan for n fails outright, so the work is about n**2 / 2 and the particular shuffle does not change it. The scan is over a list, not a set, so nothing here hashes",
         "generalized_note": "uncapped: any array length. The value range is the problem's structure rather than a size limit -- the array still holds n distinct integers drawn from 0..n, with exactly one of that range absent, which is what makes the sum and xor solutions work at all.",
     },
+    "non-cyclical-number": {
+        "entry": "isHappy",
+        "scalable": True,
+        "generate": _gen_non_cyclical_number,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = the input integer itself, which is the entire input -- the entry takes one integer, so the size being varied is that integer's value rather than any length, and the generator samples nothing. What grows along the ladder is only the digit count, about log10(n): 3 digits at the first rung and 7 at the last. That also bounds the whole computation. The first digit-square sum drops any input below 81 * digits -- under 600 anywhere on this ladder -- and from there the sequence reaches 1 or the fixed 4-16-37-58-89-145-42-20 cycle within a couple of dozen steps whatever it started from. So the work is one digit pass proportional to log10(n) plus a tail whose cost does not depend on n at all, and the whole ladder runs in the low microseconds. Read the curve as flat: the fitted polynomial and its r^2 are describing timer resolution and a logarithmic term, not a growth rate",
+        "generalized_note": "uncapped: any positive integer, of any size. The step is part of the problem, not a cap -- happiness is still defined by repeatedly summing the squares of the decimal digits until reaching 1 or repeating. Note that n is a value rather than a length: writing it down takes about log10(n) digits, so one pass over those digits is linear in the size of the input, while everything after that first pass is bounded by a constant however large n was.",
+    },
     "number-of-one-bits": {
         "entry": "hammingWeight",
         "scalable": True,
@@ -1188,6 +1247,24 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "n = the input's width in bits, not an array length: the generator draws a uniformly random n-bit integer with its top bit forced set, so the value really is n bits wide and about half of them are ones. This is the stated 32-bit input uncapped, and it is the only thing here that can scale at all. The two submissions separate sharply on that ladder: the divide-by-2 loop runs one iteration per bit and each `n // 2` rebuilds an O(n)-bit integer, so it is quadratic in n and the per-size cap truncates it partway up, while `int.bit_count()` reads the value a machine word at a time and walks the whole ladder without leaving the microseconds -- about 80 nanoseconds at the bottom and ten microseconds at the top. Only its last few rungs are big enough to outweigh the fixed cost of the call, so its curve reads flatter than the linear scan it actually is",
         "generalized_note": "uncapped: any non-negative integer, of any width. What is counted is part of the problem, not a cap -- still the number of set bits. Note the stated 32-bit width is exactly what makes this constant-time as posed; once the width is the input size, a per-bit loop is no longer free, and the floor is reading the input, which is linear in the number of bits.",
+    },
+    "plus-one": {
+        "entry": "plusOne",
+        "scalable": True,
+        "generate": _gen_plus_one,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = the number of digits; the leading digit is drawn from 1..9 and never 0, so the list really is n digits wide, and the remaining n-1 are uniform over 0..9. That makes this the easy case for the addition itself: a carry stops at the last digit nine times in ten and reaches the front with probability 10**-n, so a digit-by-digit submission does constant expected work and only an all-nines input would make it walk the whole list. What the ladder measures is therefore whatever else a submission does with all n digits -- and the one here joins them into a string, converts that to a single n-digit integer, adds 1 and formats it back, paying big-integer conversion on every call rather than the constant the problem needs. Note the ladder truncates rather than completing: CPython refuses str-to-int conversions past 4300 digits by default, so that submission raises ValueError at the first rung above it (n = 8192) and only the sizes below are reported",
+        "generalized_note": "uncapped: any number of digits. The representation is part of the problem, not a cap -- still one decimal digit per element, most significant first, no leading zero, so the array is the number and there is no fixed-width integer type to fall back on. Note the answer can be one digit longer than the input (all nines), and that a carry chain is the only thing that forces more than constant work.",
+    },
+    "pow-x-n": {
+        "entry": "myPow",
+        "scalable": True,
+        "generate": _gen_pow_x_n,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = the exponent, a value rather than a length: the ladder varies the second argument itself, and the only thing that grows with it is its bit length, 9 at the first rung and 21 at the last. Every ladder size is an exact power of two, which is the cheap case for a repeated-squaring submission -- the exponent has one set bit, so it squares bit_length-1 times and recurses once more on an exponent of 0, where an all-ones exponent would make it recurse once per bit instead. The base is drawn with a random sign and a uniform magnitude in 0.5..1.0, always inside the unit interval, so squaring underflows smoothly toward 0.0; a base above 1 raises OverflowError well before the top of the ladder, which is the same reason the stated problem keeps x**n bounded. One caution for reading the numbers: the bit length spans only 9 to 21 across the whole ladder, a factor of 2.3, while n itself spans a factor of 4096, and every submission here finishes in a few microseconds or less at every rung. So the fitted slope and r^2 describe timer resolution and per-call overhead as much as they describe the computation, and anything growing only with the bit length has very little room to separate itself from a flat line",
+        "generalized_note": "uncapped: any base and any exponent, positive or negative. The definition is part of the problem, not a cap -- still x raised to the n, with a negative exponent meaning the reciprocal. Note that n is a value rather than a length, so it costs only about log2(|n|) bits to write down: a solution that multiplies n times is already exponential in the size of its input, where repeated squaring is linear in it. Uncapping the result range is also what makes float overflow and underflow real considerations rather than something the stated constraints rule out.",
     },
     "products-of-array-discluding-self": {
         "entry": "productExceptSelf",
@@ -1236,6 +1313,15 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "not scalable: the input is always a 32-bit integer and the submission bakes that width in, formatting to exactly 32 binary digits, so there is no size to vary; the generator draws a uniformly random 32-bit value purely as documentation of the input shape",
         "generalized_note": "nothing to uncap: reversal is defined against a fixed width, and 32 bits is that definition rather than a size limit -- the same value reversed under a different width is a different number. Any solution here is constant-work by construction.",
+    },
+    "reverse-integer": {
+        "entry": "reverse",
+        "scalable": False,
+        "generate": _gen_reverse_integer,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "not scalable: the input is a single integer pinned to the signed 32-bit range, and both submissions bake that in -- one compares the reversed value against 2**31-1 and 2**31, the other rejects anything past ten digits outright -- so there is no size to vary, and a larger input would be answered with 0 rather than worked on; the generator draws a uniformly random value from -2**31..2**31-1 purely as documentation of the input shape",
+        "generalized_note": "nothing to uncap in the size: the 32-bit range is the problem rather than a limit on it -- overflowing that range is exactly what the answer is defined to report as 0, so removing the range removes the question. What is left is a digit reversal over about log10(|x|) digits, linear in the size of the input as written.",
     },
     "same-binary-tree": {
         "entry": "isSameTree",
