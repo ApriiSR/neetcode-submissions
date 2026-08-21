@@ -1,15 +1,15 @@
 {
   "analysis_version": 9,
-  "analyzed_at": "2026-08-21T07:52:56.352240+00:00",
+  "analyzed_at": "2026-08-21T07:58:19.398987+00:00",
   "complexity": {
     "benchmark_model": "n^2",
-    "correctness": "incorrect",
-    "correctness_reason": "On numCourses=4, prerequisites=[[1,0],[1,2],[2,3],[3,0]] (a DAG, expected True), course 0 is pushed onto the stack twice before being processed; the first pop deletes child[0] via child.pop, and the second pop executes `queue += child[0]` and raises KeyError.",
-    "hash_dependent": false,
-    "notes": "The algorithm is a valid topological-sort shape, but it is implemented with O(n) list operations (`starts.remove`, `parent[w].remove`, `starts` membership test) on every edge, so it runs in O(V*E) instead of the O(V + E) that ||Kahn's algorithm with an integer indegree array and a queue of zero-indegree nodes, never rescanning lists|| achieves. The dict keys are exactly range(numCourses), a dense bounded set, so hashing is not adversarially degradable. Sadly the rewrite from the previous version introduced a hard crash, detailed in the correctness field: using `child.pop(v)` to delete the adjacency list means a node still sitting in the stack a second time hits a missing key.",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": true,
+    "notes": "The algorithm is the right shape, but `p[1] in starts`, `starts.remove(...)`, and `parent[w].remove(v)` are linear scans, so the whole thing runs in O(n * m) instead of the O(n + m) this approach can reach; swapping them for ||a set for the zero-dependency courses and integer counts in place of the parent lists|| closes that gap. Otherwise clean, and dropping the O(m) `prerequisites.remove(...)` scan from the previous version was a good fix.",
     "relation_to_previous": "revision",
     "space": "O(n)",
-    "summary": "Builds child/parent adjacency dicts, collects courses that nothing points to as starting nodes, then repeatedly pops a node with no remaining parents, deletes its outgoing edges, and pushes its children; returns whether the graph is fully dismantled. This is a hand-rolled source-removal topological sort, but with list scans for edge removal and start computation.",
+    "summary": "A reverse Kahn's-style elimination: it builds prerequisite/dependent adjacency maps, starts from courses nothing depends on, and repeatedly removes a course from its prerequisites' dependent lists; if every entry gets removed there is no cycle.",
     "time_average": "O(n^2)",
     "time_worst": "O(n^2)"
   },

@@ -1,0 +1,28 @@
+{
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-21T07:56:32.889045+00:00",
+  "complexity": {
+    "benchmark_model": "n^2",
+    "correctness": "incorrect",
+    "correctness_reason": "On numCourses=3, prerequisites=[[0,1],[0,2],[2,1]] course 1 is enqueued twice, and the stale second visit reaches `queue += child[1]` after `child.pop(1)` already deleted the entry, raising KeyError on a valid acyclic input.",
+    "hash_dependent": false,
+    "notes": "The algorithm intends sink-removal cycle detection, but as written it crashes (see correctness_reason). Even fixed, the start-list construction is quadratic because `starts` is a list; a set or boolean array would make that step linear. The standard linear solution is ||Kahn's algorithm: BFS from zero-indegree nodes with an indegree counter||, O(V + E).",
+    "relation_to_previous": "new-approach",
+    "space": "O(n)",
+    "summary": "Builds a prerequisite list (child) and a dependent set (parent) per course, then repeatedly deletes courses that nothing depends on, removing them from their prerequisites' dependent sets; returns whether every course gets deleted. Building the start list with `in`/`remove` on a list costs O(numCourses * len(prerequisites)).",
+    "time_average": "O(n^2)",
+    "time_worst": "O(n^2)"
+  },
+  "file": "Data Structures & Algorithms/course-schedule/submission-11.py",
+  "golf": {
+    "bytes": 816,
+    "characters": 816,
+    "non_blank_lines": 25,
+    "tokens": 182
+  },
+  "model": "k3",
+  "relation_to_previous": "new-approach",
+  "slug": "course-schedule",
+  "solved_at": "2026-08-21T00:51:56-07:00",
+  "statement": "course-schedule"
+}
