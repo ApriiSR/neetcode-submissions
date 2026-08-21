@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-21T07:46:32.511470+00:00",
+  "generated_at": "2026-08-21T07:52:56.566570+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -1834,17 +1834,17 @@
       "submissions": [
         {
           "analysis_version": 9,
-          "analyzed_at": "2026-08-21T07:46:32.296043+00:00",
+          "analyzed_at": "2026-08-21T07:48:57.356901+00:00",
           "complexity": {
             "benchmark_model": "n^2",
             "correctness": "general",
             "correctness_reason": "",
             "hash_dependent": true,
-            "notes": "The repeated `in`/`remove` operations on `starts`, `parent[w]`, and `prerequisites` are linear scans, making the algorithm quadratic; it also mutates the caller's `prerequisites` list. An O(V + E) version is possible with ||Kahn's algorithm using an indegree array and a queue of currently unlocked courses||. The `parent`/`child` names are counterintuitive: `child[course]` stores that course's prerequisites, while `parent[prerequisite]` stores its dependents.",
+            "notes": "Correct but slow: each edge removal calls prerequisites.remove([v, w]), an O(E) scan, and building the start list does an O(V) scan per prerequisite, so the whole run is O(E^2 + V*E). It also mutates the input list, which is avoidable. O(V + E) is achievable with ||Kahn's algorithm: an in-degree count array plus a queue of zero-in-degree courses, decrementing counts instead of scanning lists||. The dict keys are consecutive course labels, so hashing is not adversarially exploitable here.",
             "space": "O(V + E)",
-            "summary": "This performs a reverse topological elimination: it starts from courses that are not prerequisites for anything, repeatedly removes satisfied prerequisite edges, and returns whether every edge was removed.",
-            "time_average": "O(VE + E^2)",
-            "time_worst": "O(VE + E^2)"
+            "summary": "A reverse topological peel: it builds prerequisite and dependent adjacency lists, starts from courses that nothing depends on, and removes edges one at a time as each course's dependents are resolved, returning whether every edge was eliminated. The per-edge work uses linear list scans (prerequisites.remove, starts.remove, list membership), which makes it quadratic rather than linear.",
+            "time_average": "O((V + E)^2)",
+            "time_worst": "O((V + E)^2)"
           },
           "file": "Data Structures & Algorithms/course-schedule/submission-0.py",
           "golf": {
@@ -1856,6 +1856,34 @@
           "model": "k3",
           "slug": "course-schedule",
           "solved_at": "2026-08-21T00:43:53-07:00",
+          "statement": "course-schedule"
+        },
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-21T07:52:56.352240+00:00",
+          "complexity": {
+            "benchmark_model": "n^2",
+            "correctness": "incorrect",
+            "correctness_reason": "On numCourses=4, prerequisites=[[1,0],[1,2],[2,3],[3,0]] (a DAG, expected True), course 0 is pushed onto the stack twice before being processed; the first pop deletes child[0] via child.pop, and the second pop executes `queue += child[0]` and raises KeyError.",
+            "hash_dependent": false,
+            "notes": "The algorithm is a valid topological-sort shape, but it is implemented with O(n) list operations (`starts.remove`, `parent[w].remove`, `starts` membership test) on every edge, so it runs in O(V*E) instead of the O(V + E) that ||Kahn's algorithm with an integer indegree array and a queue of zero-indegree nodes, never rescanning lists|| achieves. The dict keys are exactly range(numCourses), a dense bounded set, so hashing is not adversarially degradable. Sadly the rewrite from the previous version introduced a hard crash, detailed in the correctness field: using `child.pop(v)` to delete the adjacency list means a node still sitting in the stack a second time hits a missing key.",
+            "relation_to_previous": "revision",
+            "space": "O(n)",
+            "summary": "Builds child/parent adjacency dicts, collects courses that nothing points to as starting nodes, then repeatedly pops a node with no remaining parents, deletes its outgoing edges, and pushes its children; returns whether the graph is fully dismantled. This is a hand-rolled source-removal topological sort, but with list scans for edge removal and start computation.",
+            "time_average": "O(n^2)",
+            "time_worst": "O(n^2)"
+          },
+          "file": "Data Structures & Algorithms/course-schedule/submission-9.py",
+          "golf": {
+            "bytes": 816,
+            "characters": 816,
+            "non_blank_lines": 25,
+            "tokens": 181
+          },
+          "model": "k3",
+          "relation_to_previous": "new-approach",
+          "slug": "course-schedule",
+          "solved_at": "2026-08-21T00:45:47-07:00",
           "statement": "course-schedule"
         }
       ]

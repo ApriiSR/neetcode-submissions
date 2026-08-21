@@ -1,16 +1,16 @@
 {
   "analysis_version": 9,
-  "analyzed_at": "2026-08-21T07:46:32.296043+00:00",
+  "analyzed_at": "2026-08-21T07:48:57.356901+00:00",
   "complexity": {
     "benchmark_model": "n^2",
     "correctness": "general",
     "correctness_reason": "",
     "hash_dependent": true,
-    "notes": "The repeated `in`/`remove` operations on `starts`, `parent[w]`, and `prerequisites` are linear scans, making the algorithm quadratic; it also mutates the caller's `prerequisites` list. An O(V + E) version is possible with ||Kahn's algorithm using an indegree array and a queue of currently unlocked courses||. The `parent`/`child` names are counterintuitive: `child[course]` stores that course's prerequisites, while `parent[prerequisite]` stores its dependents.",
+    "notes": "Correct but slow: each edge removal calls prerequisites.remove([v, w]), an O(E) scan, and building the start list does an O(V) scan per prerequisite, so the whole run is O(E^2 + V*E). It also mutates the input list, which is avoidable. O(V + E) is achievable with ||Kahn's algorithm: an in-degree count array plus a queue of zero-in-degree courses, decrementing counts instead of scanning lists||. The dict keys are consecutive course labels, so hashing is not adversarially exploitable here.",
     "space": "O(V + E)",
-    "summary": "This performs a reverse topological elimination: it starts from courses that are not prerequisites for anything, repeatedly removes satisfied prerequisite edges, and returns whether every edge was removed.",
-    "time_average": "O(VE + E^2)",
-    "time_worst": "O(VE + E^2)"
+    "summary": "A reverse topological peel: it builds prerequisite and dependent adjacency lists, starts from courses that nothing depends on, and removes edges one at a time as each course's dependents are resolved, returning whether every edge was eliminated. The per-edge work uses linear list scans (prerequisites.remove, starts.remove, list membership), which makes it quadratic rather than linear.",
+    "time_average": "O((V + E)^2)",
+    "time_worst": "O((V + E)^2)"
   },
   "file": "Data Structures & Algorithms/course-schedule/submission-0.py",
   "golf": {
