@@ -79,6 +79,13 @@ Every push to `main` that touches `Data Structures & Algorithms/**` runs
 `scripts/analyze.py` via `.github/workflows/analyze.yml`, then commits any
 new output back to `main` as a bot (`analysis/**` is excluded from the
 workflow's own path filter, so that commit doesn't retrigger the workflow).
+Runs are serialized on a concurrency group, and each one fast-forwards to
+the tip of the branch before analyzing anything. That second part matters
+because `actions/checkout` pins a run to its triggering commit, and an
+export pushed while the previous run is still working is that run's
+*parent*, not its child — so without the fast-forward the queued run starts
+from a tree missing the analysis records just written, calls those
+submissions new, re-analyzes them, and announces them to Discord twice.
 
 For each `submission-N.py` without a matching `analysis/<slug>/submission-N.json`,
 the script computes:
@@ -636,8 +643,13 @@ over this repo's history so far). So editing a solved problem to delete a
 dead line looks, to the pipeline, exactly like solving it a second time:
 new file, no analysis record, announce it.
 
-To tell those apart, `analyze.py` passes the problem's previous submission
-alongside the new one and asks K3 for a `relation_to_previous` of
+Byte-identical source settles itself: if a re-submission matches the
+previous one exactly, `settle_relation()` calls it a revision without
+consulting K3 or either override below, since nothing changed and there is
+no judgement to make.
+
+To tell the rest apart, `analyze.py` passes the problem's previous
+submission alongside the new one and asks K3 for a `relation_to_previous` of
 `"revision"` (same approach, incidental changes — dead code removed, a line
 rewritten more neatly) or `"new-approach"` (different means, different data
 structure, different shape). That is a judgement about intent, which is why

@@ -38,6 +38,26 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Fast-forward to the tip of the branch
+        # checkout pins the run to its triggering commit, and an export push
+        # is the *parent* of the previous run's analysis commit even when it
+        # arrives after it in wall-clock time. So a run triggered while the
+        # previous one was still working starts from a tree where that run's
+        # records do not exist yet -- analyze.py sees no analysis file, calls
+        # the submission new, re-analyzes it, and announce.py posts it to
+        # Discord a second time. That happened three times on 2026-08-21:
+        # course-schedule submission-0 and submission-9 were each analyzed
+        # and announced in two consecutive runs.
+        #
+        # Safe because the concurrency group above serializes runs: by the
+        # time a queued run reaches this step, the previous one has already
+        # pushed. Moving forward can only mean analyzing submissions that
+        # arrived after our trigger, which is the same work the run behind us
+        # would have done -- it then finds nothing new and stays quiet.
+        run: |
+          git fetch origin "$GITHUB_REF_NAME"
+          git reset --hard "origin/$GITHUB_REF_NAME"
+
       - uses: actions/setup-python@v5
         with:
           # 3.14+: lazy annotation evaluation (PEP 649) — some solutions have

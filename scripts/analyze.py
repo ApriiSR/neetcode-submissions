@@ -499,17 +499,28 @@ def _correctness(complexity) -> str | None:
     return complexity.get("correctness")
 
 
-def settle_relation(complexity: dict | None, previous_record: dict | None) -> str | None:
+def settle_relation(
+    complexity: dict | None,
+    previous_record: dict | None,
+    identical_to_previous: bool = False,
+) -> str | None:
     """Decide whether this submission supersedes the previous one.
 
     K3 judges whether the approach changed, since that is a judgement about
-    intent that no diff ratio captures — but two things settle it outright,
-    whatever K3 said. April's rule: tidying (a dead line removed, a line
-    rewritten shorter) is a revision, while anything that moves the
-    COMPLEXITY is a submission in its own right; and so is anything that
-    moves the CORRECTNESS, so that fixing a bug never quietly deletes the
-    broken version from the page it was recorded on.
+    intent that no diff ratio captures — but three things settle it
+    outright, whatever K3 said. A byte-identical re-submission is not a
+    judgement call at all: nothing changed, so nothing about it can be a new
+    approach, and asking the model would be asking a question with no
+    content (it also short-circuits the two overrides below, since identical
+    source cannot have moved either field). For the rest, April's rule:
+    tidying (a dead line removed, a line rewritten shorter) is a revision,
+    while anything that moves the COMPLEXITY is a submission in its own
+    right; and so is anything that moves the CORRECTNESS, so that fixing a
+    bug never quietly deletes the broken version from the page it was
+    recorded on.
     """
+    if identical_to_previous:
+        return "revision"
     if not isinstance(complexity, dict):
         return None
     relation = complexity.get("relation_to_previous")
@@ -576,7 +587,9 @@ def analyze_submission(slug: str, number: int, path: Path, mock: bool) -> tuple[
         "model": MOONSHOT_MODEL if not mock else "mock",
         "analyzed_at": datetime.now(timezone.utc).isoformat(),
     }
-    relation = settle_relation(complexity, previous_record)
+    relation = settle_relation(
+        complexity, previous_record, identical_to_previous=source == previous_source
+    )
     if relation is not None:
         record["relation_to_previous"] = relation
         if relation == "revision" and previous_path is not None:

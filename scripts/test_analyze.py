@@ -125,6 +125,26 @@ class SettleRelationTests(unittest.TestCase):
         complexity = {"relation_to_previous": "revision"}
         self.assertEqual(analyze.settle_relation(complexity, None), "revision")
 
+    def test_identical_source_is_a_revision_whatever_the_model_said(self):
+        # A re-submission of byte-identical source is not news, and it is not
+        # a judgement call either.
+        complexity = {
+            "time_average": "O(n)", "time_worst": "O(n)", "space": "O(1)",
+            "relation_to_previous": "new-approach",
+        }
+        self.assertEqual(
+            analyze.settle_relation(complexity, self.PREV, identical_to_previous=True),
+            "revision",
+        )
+
+    def test_identical_source_is_a_revision_even_with_no_complexity(self):
+        # An errored analysis has no complexity dict, which normally means no
+        # relation at all; identical source still settles it.
+        self.assertEqual(
+            analyze.settle_relation(None, self.PREV, identical_to_previous=True),
+            "revision",
+        )
+
 
 class JsonParsingTests(unittest.TestCase):
     def test_plain_json(self):
