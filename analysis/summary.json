@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-22T01:55:26.693332+00:00",
+  "generated_at": "2026-08-22T03:23:06.406484+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -3261,6 +3261,36 @@
           "slug": "k-closest-points-to-origin",
           "solved_at": "2026-08-20T17:31:21-07:00",
           "statement": "k-closest-points-to-origin"
+        }
+      ]
+    },
+    "kth-largest-element-in-an-array": {
+      "submissions": [
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-22T03:23:06.228146+00:00",
+          "complexity": {
+            "benchmark_model": "n log n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Correct and minimal. The follow-up asks for a non-sorting solution: ||quickselect (Hoare's selection algorithm)|| achieves O(n) average time, and a ||min-heap of size k|| achieves O(n log k); both avoid the O(n log n) sort.",
+            "space": "O(n)",
+            "summary": "Sorts a copy of the array and returns the element k positions from the end, which is the kth largest.",
+            "time_average": "O(n log n)",
+            "time_worst": "O(n log n)"
+          },
+          "file": "Data Structures & Algorithms/kth-largest-element-in-an-array/submission-0.py",
+          "golf": {
+            "bytes": 109,
+            "characters": 109,
+            "non_blank_lines": 3,
+            "tokens": 31
+          },
+          "model": "k3",
+          "slug": "kth-largest-element-in-an-array",
+          "solved_at": "2026-08-21T20:21:59-07:00",
+          "statement": "kth-largest-element-in-an-array"
         }
       ]
     },
