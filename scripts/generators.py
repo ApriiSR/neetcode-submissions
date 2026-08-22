@@ -153,18 +153,18 @@ FACTORIAL_MODELS = (
 )
 
 # subsets-ii's ladder and models. Its submission walks all 2**n bit patterns
-# and scans, for each, the distinct subsets it has collected so far -- and
-# _gen_subsets_ii hands it every value exactly twice, which fixes that
-# collection's size at 3**(n//2). The product is (2 * sqrt(3))**n, about
-# 3.46**n, which outruns EXPONENTIAL_MODELS: fitting the measured ladder
-# against those alone picks n * 2^n at r^2 0.90 where (2 sqrt 3)^n reaches
-# 0.99, understating the base by a factor of 1.7 per step. The ladder starts
-# at 8 rather than subsets' 4 because the rungs below that run in under
-# 0.2ms, where timer granularity flattens the curve.
+# and scans, for each, the distinct subsets it has collected so far. With
+# _gen_subsets_ii's one-duplicate input that collection is exactly
+# 3 * 2**(n-2), so the two multiply to Theta(4**n) -- this code's worst case,
+# and what K3 reads off the source as O(n * 4**n). Neither exponential model
+# can describe that: against the measured ladder 2^n and n * 2^n top out at
+# r^2 0.84 where 4^n reaches 0.996. The ladder starts at 8 rather than
+# subsets' 4 because the rungs below run in under 0.3ms, where timer
+# granularity flattens the curve, and it runs out around n = 15.
 SUBSETS_II_SIZES = tuple(range(8, 21))
 SUBSETS_II_MODELS = EXPONENTIAL_MODELS + (
-    ("(2 sqrt 3)^n", lambda n: (2 * math.sqrt(3)) ** n),
-    ("n (2 sqrt 3)^n", lambda n: n * (2 * math.sqrt(3)) ** n),
+    ("4^n", lambda n: 4.0**n),
+    ("n 4^n", lambda n: n * 4.0**n),
 )
 
 class ListNode:
@@ -953,16 +953,23 @@ def _gen_subsets(n, rng):
 
 
 def _gen_subsets_ii(n, rng):
-    # Every value appears exactly twice (the last one alone when n is odd),
-    # and the multiset is then shuffled. That fixes the number of *distinct*
-    # subsets at exactly 3**(n//2) * 2**(n%2) -- each value can appear zero,
-    # one or two times -- which is what makes this problem's cost statable:
-    # the submission walks all 2**n bit patterns and scans, for each, the
-    # distinct subsets it has collected so far, so the two multiply. Drawing
-    # values at random would leave the duplicate structure, and so the size of
-    # that scan, varying from rung to rung.
+    # Distinct values with exactly one of them repeated, then shuffled. The
+    # repeat is what keeps this subsets-ii rather than subsets: about a
+    # quarter of the bit patterns then build a subset the dedup has already
+    # collected, so the branch the problem is about is actually taken. It
+    # also leaves the number of *distinct* subsets at exactly 3 * 2**(n-2),
+    # a constant factor below the 2**n a duplicate-free array would give.
+    # That second part is the point. The submission scans every distinct
+    # subset collected so far once per bit pattern, so keeping that
+    # collection Theta(2**n) keeps the total at Theta(4**n) -- this code's
+    # worst case, and the complexity K3 reads off the source. An earlier
+    # version handed over every value twice, which pinned the collection at
+    # 3**(n//2) and measured (2*sqrt(3))**n: exact, and exactly reproducible,
+    # but a measurement of an easier problem than the one being analysed.
     size = max(1, n)
-    values = [i // 2 for i in range(size)]
+    values = rng.sample(range(-2 * size, 2 * size + 1), max(1, size - 1))
+    values.append(values[0])
+    del values[size:]
     rng.shuffle(values)
     return (values,)
 
@@ -1708,7 +1715,7 @@ PROBLEMS = {
         "generate": _gen_subsets_ii,
         "adversarial": None,
         "adversarial_note": None,
-        "scaling_note": "n = array length, and this problem runs a ladder of its own: n steps by 1 from 8 rather than doubling from 256, since the output is a power set and one doubling of n squares the work. It starts at 8 rather than at subsets' 4 because the rungs below that run in under 0.2ms, where timer granularity flattens the curve. The generator hands over every value exactly twice (the last one alone when n is odd), so the number of distinct subsets is exactly 3**(n//2) * 2**(n%2) -- each value appears zero, one or two times -- rather than varying from rung to rung as randomly drawn duplicates would. That is what makes the cost statable: the submission walks all 2**n bit patterns and, for each, scans the distinct subsets it has collected so far, so the two multiply to about (2 * sqrt(3))**n, or 3.46**n. As with subsets the log-log slope is meaningless -- read best_fit, which carries (2 sqrt 3)^n and n * (2 sqrt 3)^n alongside 2^n and n * 2^n, because fitting this curve against the plain exponentials alone picks n * 2^n and understates the base by a factor of 1.7 per step",
+        "scaling_note": "n = array length, and this problem runs a ladder of its own: n steps by 1 from 8 rather than doubling from 256, since the output is a power set and one doubling of n squares the work. It starts at 8 rather than at subsets' 4 because the rungs below that run in under 0.3ms, where timer granularity flattens the curve, and it runs out around n = 15. The input is distinct values with exactly one of them repeated. The repeat is what keeps the problem subsets-ii rather than subsets -- about a quarter of the bit patterns build a subset the dedup has already collected -- while the number of distinct subsets stays exactly 3 * 2**(n-2), a constant factor below the 2**n a duplicate-free array gives rather than the 3**(n//2) that handing over every value twice would give. That is what makes the cost both statable and representative of the worst case: the submission walks all 2**n bit patterns and, for each, scans the distinct subsets collected so far, so the two multiply to Theta(4**n). As with subsets the log-log slope is meaningless -- read best_fit, which carries 4^n and n * 4^n alongside 2^n and n * 2^n. It settles on 4^n rather than n * 4^n because the membership scan compares lists element by element and stops at the first difference, so the extra factor of n does not materialise over this ladder; the two sit at r^2 0.996 and 0.983, which is a weak distinction rather than a finding",
         "generalized_note": "uncapped: any array length, values any ints, duplicates allowed. The output contract is part of the problem, not a cap -- every distinct subset appears exactly once, in any order. Note the distinct-subset count depends on the multiplicities: it is the product of (count + 1) over the distinct values, which is 2**k for a duplicate-free array of length k and as low as k + 1 when every value is the same. Exponential time in the array length is a floor only where the duplicates are bounded.",
     },
     "subtree-of-a-binary-tree": {
