@@ -68,7 +68,7 @@ ADVERSARIAL_CAP_SECONDS = 1.5
 # alongside new ones — the same role ANALYSIS_VERSION plays in analyze.py.
 # Records predating this stamp have no "benchmark_version" and are stale by
 # definition.
-BENCHMARK_VERSION = 2
+BENCHMARK_VERSION = 3
 CORRECTNESS_N = 8
 SEED = 20260813
 
@@ -229,6 +229,34 @@ def fit_loglog(sizes, times_ms):
     return slope, r2
 
 
+def model_loglog_slope(f, sizes):
+    """The log-log slope the model `f` itself produces over `sizes` -- the
+    number a measured `slope` has to be compared against before it can be
+    called a match for that model.
+
+    Comparing a measured slope to the model's *polynomial degree* instead
+    only works for pure power laws. n log n has degree 1 but a log-log slope
+    of about 1.11 over the default ladder, and log n has degree 0 against a
+    slope of about 0.11, so a genuinely n-log-n submission misses its own
+    label by more than a real anomaly would. This is emitted alongside
+    best_fit so a consumer can make that comparison without knowing what any
+    model means.
+
+    Returns None where the slope isn't defined: a model that overflows or
+    goes non-positive somewhere on the ladder, or a ladder too short to fit.
+    """
+    if f is None or len(sizes) < 2:
+        return None
+    try:
+        values = [f(n) for n in sizes]
+    except (OverflowError, ValueError):
+        return None
+    if any(v <= 0 for v in values):
+        return None
+    slope, _r2 = fit_loglog(sizes, values)
+    return slope
+
+
 def _fit_model_r2(sizes, times_ms, f):
     """R^2 of the log-space fit log(t) = log(c) + log(f(n)) (slope fixed at
     1, only the constant c free) against the observed (sizes, times_ms).
@@ -327,6 +355,7 @@ def run_ladder(
             "r2": None,
             "best_fit": None,
             "best_fit_r2": None,
+            "best_fit_slope": None,
             "k3_model": k3_model,
             "k3_model_r2": None,
             "truncated_by": truncated_by,
@@ -352,6 +381,7 @@ def run_ladder(
         k3_model_r2 = _fit_model_r2(sizes_out, times_out, k3_model_fn)
         candidates.append((k3_model_name, k3_model_fn))
     best_fit, best_fit_r2 = fit_best_model(sizes_out, times_out, candidates)
+    best_fit_slope = model_loglog_slope(dict(candidates).get(best_fit), sizes_out)
 
     return {
         "sizes": sizes_out,
@@ -360,6 +390,7 @@ def run_ladder(
         "r2": r2,
         "best_fit": best_fit,
         "best_fit_r2": best_fit_r2,
+        "best_fit_slope": best_fit_slope,
         "k3_model": k3_model,
         "k3_model_r2": k3_model_r2,
         "truncated_by": truncated_by,
