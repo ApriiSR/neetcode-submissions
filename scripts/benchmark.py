@@ -144,14 +144,16 @@ def parse_benchmark_model(text):
 
 
 def load_solution(path):
-    # ListNode/Node/TreeNode arrive from generators so a submission's
-    # `ListNode(...)` resolves to the same class the build hooks construct.
-    # NeetCode ships those definitions as a commented-out header, so every
-    # linked-list solution constructs a name its own file never defines --
-    # and the tree solutions carry the same header, which is why TreeNode is
-    # here too even though none of them construct one today: without it they
-    # only load because the workflow pins Python 3.14, whose lazy annotations
-    # (PEP 649) never evaluate the `Optional[TreeNode]` in their signatures.
+    # ListNode/Node/TreeNode/Interval arrive from generators so a
+    # submission's `ListNode(...)` resolves to the same class the build hooks
+    # construct. NeetCode ships those definitions as a commented-out header,
+    # so every linked-list solution constructs a name its own file never
+    # defines -- and the tree and meeting-schedule solutions carry the same
+    # header, which is why TreeNode and Interval are here too even though
+    # none of them construct one today: without them they only load because
+    # the workflow pins Python 3.14, whose lazy annotations (PEP 649) never
+    # evaluate the `Optional[TreeNode]` and `List[Interval]` in their
+    # signatures.
     #
     # `deque` is the same kind of gap from the other direction: it's a name
     # NeetCode's environment has already imported, so a solution can use it
@@ -161,6 +163,7 @@ def load_solution(path):
         "List": List,
         "Optional": Optional,
         "deque": deque,
+        "Interval": generators.Interval,
         "ListNode": generators.ListNode,
         "Node": generators.Node,
         "TreeNode": generators.TreeNode,

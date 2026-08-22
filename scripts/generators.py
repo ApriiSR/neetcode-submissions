@@ -233,16 +233,16 @@ class TreeNode:
 class Interval:
     """The meeting-time interval the meeting-schedule problems are written
     against, which their submissions carry as a commented-out header the same
-    way the linked-list ones carry ListNode.
+    way the linked-list ones carry ListNode, and injected into the loader
+    namespace the same way.
 
-    Unlike ListNode/Node/TreeNode it is not injected into benchmark.py's
-    loader namespace, because neither submission needs the name at runtime:
-    they only read `.start` and `.end` off the intervals the build hook hands
-    them, and the one place `Interval` is written is a `List[Interval]`
-    annotation that Python 3.14's lazy annotations (PEP 649) never evaluate.
-    The workflow pins 3.14. A submission that constructs an Interval by name,
-    or an interpreter older than that, would need this class added to that
-    namespace too.
+    Neither submission needs the name at runtime today -- they only read
+    `.start` and `.end` off the intervals the build hook below hands them, and
+    the one place `Interval` is written is a `List[Interval]` annotation that
+    Python 3.14's lazy annotations (PEP 649) never evaluate. The injection is
+    what keeps that from being the only reason they load, and it is what lets
+    a future submission construct an Interval by name and get the same class
+    the build hook does.
     """
 
     def __init__(self, start, end):
