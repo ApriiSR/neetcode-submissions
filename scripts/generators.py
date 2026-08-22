@@ -892,6 +892,21 @@ def _gen_reverse_integer(n, rng):
     return (rng.randint(-(2**31), 2**31 - 1),)
 
 
+def _gen_reverse_nodes_in_k_group(n, rng):
+    # k is pinned at a small constant rather than scaled with n, so the number
+    # of groups grows linearly. That pinning is what makes the ladder readable:
+    # k trades directly against the group count -- at k = n there is one group
+    # and the work is linear -- so a k drawn per rung would measure a different
+    # problem at every one. Values come from the problem's stated 0..100 and
+    # are never compared, only carried.
+    size = max(1, n)
+    return ([rng.randint(0, 100) for _ in range(size)], min(3, size))
+
+
+def _build_reverse_nodes_in_k_group(values, k):
+    return (_chain(values), k)
+
+
 def _gen_same_binary_tree(n, rng):
     return (tuple(rng.randint(-1000, 1000) for _ in range(n)),)
 
@@ -1626,6 +1641,16 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "not scalable: the input is a single integer pinned to the signed 32-bit range, and both submissions bake that in -- one compares the reversed value against 2**31-1 and 2**31, the other rejects anything past ten digits outright -- so there is no size to vary, and a larger input would be answered with 0 rather than worked on; the generator draws a uniformly random value from -2**31..2**31-1 purely as documentation of the input shape",
         "generalized_note": "nothing to uncap in the size: the 32-bit range is the problem rather than a limit on it -- overflowing that range is exactly what the answer is defined to report as 0, so removing the range removes the question. What is left is a digit reversal over about log10(|x|) digits, linear in the size of the input as written.",
+    },
+    "reverse-nodes-in-k-group": {
+        "entry": "reverseKGroup",
+        "scalable": True,
+        "generate": _gen_reverse_nodes_in_k_group,
+        "build": _build_reverse_nodes_in_k_group,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of nodes; k is pinned at min(3, n) rather than scaled with n, so the number of groups grows linearly with n. Pinning it is what makes the ladder readable, since k trades directly against the group count -- at k = n there is a single group and the work is linear -- and a k drawn afresh at each rung would measure a different problem at every one. Values are drawn from the problem's stated 0..100 independent of n and are never compared, only carried. The measured growth is quadratic, and it comes from one line rather than from the algorithm: the submission flattens its reversed groups with sum([...], []), which rebuilds the whole accumulated list once per group, so the flattening alone costs O(n**2 / k) while the linked-list walk either side of it is linear",
+        "generalized_note": "uncapped: any list length, node values any ints, and k anywhere from 1 to the list length. The rules are part of the problem, not caps -- nodes are still reversed in consecutive groups of k, a trailing group shorter than k is left in its original order, and only the nodes' next pointers may be modified. That last rule constrains how the reordering is reached rather than what the output looks like, and it is what makes the in-place rewiring solution the intended one.",
     },
     "same-binary-tree": {
         "entry": "isSameTree",
