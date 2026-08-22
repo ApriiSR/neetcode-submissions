@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-22T03:58:04.694435+00:00",
+  "generated_at": "2026-08-22T04:37:45.352971+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -6104,6 +6104,36 @@
           "solved_at": "2026-08-20T14:25:06-07:00",
           "statement": "reverse-integer",
           "supersedes": "submission-0"
+        }
+      ]
+    },
+    "reverse-nodes-in-k-group": {
+      "submissions": [
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-22T04:37:45.117306+00:00",
+          "complexity": {
+            "benchmark_model": "n^2",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Flattening with sum(..., []) re-copies the accumulated prefix for every group, so the pass costs O(n^2/k) overall (worst at k=1); a single loop or itertools.chain.from_iterable would make this same array approach linear. The statement permits modifying only next pointers, but this rebuilds the list from copied values in freshly allocated nodes; ||reversing each group in place by rewiring pointers|| would respect that rule and drop the extra space to O(1). Minor style: iterate `for v in a` instead of range(0, len(a)).",
+            "space": "O(n)",
+            "summary": "Copies all node values into a Python list, reverses each complete block of k via slicing, concatenates the blocks with sum(..., []), then builds a brand-new linked list from the result.",
+            "time_average": "O(n^2 / k)",
+            "time_worst": "O(n^2 / k)"
+          },
+          "file": "Data Structures & Algorithms/reverse-nodes-in-k-group/submission-0.py",
+          "golf": {
+            "bytes": 652,
+            "characters": 652,
+            "non_blank_lines": 20,
+            "tokens": 142
+          },
+          "model": "k3",
+          "slug": "reverse-nodes-in-k-group",
+          "solved_at": "2026-08-21T21:36:55-07:00",
+          "statement": "reverse-nodes-in-k-group"
         }
       ]
     },
