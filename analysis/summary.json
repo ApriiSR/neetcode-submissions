@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-22T03:39:40.345652+00:00",
+  "generated_at": "2026-08-22T03:42:21.523831+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -3318,6 +3318,34 @@
           "relation_to_previous": "new-approach",
           "slug": "kth-largest-element-in-an-array",
           "solved_at": "2026-08-21T20:39:10-07:00",
+          "statement": "kth-largest-element-in-an-array"
+        },
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-22T03:42:21.311369+00:00",
+          "complexity": {
+            "benchmark_model": "n log n",
+            "correctness": "neetcode-only",
+            "correctness_reason": "Relies on the statement's -1000 value floor: with the cap lifted, e.g. nums = [-2000, -3000], k = 1, the sentinel -1000 survives in the heap and is returned instead of -2000.",
+            "hash_dependent": false,
+            "notes": "The -1000 sentinel is only safe because the statement caps values at -1000; seeding from nums[:k] (or pushing then popping only when the heap exceeds k) removes that dependence at no cost. heapq.heappushpop combines the push and pop into one call. The code is clean and the bounded heap is a solid improvement over the previous full-heap version. ||An average O(n) solution exists via quickselect (partial partitioning around a pivot)||, which is what the follow-up is hinting at.",
+            "relation_to_previous": "new-approach",
+            "space": "O(k)",
+            "summary": "Maintains a min-heap of exactly k elements, seeded with k copies of -1000, pushing each num and popping the smallest so the heap always holds the k largest seen so far; the root is the answer.",
+            "time_average": "O(n log k)",
+            "time_worst": "O(n log k)"
+          },
+          "file": "Data Structures & Algorithms/kth-largest-element-in-an-array/submission-6.py",
+          "golf": {
+            "bytes": 224,
+            "characters": 224,
+            "non_blank_lines": 8,
+            "tokens": 56
+          },
+          "model": "k3",
+          "relation_to_previous": "new-approach",
+          "slug": "kth-largest-element-in-an-array",
+          "solved_at": "2026-08-21T20:41:44-07:00",
           "statement": "kth-largest-element-in-an-array"
         }
       ]
