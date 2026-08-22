@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-22T03:23:06.406484+00:00",
+  "generated_at": "2026-08-22T03:39:40.345652+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -3290,6 +3290,34 @@
           "model": "k3",
           "slug": "kth-largest-element-in-an-array",
           "solved_at": "2026-08-21T20:21:59-07:00",
+          "statement": "kth-largest-element-in-an-array"
+        },
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-22T03:39:40.123468+00:00",
+          "complexity": {
+            "benchmark_model": "n log n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "The `a = []` followed by `heapq.heapify(a)` is redundant \u2014 heapifying an empty list does nothing, and pushing onto a plain empty list already maintains the heap invariant. As written the heap holds all n elements, so both time and space scale with the full array; a better approach keeps only ||a min-heap of size k|| for O(n log k) time and O(k) space, and the optimal one uses ||quickselect (median-of-medians or randomized pivoting)|| for O(n) average time and O(1) extra space.",
+            "relation_to_previous": "new-approach",
+            "space": "O(n)",
+            "summary": "Pushes every element onto a max-heap (simulated by negating values in a min-heap), then pops k times so the last popped value is the kth largest.",
+            "time_average": "O(n log n + k log n)",
+            "time_worst": "O(n log n + k log n)"
+          },
+          "file": "Data Structures & Algorithms/kth-largest-element-in-an-array/submission-5.py",
+          "golf": {
+            "bytes": 283,
+            "characters": 283,
+            "non_blank_lines": 10,
+            "tokens": 72
+          },
+          "model": "k3",
+          "relation_to_previous": "new-approach",
+          "slug": "kth-largest-element-in-an-array",
+          "solved_at": "2026-08-21T20:39:10-07:00",
           "statement": "kth-largest-element-in-an-array"
         }
       ]
