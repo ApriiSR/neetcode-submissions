@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-22T03:42:21.523831+00:00",
+  "generated_at": "2026-08-22T03:58:04.694435+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -4345,6 +4345,36 @@
           "slug": "meeting-schedule",
           "solved_at": "2026-08-21T01:08:06-07:00",
           "statement": "meeting-schedule"
+        }
+      ]
+    },
+    "meeting-schedule-ii": {
+      "submissions": [
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-22T03:58:04.471647+00:00",
+          "complexity": {
+            "benchmark_model": "n log n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Minor style points: the loop variable `i` holds an Interval, so a name like `meeting` would read better, and `key = lambda x: x.start` has unusual spacing. A same-complexity alternative that avoids the heap is ||sorting the start and end times into two separate arrays and sweeping them with two pointers, counting concurrent meetings||.",
+            "space": "O(n)",
+            "summary": "Sorts intervals by start time, then scans them while maintaining a min-heap of the end times of currently active meetings, popping rooms whose meetings have already ended; the answer is the heap's maximum size.",
+            "time_average": "O(n log n)",
+            "time_worst": "O(n log n)"
+          },
+          "file": "Data Structures & Algorithms/meeting-schedule-ii/submission-2.py",
+          "golf": {
+            "bytes": 627,
+            "characters": 627,
+            "non_blank_lines": 19,
+            "tokens": 85
+          },
+          "model": "k3",
+          "slug": "meeting-schedule-ii",
+          "solved_at": "2026-08-21T20:57:23-07:00",
+          "statement": "meeting-schedule-ii"
         }
       ]
     },
