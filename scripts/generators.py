@@ -21,18 +21,22 @@ Each problem in `PROBLEMS` maps to:
   unreachable -- and can't be described by any of benchmark.py's
   polynomial CANDIDATE_MODELS either. Such a problem carries its own
   ladder and its own extra candidate models instead; see
-  EXPONENTIAL_SIZES and EXPONENTIAL_MODELS below (subsets) and
-  FIBONACCI_SIZES and FIBONACCI_MODELS (climbing-stairs). Everything else
+  EXPONENTIAL_SIZES and EXPONENTIAL_MODELS below (subsets),
+  FIBONACCI_SIZES and FIBONACCI_MODELS (climbing-stairs),
+  FACTORIAL_SIZES and FACTORIAL_MODELS (permutations), and
+  SUBSETS_II_SIZES and SUBSETS_II_MODELS (subsets-ii). Everything else
   inherits benchmark.py's defaults.
 - `generate(n, rng)`: returns a positional-args tuple (excluding `self`)
   for `entry`, sized around n. Uses only the passed-in random.Random, so
   it's deterministic for a given seed.
 - `build(*description)`: optional, and present only where `entry` takes
   live objects rather than plain data -- the linked-list problems, whose
-  entries take ListNode/Node heads, and the binary-tree problems, whose
-  entries take TreeNode roots. There `generate` returns a plain,
-  comparable *description* (the values a chain or tree would be built
-  from) and `build` turns that into the real args tuple. benchmark.py
+  entries take ListNode/Node heads, the binary-tree problems, whose
+  entries take TreeNode roots, clone-graph, whose entry takes a graph
+  Node, and the two meeting-schedule problems, whose entries take lists
+  of Intervals. There `generate` returns a plain, comparable
+  *description* (the values a chain, tree, graph or schedule would be
+  built from) and `build` turns that into the real args tuple. benchmark.py
   calls it fresh before each timed repeat, outside the timer, which is
   what lets in-place solutions be timed at all: every repeat gets an
   untouched structure instead of re-timing the previous repeat's output.
@@ -42,7 +46,8 @@ Each problem in `PROBLEMS` maps to:
   way. merge-k-sorted-linked-lists describes its chains as a tuple of
   tuples rather than a list of lists, since its entry takes one list *of*
   heads and the description would otherwise be mistaken for that list;
-  the tree problems describe their values as a tuple for the same reason.
+  the tree problems, clone-graph and the two meeting-schedule problems
+  describe their values as a tuple for the same reason.
 - `adversarial(n)`: returns an args tuple built to trigger the worst case
   of the dict/set the entry method is expected to use, or None if the
   problem has no meaningful adversarial-hash story.
@@ -60,9 +65,11 @@ design-word-search-data-structure key on single characters — a 26-symbol
 alphabet, too small to stress; anagram-groups
 keys on a computed 26-int signature tuple, not the input strings;
 string-encode-and-decode doesn't hash at all; the linked-list problems
-that hash at all, and level-order-traversal-of-binary-tree submission-1,
-key on node objects, whose hashes come from CPython's identity hash, so
-the input can't choose them). So there's currently no PYTHONHASHSEED=0-dependent
+that hash at all, clone-graph, and level-order-traversal-of-binary-tree
+submission-1, key on node objects, whose hashes come from CPython's
+identity hash, so the input can't choose them; course-schedule's dicts
+are keyed on course labels, which the problem fixes at 0..numCourses-1).
+So there's currently no PYTHONHASHSEED=0-dependent
 string-collision generator in use. benchmark.py still forces
 PYTHONHASHSEED=0 for the whole run as a forward-looking default, since
 str/bytes hashing is otherwise randomized per-process and any future
@@ -122,6 +129,44 @@ FIBONACCI_SIZES = tuple(range(4, 40))
 GOLDEN_RATIO = (1 + math.sqrt(5)) / 2
 FIBONACCI_MODELS = (("phi^n", lambda n: GOLDEN_RATIO**n),) + EXPONENTIAL_MODELS
 
+# permutations' ladder. Its output is every ordering of the input, so one
+# step of 1 already multiplies the work by n -- faster than EXPONENTIAL_SIZES
+# can follow, where a step multiplies it by 2. Stepping by 1 from 5 puts the
+# whole measurable range on the ladder: n = 4 runs in about 10 microseconds,
+# down in timer granularity, and n = 10 is already past SIZE_CAP_SECONDS.
+FACTORIAL_SIZES = tuple(range(5, 13))
+
+# Paired with FACTORIAL_SIZES via "models". math.gamma(n + 1.0) is n!
+# extended to the reals, and it's written that way for the reason the
+# exponential models carry a float base: on a ladder it doesn't belong to it
+# raises OverflowError instead of building a multi-megabit integer. Both
+# forms are carried for the same reason 2^n and n * 2^n both are -- against
+# the measured permutations ladder they separate from the best polynomial
+# decisively (0.998 and 0.999 against n^3's 0.34) and from each other
+# barely. K3 reads this submission as O(n**2 * n!), which is a fair reading
+# of the code -- it pops from the middle of a list n times per permutation
+# -- but a third candidate for it fits worse than n * n! (0.992) over a
+# ladder only six rungs long, so it isn't carried.
+FACTORIAL_MODELS = (
+    ("n!", lambda n: math.gamma(n + 1.0)),
+    ("n n!", lambda n: n * math.gamma(n + 1.0)),
+)
+
+# subsets-ii's ladder and models. Its submission walks all 2**n bit patterns
+# and scans, for each, the distinct subsets it has collected so far -- and
+# _gen_subsets_ii hands it every value exactly twice, which fixes that
+# collection's size at 3**(n//2). The product is (2 * sqrt(3))**n, about
+# 3.46**n, which outruns EXPONENTIAL_MODELS: fitting the measured ladder
+# against those alone picks n * 2^n at r^2 0.90 where (2 sqrt 3)^n reaches
+# 0.99, understating the base by a factor of 1.7 per step. The ladder starts
+# at 8 rather than subsets' 4 because the rungs below that run in under
+# 0.2ms, where timer granularity flattens the curve.
+SUBSETS_II_SIZES = tuple(range(8, 21))
+SUBSETS_II_MODELS = EXPONENTIAL_MODELS + (
+    ("(2 sqrt 3)^n", lambda n: (2 * math.sqrt(3)) ** n),
+    ("n (2 sqrt 3)^n", lambda n: n * (2 * math.sqrt(3)) ** n),
+)
+
 class ListNode:
     """The singly-linked node NeetCode hands the linked-list problems, whose
     definition their submissions carry as a commented-out header and then
@@ -138,12 +183,21 @@ class ListNode:
 class Node:
     """The copy-linked-list-with-random-pointer variant: same idea as
     ListNode, plus the extra `random` pointer, and injected the same way.
+
+    `neighbors` is the clone-graph half of the same name. NeetCode gives that
+    problem its own `Node` -- an integer `val` and a list of adjacent nodes --
+    and the loader namespace has one slot for the name, so this class is the
+    union of the two definitions. clone-graph's submission only ever
+    constructs `Node(u.val)` and assigns `.neighbors` afterwards, so what the
+    field buys today is the empty default: reading `.neighbors` off a freshly
+    constructed node, which NeetCode's own definition allows, doesn't raise.
     """
 
-    def __init__(self, x, next=None, random=None):
+    def __init__(self, x, next=None, random=None, neighbors=None):
         self.val = int(x)
         self.next = next
         self.random = random
+        self.neighbors = [] if neighbors is None else neighbors
 
 
 class TreeNode:
@@ -174,6 +228,26 @@ class TreeNode:
     @property
     def children(self):
         return [self.left, self.right]
+
+
+class Interval:
+    """The meeting-time interval the meeting-schedule problems are written
+    against, which their submissions carry as a commented-out header the same
+    way the linked-list ones carry ListNode.
+
+    Unlike ListNode/Node/TreeNode it is not injected into benchmark.py's
+    loader namespace, because neither submission needs the name at runtime:
+    they only read `.start` and `.end` off the intervals the build hook hands
+    them, and the one place `Interval` is written is a `List[Interval]`
+    annotation that Python 3.14's lazy annotations (PEP 649) never evaluate.
+    The workflow pins 3.14. A submission that constructs an Interval by name,
+    or an interpreter older than that, would need this class added to that
+    namespace too.
+    """
+
+    def __init__(self, start, end):
+        self.start = start
+        self.end = end
 
 
 def _int_collisions(n):
@@ -294,6 +368,40 @@ def _gen_climbing_stairs(n, rng):
     return (n,)
 
 
+def _gen_clone_graph(n, rng):
+    # A connected undirected graph, described as the adjacency tuple a build
+    # hook wires into Nodes. Connectivity is guaranteed by a random spanning
+    # tree -- every node after the first attaches to an earlier one -- and
+    # n // 2 further edges go on top, so the edge count grows linearly with n
+    # and the average degree stays just under 3 however far up the ladder the
+    # run gets. That is deliberate: a denser graph would put the neighbour
+    # walk, which is linear in the edge count, in charge of the measurement,
+    # and what is worth measuring here is the BFS queue -- the submission
+    # drains it with queue.pop(0), which shifts every remaining element.
+    # Values are 1..n and the adjacency index is the value minus one, matching
+    # how the problem numbers its nodes; the edges are deduplicated as a set,
+    # so there are no self-loops or repeated edges either.
+    size = max(1, n)
+    edges = {(rng.randrange(v), v) for v in range(1, size)}
+    target = min(size - 1 + size // 2, size * (size - 1) // 2)
+    while len(edges) < target:
+        u, v = rng.randrange(size), rng.randrange(size)
+        if u != v:
+            edges.add((min(u, v), max(u, v)))
+    adjacency = [[] for _ in range(size)]
+    for u, v in sorted(edges):
+        adjacency[u].append(v)
+        adjacency[v].append(u)
+    return (tuple(tuple(group) for group in adjacency),)
+
+
+def _build_clone_graph(adjacency):
+    nodes = [Node(i + 1) for i in range(len(adjacency))]
+    for node, neighbors in zip(nodes, adjacency):
+        node.neighbors = [nodes[i] for i in neighbors]
+    return (nodes[0] if nodes else None,)
+
+
 def _gen_combination_target_sum(n, rng):
     # Every candidate is at least the target and exactly one equals it, so the
     # answer is a single one-element combination and every recursive call dies
@@ -318,8 +426,48 @@ def _build_copy_linked_list_with_random_pointer(values, randoms):
     return (nodes[0] if nodes else None,)
 
 
+def _gen_count_number_of_islands(n, rng):
+    # n = number of cells, laid out as the squarest grid holding that many,
+    # so neither dimension is a constant the scan can be linear in for free.
+    # Each cell is land independently with probability 0.3 -- below the square
+    # lattice's site-percolation threshold of about 0.5927 -- so the grid is
+    # many small islands rather than one spanning cluster. That matters twice
+    # for this submission: its flood fill tests `q not in queue`, a linear
+    # scan, which would be quadratic in the size of any single large island;
+    # and it restarts its search for the next land cell at row 0 every time,
+    # so the island count multiplies an O(cells) scan.
+    total = max(1, n)
+    rows = max(1, math.isqrt(total))
+    cols = max(1, total // rows)
+    return (
+        [
+            ["1" if rng.random() < 0.3 else "0" for _ in range(cols)]
+            for _ in range(rows)
+        ],
+    )
+
+
 def _gen_counting_bits(n, rng):
     return (n,)
+
+
+def _gen_course_schedule(n, rng):
+    # n = numCourses with n prerequisite pairs, so the edge count grows
+    # linearly and the average course sits on about two edges. Every pair is
+    # emitted as [lower label, higher label], which makes the dependency graph
+    # acyclic by construction: the answer is always True and each submission
+    # runs its traversal to the end instead of returning early at whatever
+    # cycle a random graph happened to contain. Pairs are deduplicated, as the
+    # problem guarantees, which also keeps submission-0's list removals from
+    # meeting a duplicate they have already taken out.
+    size = max(1, n)
+    edges = set()
+    target = min(size, size * (size - 1) // 2)
+    while len(edges) < target:
+        a, b = rng.randrange(size), rng.randrange(size)
+        if a != b:
+            edges.add((min(a, b), max(a, b)))
+    return (size, [[a, b] for a, b in sorted(edges)])
 
 
 def _gen_daily_temperatures(n, rng):
@@ -431,6 +579,10 @@ def _gen_house_robber(n, rng):
     return ([rng.randint(0, 1000) for _ in range(n)],)
 
 
+def _gen_house_robber_ii(n, rng):
+    return ([rng.randint(0, 1000) for _ in range(max(1, n))],)
+
+
 def _gen_implement_prefix_tree(n, rng):
     words = [_random_word(rng, 3, 10) for _ in range(max(1, n // 4))]
     ops = []
@@ -471,6 +623,17 @@ def _gen_k_closest_points_to_origin(n, rng):
         [rng.randint(-limit, limit), rng.randint(-limit, limit)] for _ in range(n)
     ]
     return (points, max(1, n // 4))
+
+
+def _gen_kth_largest_element_in_an_array(n, rng):
+    # k is capped at a constant handful, as in top-k-elements-in-list, so the
+    # array length is the only thing varying along the ladder. Values come
+    # from the problem's stated -1000..1000 and so repeat freely at any
+    # interesting n; that range is load-bearing rather than decorative, since
+    # submission-6 seeds its heap with k copies of -1000 and would return that
+    # sentinel for an array whose values all fell below it.
+    size = max(1, n)
+    return ([rng.randint(-1000, 1000) for _ in range(size)], min(5, size))
 
 
 def _gen_kth_largest_integer_in_a_stream(n, rng):
@@ -556,6 +719,45 @@ def _gen_max_water_container(n, rng):
     return ([rng.randint(1, 1000) for _ in range(n)],)
 
 
+def _gen_meeting_schedule(n, rng):
+    # Intervals that never overlap, described as a tuple of (start, end) pairs
+    # a build hook turns into Intervals. Non-overlapping is the point: the
+    # submission returns False at its first conflict, so a random set would
+    # measure wherever that conflict happened to sit rather than n. Gaps and
+    # durations are each drawn from a fixed 1..10, so the timeline grows
+    # linearly with n. The pairs are shuffled before being handed over because
+    # the submission sorts them first and Timsort walks an already-ascending
+    # list in linear time -- generating them in order would have hidden the
+    # sort behind the scan that follows it.
+    size = max(1, n)
+    intervals, clock = [], 0
+    for _ in range(size):
+        clock += rng.randint(1, 10)
+        start = clock
+        clock += rng.randint(1, 10)
+        intervals.append((start, clock))
+    rng.shuffle(intervals)
+    return (tuple(intervals),)
+
+
+def _build_meeting_schedule(intervals):
+    return ([Interval(start, end) for start, end in intervals],)
+
+
+def _gen_meeting_schedule_ii(n, rng):
+    # Here overlap is the point, but a bounded amount of it: starts are drawn
+    # independently across a window 4n wide while durations stay in a fixed
+    # 1..20, so the expected number of meetings live at any instant is about
+    # 2.6 whatever n is. The heap of active end times therefore stays small,
+    # which leaves the O(n log n) sort as what the ladder measures. Starts
+    # arrive unordered on their own, so no shuffle is needed to give that sort
+    # work to do.
+    size = max(1, n)
+    span = 4 * size
+    starts = [rng.randrange(span) for _ in range(size)]
+    return (tuple((start, start + rng.randint(1, 20)) for start in starts),)
+
+
 def _gen_merge_k_sorted_linked_lists(n, rng):
     # k grows as sqrt(n), so the number of chains and each chain's length
     # both scale with n. Values come from a range that scales with n too,
@@ -626,6 +828,16 @@ def _gen_number_of_one_bits(n, rng):
     # value really is n bits wide and the ladder means what it says.
     bits = max(1, n)
     return (rng.getrandbits(bits) | 1 << (bits - 1),)
+
+
+def _gen_permutations(n, rng):
+    # n is the array length itself, walked one step at a time over
+    # FACTORIAL_SIZES: the output is every ordering of the input, so a step of
+    # 1 already multiplies the work by n. Values are sampled without
+    # replacement, since the problem guarantees them distinct; their
+    # magnitudes are never read, as the submission uses them by position.
+    size = max(1, n)
+    return (rng.sample(range(-2 * size, 2 * size + 1), size),)
 
 
 def _gen_plus_one(n, rng):
@@ -723,6 +935,21 @@ def _gen_subsets(n, rng):
     # guarantees them distinct.
     size = max(1, n)
     return (rng.sample(range(-2 * size, 2 * size + 1), size),)
+
+
+def _gen_subsets_ii(n, rng):
+    # Every value appears exactly twice (the last one alone when n is odd),
+    # and the multiset is then shuffled. That fixes the number of *distinct*
+    # subsets at exactly 3**(n//2) * 2**(n%2) -- each value can appear zero,
+    # one or two times -- which is what makes this problem's cost statable:
+    # the submission walks all 2**n bit patterns and scans, for each, the
+    # distinct subsets it has collected so far, so the two multiply. Drawing
+    # values at random would leave the duplicate structure, and so the size of
+    # that scan, varying from rung to rung.
+    size = max(1, n)
+    values = [i // 2 for i in range(size)]
+    rng.shuffle(values)
+    return (values,)
 
 
 def _gen_subtree_of_a_binary_tree(n, rng):
@@ -924,6 +1151,16 @@ PROBLEMS = {
         "scaling_note": "n = the number of stairs, and it is the entire input -- the entry takes one integer, so the size being varied is that integer's value rather than any length, and the generator samples nothing. The ladder is this problem's own: n steps by 1 from 4 to 39 rather than doubling from 256, because the plain recursion recomputes the Fibonacci tree and makes about 2 * fib(n+1) calls, which passes a second somewhere near n = 36 and would never return at the default ladder's first rung. Two things follow for reading the numbers. The reported log-log slope is meaningless here -- it fits log(time) against log(n), and an exponential curve is not a line in those coordinates -- so read best_fit, which is chosen from phi^n, 2^n and n * 2^n alongside the usual polynomials; phi^n (the golden ratio, about 1.618) is the shape the naive recursion actually has, and 2^n overstates it. And the ladder that makes that submission measurable is far too short for the other two: the memoised one runs 0.25 to 1.5 microseconds across the whole of it and the matrix-power one 2 to 5, so their curves are as much timer resolution and call overhead as they are complexity, and their fits should be read that way",
         "generalized_note": "uncapped: any number of stairs. The step set is part of the problem, not a cap -- a move is still 1 or 2 stairs, so the answer is fib(n+1). Note that n is a value rather than a length, so it costs only about log2(n) bits to write down: an O(n) solution is already exponential in the size of its input, and the answer itself is an O(n)-bit number, which is a floor on any solution that prints it.",
     },
+    "clone-graph": {
+        "entry": "cloneGraph",
+        "scalable": True,
+        "generate": _gen_clone_graph,
+        "build": _build_clone_graph,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of nodes. The graph is connected and undirected -- a random spanning tree plus n // 2 extra edges -- so the edge count grows linearly with n and the average degree stays just under 3 rather than growing with n. The neighbour walk is therefore linear and is not what the ladder measures; what it measures is the BFS queue, since the submission drains it with queue.pop(0), which shifts every remaining element on each pop, so the traversal costs the sum of the queue lengths rather than the node count. Node values are 1..n and the graph has no self-loops or duplicate edges, as the problem specifies. The dict the submission builds is keyed on node objects, whose hashes are CPython identity hashes, so no input can choose them and there is no adversarial case to construct",
+        "generalized_note": "uncapped: any number of nodes, values any ints, any connected undirected shape. The graph's structure is part of the problem, not a cap -- still connected, still undirected, still no self-loops or duplicate edges, and the returned copy must share no node object with the input. Note the stated value range is what makes a node's value usable as an index into the adjacency list; without it a clone has to key on the nodes themselves.",
+    },
     "combination-target-sum": {
         "entry": "combinationSum",
         "scalable": True,
@@ -953,6 +1190,15 @@ PROBLEMS = {
         "scaling_note": "n = number of nodes; the tree is filled level order, so it is complete and its depth is floor(log2(n)) -- shallow enough that a recursive submission never approaches CPython's stack limit anywhere on the ladder. Every node is visited whatever the values are: the running maximum of the root-to-node path is carried downward and nothing prunes, so the work is proportional to n and independent of how many nodes turn out to be good. Node values are drawn uniformly from the fixed range -1000..1000, independent of n, so a node at depth d is good with probability about 1/(d+1) and the expected number of good nodes is on the order of n / log2(n) -- the answer grows more slowly than n while the traversal does not",
         "generalized_note": "uncapped: any number of nodes, values any ints, any shape. The definition is part of the problem, not a cap -- a node is good when no node on the path from the root down to it holds a strictly greater value, so the root is always good. A skewed tree makes both the depth and a recursive solution's stack linear in n, and makes the good-node count as large as n when values ascend along that single path.",
     },
+    "count-number-of-islands": {
+        "entry": "numIslands",
+        "scalable": True,
+        "generate": _gen_count_number_of_islands,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of cells, arranged as the squarest grid holding that many (rows = isqrt(n), cols = n // rows), so both dimensions grow like sqrt(n) and neither is a constant the scan can be linear in for free. Each cell is land independently with probability 0.3, below the square lattice's site-percolation threshold of about 0.5927, so the grid holds many small islands rather than one spanning cluster and the island count grows linearly with n. That count is a multiplier here rather than a detail: the submission restarts its search for the next unvisited land cell at row 0 every time, rescanning rows it has already cleared, so a linearly growing island count over an O(n) scan makes the measured time quadratic in n whatever the flood fill costs. The density also keeps the flood fill itself cheap -- it tests membership with `q not in queue`, a linear scan of the frontier, which would be quadratic in the size of any single large island",
+        "generalized_note": "uncapped: any grid dimensions. The connectivity rule is part of the problem, not a cap -- islands still join horizontally and vertically only, never diagonally, and the grid is still surrounded by water. Note that one island spanning the whole grid is the worst case for a solution whose visited set is a linear scan, and nothing in the statement rules it out.",
+    },
     "counting-bits": {
         "entry": "countBits",
         "scalable": True,
@@ -961,6 +1207,15 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "n = the input integer, which is the entire input and also fixes the output length: the answer is a list of n + 1 popcounts, one for each integer from 0 through n. The generator samples nothing. The submission recomputes each count with its own divide-by-2 loop, so the work is the sum of bit_length(i) over i <= n, about n * log2(n) -- the log factor here is the integers' width, not a data structure",
         "generalized_note": "uncapped: any n. The output contract is part of the problem, not a cap -- still one popcount per integer from 0 through n, in order, so the output alone is n + 1 numbers and no solution beats linear in n. Note that n is a value rather than a length, so linear in n is already exponential in the size of the input, which is about log2(n) bits.",
+    },
+    "course-schedule": {
+        "entry": "canFinish",
+        "scalable": True,
+        "generate": _gen_course_schedule,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = numCourses, with n prerequisite pairs, so the edge count grows linearly with n and the average course sits on about two edges. Every pair is emitted as [lower label, higher label], which makes the dependency graph acyclic by construction: the answer is always True and each submission runs its traversal to the end rather than returning early at whatever cycle a random graph happened to contain. Pairs are deduplicated, as the problem guarantees. The growth measured here is quadratic, and it comes from list operations rather than from the traversal: all three submissions scan the `starts` list once per prerequisite pair to work out which courses have no parent, which is O(numCourses) per pair, and submission-0 additionally removes each satisfied pair from the prerequisites list itself. The dicts they build are keyed on course labels, which the problem fixes at 0..numCourses-1, so their hashes are not something an input can choose and there is no adversarial case to construct",
+        "generalized_note": "uncapped: any number of courses and any number of prerequisite pairs. Uniqueness of the pairs is part of the problem, not a cap, and so is the labelling -- courses are still 0..numCourses-1, which is what lets a solution index by label rather than hash. Note the answer turns on whether the dependency graph has a cycle, so the acyclic inputs generated here are the full-work case rather than the easy one.",
     },
     "daily-temperatures": {
         "entry": "dailyTemperatures",
@@ -1044,6 +1299,15 @@ PROBLEMS = {
         "scaling_note": "n = array length; each value is drawn uniformly from the fixed range 0..1000, independent of n. The values do not move the measurement at all -- the submission is a single left-to-right pass doing one max per index, and both sides of that comparison cost the same -- so the range is arbitrary and only the length matters",
         "generalized_note": "uncapped: any array length, values any non-negative ints. The adjacency rule is part of the problem, not a cap -- no two chosen houses may be adjacent in the array, and the answer is the largest total that respects that.",
     },
+    "house-robber-ii": {
+        "entry": "rob",
+        "scalable": True,
+        "generate": _gen_house_robber_ii,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of houses; each amount is drawn uniformly from a fixed 0..1000 independent of n, so no house is large enough relative to the others to make any choice obvious. The circle costs a constant factor rather than a scaling one: the submission slices the array two ways, dropping the last house and then the first, and runs the same linear pass over each",
+        "generalized_note": "uncapped: any number of houses, amounts any non-negative ints. The circle is part of the problem, not a cap -- the first and last houses are still neighbours, so no valid plan robs both.",
+    },
     "implement-prefix-tree": {
         "entry": None,
         "scalable": False,
@@ -1089,6 +1353,15 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "n = number of points, and k scales with it: k is n // 4, so the answer is a quarter of the input rather than a fixed handful and its length grows with n. Both coordinates of every point are drawn uniformly and independently from -4n..4n, so the box grows with n and exact ties in distance stay vanishingly rare -- which matters because the sorting submission keys on the tuple (distance, point), and a tie would drop through to comparing the coordinate lists themselves. Points are not required distinct and may repeat. Because k grows with n, a full sort at n log n and a size-k heap at n log k are separated only by the log(4) between them here, so those two shapes are not distinguishable on this ladder; a linear-average selection (quickselect) is the one that would show up as a different curve",
         "generalized_note": "uncapped: any number of points, coordinates any ints, k anywhere from 1 to the number of points. The output contract is part of the problem, not a cap -- still exactly k points, closest to the origin by Euclidean distance, in any order, with ties broken arbitrarily. Note that k need not grow with n: at a fixed k a heap solution is n log k, effectively linear, where a full sort stays n log n.",
+    },
+    "kth-largest-element-in-an-array": {
+        "entry": "findKthLargest",
+        "scalable": True,
+        "generate": _gen_kth_largest_element_in_an_array,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = array length; k is capped at min(5, n), as in top-k-elements-in-list, so k stays bounded by a constant and does not grow with n. That cap is what separates the three submissions rather than a detail: a heap held at size k is linear in n where a full sort is n log n. Values are drawn from the problem's stated -1000..1000 and so repeat freely at any interesting n, which is what the problem means by kth largest in sorted order rather than kth distinct. That range is load-bearing too: submission-6 seeds its heap with k copies of -1000 and would return that sentinel for an array whose values all fell below it",
+        "generalized_note": "uncapped: any array length, values any ints, and k anywhere from 1 to the array length. Repeats and the ranking rule are part of the problem, not caps -- kth largest still means kth in sorted order, not kth distinct. Note the stated value range is what lets a solution seed a heap with a sentinel below every input; without it the seeding has to come from the array.",
     },
     "kth-largest-integer-in-a-stream": {
         "entry": None,
@@ -1183,6 +1456,26 @@ PROBLEMS = {
         "scaling_note": "n = number of heights; each height is drawn uniformly from the fixed range 1..1000, independent of n, so no height is 0 and the tallest lines are spread through the array rather than sitting at its ends. An all-pairs submission therefore always does the full n(n-1)/2 comparisons, and a two-pointer sweep always does its full n steps -- neither shape gets an early exit from the input",
         "generalized_note": "uncapped: any number of lines, heights any non-negative ints. The geometry is part of the problem, not a cap — the area of a pair is still (j - i) * min(heights[i], heights[j]), and the lines stay at unit spacing in input order.",
     },
+    "meeting-schedule": {
+        "entry": "canAttendMeetings",
+        "scalable": True,
+        "generate": _gen_meeting_schedule,
+        "build": _build_meeting_schedule,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of meetings. They never overlap, so the answer is always True -- the submission returns False at its first conflict, and a random set of intervals would measure wherever that conflict happened to sit rather than n. Gaps between meetings and their durations are each drawn from a fixed 1..10, so the timeline's length grows linearly with n. The intervals are shuffled before being handed over, and that is what gives the submission's sort any work to do: Timsort walks an already-ascending list in linear time, so generating them in start order would have hidden the O(n log n) sort behind the O(n) scan that follows it",
+        "generalized_note": "uncapped: any number of meetings, start and end times any ints with start < end. Touching endpoints are part of the problem, not a cap -- (0,8) and (8,10) still do not conflict.",
+    },
+    "meeting-schedule-ii": {
+        "entry": "minMeetingRooms",
+        "scalable": True,
+        "generate": _gen_meeting_schedule_ii,
+        "build": _build_meeting_schedule,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of meetings. Unlike meeting-schedule these overlap on purpose, but by a bounded amount: starts are drawn independently across a window 4n wide while durations stay in a fixed 1..20, so the expected number of meetings live at any instant is about 2.6 whatever n is. The heap of active end times therefore stays small and the answer stays small, which leaves the O(n log n) sort as what the ladder measures rather than the heap. Starts are drawn independently and so arrive unordered, giving that sort real work without needing a shuffle",
+        "generalized_note": "uncapped: any number of meetings, start and end times any ints with start < end. Touching endpoints are part of the problem, not a cap -- a meeting ending at 8 frees its room for one starting at 8. Note that concurrency is bounded by construction in this generator; in general it can reach the number of meetings, and then the room count and any structure holding the live meetings grow with n too.",
+    },
     "merge-k-sorted-linked-lists": {
         "entry": "mergeKLists",
         "scalable": True,
@@ -1247,6 +1540,17 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "n = the input's width in bits, not an array length: the generator draws a uniformly random n-bit integer with its top bit forced set, so the value really is n bits wide and about half of them are ones. This is the stated 32-bit input uncapped, and it is the only thing here that can scale at all. The two submissions separate sharply on that ladder: the divide-by-2 loop runs one iteration per bit and each `n // 2` rebuilds an O(n)-bit integer, so it is quadratic in n and the per-size cap truncates it partway up, while `int.bit_count()` reads the value a machine word at a time and walks the whole ladder without leaving the microseconds -- about 80 nanoseconds at the bottom and ten microseconds at the top. Only its last few rungs are big enough to outweigh the fixed cost of the call, so its curve reads flatter than the linear scan it actually is",
         "generalized_note": "uncapped: any non-negative integer, of any width. What is counted is part of the problem, not a cap -- still the number of set bits. Note the stated 32-bit width is exactly what makes this constant-time as posed; once the width is the input size, a per-bit loop is no longer free, and the floor is reading the input, which is linear in the number of bits.",
+    },
+    "permutations": {
+        "entry": "permute",
+        "scalable": True,
+        "sizes": FACTORIAL_SIZES,
+        "models": FACTORIAL_MODELS,
+        "generate": _gen_permutations,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = array length, and this problem runs a ladder of its own: n steps by 1 from 5 rather than doubling from 256, because the output is every ordering of the input and a single step of 1 already multiplies the work by n. It starts at 5 rather than lower because n = 4 runs in about 10 microseconds, down in timer granularity, and it runs out around n = 10, which is already some three seconds. Values are sampled without replacement, since the problem guarantees them distinct; their magnitudes are never read, as the submission uses them by position. Two things follow for reading the numbers. The reported log-log slope is meaningless here -- it fits log(time) against log(n), and a factorial curve is not a line in those coordinates -- so read best_fit, which is chosen from n! and n * n! alongside the usual polynomials. And no solution can do better than factorial: the output alone is n! permutations holding n * n! values",
+        "generalized_note": "uncapped: any array length, values any ints. Distinctness and the output contract are part of the problem, not caps -- the input has no duplicates, and every permutation must appear exactly once, in any order. The stated length maximum of 6 goes, but note that the output alone is k! permutations holding k * k! values in total, so factorial time in the array length is a floor no solution gets under.",
     },
     "plus-one": {
         "entry": "plusOne",
@@ -1370,6 +1674,17 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "n = array length, and this problem runs a ladder of its own: n steps by 1 from 4 to 21 rather than doubling from 256, because the output is the power set and one doubling of n squares the work -- the default ladder's first rung would ask for 2**256 subsets. Values are sampled without replacement from -2n..2n, since the problem guarantees them distinct; their magnitudes are never read. Two things follow for reading the numbers. The reported log-log slope is meaningless here -- it fits log(time) against log(n), and an exponential curve is not a line in those coordinates -- so read best_fit, which is chosen from 2^n and n * 2^n alongside the usual polynomials. And no solution can do better than exponential: the output alone is 2**n subsets holding n * 2**(n-1) values",
         "generalized_note": "uncapped: any array length, values any ints. Distinctness and the output contract are part of the problem, not caps -- the input has no duplicates, and every subset must appear exactly once, in any order. The stated length maximum is a cap and goes, but note that the output alone is 2**k subsets holding k * 2**(k-1) values in total, so exponential time in the array length is a floor no solution gets under.",
+    },
+    "subsets-ii": {
+        "entry": "subsetsWithDup",
+        "scalable": True,
+        "sizes": SUBSETS_II_SIZES,
+        "models": SUBSETS_II_MODELS,
+        "generate": _gen_subsets_ii,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = array length, and this problem runs a ladder of its own: n steps by 1 from 8 rather than doubling from 256, since the output is a power set and one doubling of n squares the work. It starts at 8 rather than at subsets' 4 because the rungs below that run in under 0.2ms, where timer granularity flattens the curve. The generator hands over every value exactly twice (the last one alone when n is odd), so the number of distinct subsets is exactly 3**(n//2) * 2**(n%2) -- each value appears zero, one or two times -- rather than varying from rung to rung as randomly drawn duplicates would. That is what makes the cost statable: the submission walks all 2**n bit patterns and, for each, scans the distinct subsets it has collected so far, so the two multiply to about (2 * sqrt(3))**n, or 3.46**n. As with subsets the log-log slope is meaningless -- read best_fit, which carries (2 sqrt 3)^n and n * (2 sqrt 3)^n alongside 2^n and n * 2^n, because fitting this curve against the plain exponentials alone picks n * 2^n and understates the base by a factor of 1.7 per step",
+        "generalized_note": "uncapped: any array length, values any ints, duplicates allowed. The output contract is part of the problem, not a cap -- every distinct subset appears exactly once, in any order. Note the distinct-subset count depends on the multiplicities: it is the product of (count + 1) over the distinct values, which is 2**k for a duplicate-free array of length k and as low as k + 1 when every value is the same. Exponential time in the array length is a floor only where the duplicates are bounded.",
     },
     "subtree-of-a-binary-tree": {
         "entry": "isSubtree",
