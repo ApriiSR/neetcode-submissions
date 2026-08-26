@@ -1,0 +1,26 @@
+{
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-26T04:22:07.738540+00:00",
+  "complexity": {
+    "benchmark_model": "n^2",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "The sort is O(n log n), but each pop(i+1) shifts the tail of the list at O(n) cost, and up to n-1 pops can occur, so the merge phase dominates at O(n^2). An O(n log n) version exists: ||build a separate output list, appending each interval and only extending the last output interval's end when it overlaps||. Space is O(n) only because of Timsort's auxiliary storage; the merge itself is in-place. Minor style: `key=lambda x: x[0]` can be written `key=itemgetter(0)` or dropped entirely, since the default list comparison already sorts by start then end.",
+    "space": "O(n)",
+    "summary": "Sorts intervals by start, then merges in place: whenever the next interval overlaps the current one it extends the current end and removes the next interval with pop(i+1), otherwise advances.",
+    "time_average": "O(n^2)",
+    "time_worst": "O(n^2)"
+  },
+  "file": "Data Structures & Algorithms/merge-intervals/submission-1.py",
+  "golf": {
+    "bytes": 408,
+    "characters": 408,
+    "non_blank_lines": 11,
+    "tokens": 116
+  },
+  "model": "k3",
+  "slug": "merge-intervals",
+  "solved_at": "2026-08-25T21:21:14-07:00",
+  "statement": "merge-intervals"
+}
