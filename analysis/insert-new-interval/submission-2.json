@@ -1,0 +1,26 @@
+{
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-26T04:26:03.865178+00:00",
+  "complexity": {
+    "benchmark_model": "n^2",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "The intervals.pop(i+1) inside the while loop shifts the tail of the list, so each removal is O(n) and up to n removals makes the whole merge O(n^2) even after the O(n log n) sort. Building a fresh result list instead of popping would fix that. Since the input is guaranteed sorted, sorting is unnecessary: ||a single linear pass that copies intervals ending before newInterval, merges all overlapping ones into it, then copies the rest|| runs in O(n) time. Also note the code mutates and returns a list containing the caller's original interval objects, and `List` needs `from typing import List` (or use builtin `list` generics).",
+    "space": "O(n)",
+    "summary": "Appends the new interval, sorts everything by start, then merges overlapping intervals in a single pass, popping merged elements in place. Correct, but it discards the given invariant that intervals is already sorted.",
+    "time_average": "O(n^2)",
+    "time_worst": "O(n^2)"
+  },
+  "file": "Data Structures & Algorithms/insert-new-interval/submission-2.py",
+  "golf": {
+    "bytes": 522,
+    "characters": 522,
+    "non_blank_lines": 13,
+    "tokens": 154
+  },
+  "model": "k3",
+  "slug": "insert-new-interval",
+  "solved_at": "2026-08-25T21:25:10-07:00",
+  "statement": "insert-new-interval"
+}
