@@ -598,6 +598,25 @@ def _gen_implement_prefix_tree(n, rng):
     return (ops,)
 
 
+def _gen_insert_new_interval(n, rng):
+    # The stated problem hands the list over already sorted and disjoint, so
+    # that is what the ladder walks: gaps and durations are each drawn from a
+    # fixed 1..10, making the timeline grow linearly with n. Only the new
+    # interval can overlap anything, and its width is drawn from a fixed
+    # 1..40 against that same density, so it swallows a couple of neighbours
+    # however long the list is -- the merging stays constant work, which
+    # leaves the linear scan around it as what gets measured.
+    size = max(1, n)
+    intervals, clock = [], 0
+    for _ in range(size):
+        clock += rng.randint(1, 10)
+        start = clock
+        clock += rng.randint(1, 10)
+        intervals.append([start, clock])
+    new_start = rng.randrange(clock)
+    return (intervals, [new_start, new_start + rng.randint(1, 40)])
+
+
 def _gen_is_anagram(n, rng):
     s = "".join(rng.choice(string.ascii_lowercase) for _ in range(n))
     t = list(s)
@@ -756,6 +775,29 @@ def _gen_meeting_schedule_ii(n, rng):
     span = 4 * size
     starts = [rng.randrange(span) for _ in range(size)]
     return (tuple((start, start + rng.randint(1, 20)) for start in starts),)
+
+
+def _gen_merge_intervals(n, rng):
+    # A coin flip per interval decides whether it overlaps the run before it:
+    # an overlapping one starts somewhere between the previous start and the
+    # running maximum end, a disjoint one starts 1..5 past that maximum, and
+    # every duration is drawn from a fixed 1..10. Generating them in start
+    # order is what makes the flip exact -- the submission compares the
+    # running merged end against the next start, which is the same test --
+    # and the shuffle afterwards is what gives its sort real work, since
+    # Timsort walks an already-ascending list in linear time.
+    size = max(1, n)
+    intervals, cursor, reach = [], 0, 0
+    for _ in range(size):
+        if rng.random() < 0.5:
+            start = rng.randint(cursor, reach)
+        else:
+            start = reach + rng.randint(1, 5)
+        end = start + rng.randint(1, 10)
+        intervals.append([start, end])
+        cursor, reach = start, max(reach, end)
+    rng.shuffle(intervals)
+    return (intervals,)
 
 
 def _gen_merge_k_sorted_linked_lists(n, rng):
@@ -1339,6 +1381,15 @@ PROBLEMS = {
         "scaling_note": "not benchmarked: this is a design problem -- the submission defines a PrefixTree class with insert/search/startsWith rather than a Solution class with one entry method, so benchmark.py's loader has nothing to drive; the generator builds an n-operation sequence (~40% insert, ~30% search, ~30% startsWith on a prefix of a pooled word) drawn from a pool of n // 4 lowercase words of 3-10 characters, so words repeat and both hits and misses are common, purely as documentation of the input shape",
         "generalized_note": "uncapped: any number of operations, words of any length. The alphabet is part of the problem, not a cap -- words stay lowercase English letters, so each node's child count is bounded by 26 and does not grow with n. The contract stays too: search matches a whole inserted word, startsWith matches any inserted word's prefix.",
     },
+    "insert-new-interval": {
+        "entry": "insert",
+        "scalable": True,
+        "generate": _gen_insert_new_interval,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of intervals already in the list. They arrive sorted and disjoint, as the stated problem guarantees, with gaps and durations each drawn from a fixed 1..10, so the timeline grows linearly with n. The new interval's start is uniform over that timeline and its width is drawn from a fixed 1..40, so it overlaps a couple of neighbours however long the list is. That bound is what the ladder rests on: this submission merges by popping from the middle of the list, which shifts every element past the popped slot, and only a constant number of pops happen here -- so what gets measured is the linear work around them, the copy `intervals + [newInterval]` makes, Timsort's near-linear pass over a list that is ascending apart from that one appended element, and the single left-to-right scan. A new interval spanning a constant fraction of the timeline would make the same submission quadratic instead",
+        "generalized_note": "uncapped: any number of intervals, endpoints any ints with start <= end. The input's sortedness and disjointness are part of the problem, not a cap -- the intervals arrive ascending by start with no two overlapping, and the answer must come back the same way. Touching endpoints merge: inserting [4,8] into [[1,4]] gives [[1,8]]. Note the new interval may overlap any number of them, up to all n, so the number of merges is not bounded by a constant in general even though this generator keeps it so.",
+    },
     "invert-a-binary-tree": {
         "entry": "invertTree",
         "scalable": True,
@@ -1497,6 +1548,15 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "n = number of meetings. Unlike meeting-schedule these overlap on purpose, but by a bounded amount: starts are drawn independently across a window 4n wide while durations stay in a fixed 1..20, so the expected number of meetings live at any instant is about 2.6 whatever n is. The heap of active end times therefore stays small and the answer stays small, which leaves the O(n log n) sort as what the ladder measures rather than the heap. Starts are drawn independently and so arrive unordered, giving that sort real work without needing a shuffle",
         "generalized_note": "uncapped: any number of meetings, start and end times any ints with start < end. Touching endpoints are part of the problem, not a cap -- a meeting ending at 8 frees its room for one starting at 8. Note that concurrency is bounded by construction in this generator; in general it can reach the number of meetings, and then the room count and any structure holding the live meetings grow with n too.",
+    },
+    "merge-intervals": {
+        "entry": "merge",
+        "scalable": True,
+        "generate": _gen_merge_intervals,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of intervals. Exactly half of them overlap the run of intervals before them and half do not, decided by a coin flip per interval, so about n/2 merges happen whatever n is; durations are drawn from a fixed 1..10 and disjoint intervals start 1..5 past everything before them, so the timeline grows linearly with n. Overlap at a fixed rate is the point rather than an accident: this submission merges by popping from the middle of the list, which shifts every element past the popped slot, so a constant fraction of merges is what makes that quadratic cost visible -- non-overlapping intervals would have left nothing to pop and reported the O(n log n) sort instead. The intervals are shuffled before being handed over to give that sort real work, since Timsort walks an already-ascending list in linear time. One caution for reading the numbers: the popping is a C-level memmove while the scan around it is a Python loop, so the linear scan is what dominates for the first few thousand intervals and the quadratic term only takes over above that -- consecutive rungs roughly quadruple from about n = 16384 onward, while a fit across the whole ladder lands between n^1.5 and n^2",
+        "generalized_note": "uncapped: any number of intervals, endpoints any ints with start <= end, arriving in any order and overlapping to any degree -- one interval may contain another, and all n may overlap into a single answer. Touching endpoints merge: [1,4] and [4,5] become [1,5]. The answer must come back sorted and disjoint. Note the number of merges can reach n-1, so a submission whose merge step costs O(n) each time is quadratic in the worst case.",
     },
     "merge-k-sorted-linked-lists": {
         "entry": "mergeKLists",
