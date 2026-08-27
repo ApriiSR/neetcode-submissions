@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-26T04:37:28.169783+00:00",
+  "generated_at": "2026-08-27T20:59:37.390759+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -5830,6 +5830,36 @@
           "slug": "missing-number",
           "solved_at": "2026-08-19T20:07:18-07:00",
           "statement": "missing-number"
+        }
+      ]
+    },
+    "multiply-strings": {
+      "submissions": [
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-27T20:59:37.159173+00:00",
+          "complexity": {
+            "benchmark_model": "n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Unit-cost reporting makes this O(n), but the real work is digit-level: each 10**i and the final big-integer multiply make the true bit-level cost superlinear, which is why this feels slower than it looks. The intended approach avoids ever materializing the big integers by ||accumulating single-digit products into a positions array indexed by i+j||, which keeps all arithmetic on small digits. Also note that building the integer by hand with ord() rather than int() technically respects the no-built-in-conversion rule, though it sidesteps its spirit.",
+            "space": "O(n)",
+            "summary": "Reconstructs each integer by summing digit values times powers of 10, multiplies the two big integers, and converts the result back with str.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
+          "file": "Data Structures & Algorithms/multiply-strings/submission-0.py",
+          "golf": {
+            "bytes": 244,
+            "characters": 244,
+            "non_blank_lines": 5,
+            "tokens": 92
+          },
+          "model": "k3",
+          "slug": "multiply-strings",
+          "solved_at": "2026-08-27T13:58:59-07:00",
+          "statement": "multiply-strings"
         }
       ]
     },
