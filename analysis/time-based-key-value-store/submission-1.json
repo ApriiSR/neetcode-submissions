@@ -1,0 +1,26 @@
+{
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-27T23:44:17.969169+00:00",
+  "complexity": {
+    "benchmark_model": "n log n",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": true,
+    "notes": "Appending with `self.items[key] += [(timestamp, value)]` builds a throwaway one-element list each call; a `defaultdict(list)` plus plain `append((timestamp, value))` is tidier. The hand-rolled binary search could be replaced by `bisect_right` from the stdlib, which would shorten get considerably. Worst-case figure reflects adversarial collisions on input-controlled string keys degrading dict lookups.",
+    "space": "O(n)",
+    "summary": "Each key maps to a list of (timestamp, value) pairs kept sorted because set timestamps arrive in strictly increasing order; get binary-searches that list for the largest stored timestamp not exceeding the query. This is the asymptotically optimal approach for the problem.",
+    "time_average": "O(1) per set, O(log n) per get",
+    "time_worst": "O(n) per operation"
+  },
+  "file": "Data Structures & Algorithms/time-based-key-value-store/submission-1.py",
+  "golf": {
+    "bytes": 849,
+    "characters": 849,
+    "non_blank_lines": 22,
+    "tokens": 218
+  },
+  "model": "k3",
+  "slug": "time-based-key-value-store",
+  "solved_at": "2026-08-27T16:43:25-07:00",
+  "statement": "time-based-key-value-store"
+}
