@@ -1,0 +1,26 @@
+{
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-27T23:02:11.977346+00:00",
+  "complexity": {
+    "benchmark_model": "log n",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "Two clean binary searches is fine, but a ||single pass that checks which half is sorted and discards the other|| achieves the same O(log n) with one loop. The final return line is hard to read; an explicit `if nums[start % len(nums)] == target` would be clearer. Assumes `List` is imported.",
+    "space": "O(1)",
+    "summary": "Finds the rotation point with a first binary search, then runs a second binary search over the rotated index space, mapping virtual indices back with modular arithmetic.",
+    "time_average": "O(log n)",
+    "time_worst": "O(log n)"
+  },
+  "file": "Data Structures & Algorithms/find-target-in-rotated-sorted-array/submission-0.py",
+  "golf": {
+    "bytes": 787,
+    "characters": 787,
+    "non_blank_lines": 23,
+    "tokens": 193
+  },
+  "model": "k3",
+  "slug": "find-target-in-rotated-sorted-array",
+  "solved_at": "2026-08-27T16:01:44-07:00",
+  "statement": "find-target-in-rotated-sorted-array"
+}
