@@ -1,0 +1,26 @@
+{
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-28T05:56:38.717727+00:00",
+  "complexity": {
+    "benchmark_model": "n 2^n",
+    "correctness": "incorrect",
+    "correctness_reason": "nums = [1] * 1000 (permitted by the constraints) forces recursion ~1000 levels deep and raises RecursionError under CPython's default limit.",
+    "hash_dependent": false,
+    "notes": "Short-circuits via max() over a generator, which is a neat idiom for any(). The recursion depth equals the path length, so deep inputs overflow CPython's default recursion limit. A far better O(n) time, O(1) space single pass exists via ||tracking the farthest index reachable so far||, or equivalently scanning from the end for ||the leftmost position that can reach the end||.",
+    "space": "O(n)",
+    "summary": "Exhaustive recursion: from index 0, try every allowed first jump and recursively check the remaining suffix, returning True if any branch succeeds. Each call also slices the list, so up to O(2^n) calls each pay O(n) for the slice.",
+    "time_average": "O(2^n)",
+    "time_worst": "O(n * 2^n)"
+  },
+  "file": "Data Structures & Algorithms/jump-game/submission-0.py",
+  "golf": {
+    "bytes": 267,
+    "characters": 267,
+    "non_blank_lines": 8,
+    "tokens": 73
+  },
+  "model": "k3",
+  "slug": "jump-game",
+  "solved_at": "2026-08-27T22:55:43-07:00",
+  "statement": "jump-game"
+}
