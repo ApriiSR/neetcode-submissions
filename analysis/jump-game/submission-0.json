@@ -6,7 +6,7 @@
     "correctness": "incorrect",
     "correctness_reason": "nums = [1] * 1000 (permitted by the constraints) forces recursion ~1000 levels deep and raises RecursionError under CPython's default limit.",
     "hash_dependent": false,
-    "notes": "Short-circuits via max() over a generator, which is a neat idiom for any(). The recursion depth equals the path length, so deep inputs overflow CPython's default recursion limit. A far better O(n) time, O(1) space single pass exists via ||tracking the farthest index reachable so far||, or equivalently scanning from the end for ||the leftmost position that can reach the end||.",
+    "notes": "max() over a generator gets the right answer -- the maximum of the branch results is True exactly when one of them is -- but unlike any() it does not short-circuit, so every allowed first jump is explored even after one has already succeeded. It is safe from max()'s empty-sequence ValueError, though, and not by accident: the branch above has already ruled out nums[0] == 0, so the range is never empty here. The recursion depth equals the path length, so deep inputs overflow CPython's default recursion limit. A far better O(n) time, O(1) space single pass exists via ||tracking the farthest index reachable so far||, or equivalently scanning from the end for ||the leftmost position that can reach the end||.",
     "space": "O(n)",
     "summary": "Exhaustive recursion: from index 0, try every allowed first jump and recursively check the remaining suffix, returning True if any branch succeeds. Each call also slices the list, so up to O(2^n) calls each pay O(n) for the slice.",
     "time_average": "O(2^n)",
