@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-28T04:38:41.507970+00:00",
+  "generated_at": "2026-08-28T05:42:35.994063+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -5109,6 +5109,36 @@
           "slug": "max-water-container",
           "solved_at": "2026-08-18T17:38:26-07:00",
           "statement": "max-water-container"
+        }
+      ]
+    },
+    "maximum-subarray": {
+      "submissions": [
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-28T05:42:35.160736+00:00",
+          "complexity": {
+            "benchmark_model": "n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Clean, idiomatic Kadane's. Starting current at 0 works because the first iteration sets current = max(num, num); initializing current = nums[0] would be marginally clearer but this is fine. Time complexity is already optimal for this problem.",
+            "space": "O(1)",
+            "summary": "Single pass over the array maintaining the best sum ending at the current position (either extending the running subarray or restarting at the current element), tracking the maximum seen overall.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
+          "file": "Data Structures & Algorithms/maximum-subarray/submission-0.py",
+          "golf": {
+            "bytes": 238,
+            "characters": 238,
+            "non_blank_lines": 8,
+            "tokens": 52
+          },
+          "model": "k3",
+          "slug": "maximum-subarray",
+          "solved_at": "2026-08-27T22:42:05-07:00",
+          "statement": "maximum-subarray"
         }
       ]
     },
