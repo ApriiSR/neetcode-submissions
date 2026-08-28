@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-28T01:41:35.189493+00:00",
+  "generated_at": "2026-08-28T01:47:27.137082+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -1930,6 +1930,34 @@
           "relation_to_previous": "new-approach",
           "slug": "count-paths",
           "solved_at": "2026-08-27T18:41:02-07:00",
+          "statement": "count-paths"
+        },
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-28T01:47:26.948858+00:00",
+          "complexity": {
+            "benchmark_model": "n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "math.comb performs O(min(m, n)) multiplications, which is optimal for this formula; any bit-level cost of the large intermediate integers is not counted per convention. The snippet relies on the judge pre-importing the math module; adding an explicit import math would make it self-contained. This is a strict improvement over the previous O(m*n) DP in both time and space.",
+            "relation_to_previous": "new-approach",
+            "space": "O(1)",
+            "summary": "Replaces the DP table with the closed-form answer: the number of monotone paths is the binomial coefficient C(m+n-2, m-1), computed directly via math.comb.",
+            "time_average": "O(m + n)",
+            "time_worst": "O(m + n)"
+          },
+          "file": "Data Structures & Algorithms/count-paths/submission-2.py",
+          "golf": {
+            "bytes": 102,
+            "characters": 102,
+            "non_blank_lines": 3,
+            "tokens": 34
+          },
+          "model": "k3",
+          "relation_to_previous": "new-approach",
+          "slug": "count-paths",
+          "solved_at": "2026-08-27T18:46:49-07:00",
           "statement": "count-paths"
         }
       ]
