@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-28T06:00:28.038331+00:00",
+  "generated_at": "2026-08-28T06:08:27.171100+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -3866,13 +3866,13 @@
         },
         {
           "analysis_version": 9,
-          "analyzed_at": "2026-08-28T06:00:27.788008+00:00",
+          "analyzed_at": "2026-08-28T06:07:57.536687+00:00",
           "complexity": {
             "benchmark_model": "n^2",
-            "correctness": "neetcode-only",
-            "correctness_reason": "If nums[i] + i exceeds len(nums) - 1, dp[j] is indexed out of range and raises IndexError (e.g. nums = [5] extended to [5, 0] \u2014 nums[0]=5 with n=2 gives range(1, 6) and dp[2] fails); NeetCode's cap nums[i] <= 1000 doesn't actually prevent this either \u2014 nums = [1000, 0, 0] would index dp[3..1000] \u2014 wait, this breaks within NeetCode's own constraints.",
+            "correctness": "general",
+            "correctness_reason": "",
             "hash_dependent": false,
-            "notes": "Correct but quadratic: each cell scans up to nums[i] later cells, and the inner range isn't bounded to the array end (harmless, since slices of the range just go out of bounds of dp \u2014 actually it would IndexError if... no, range just yields indices beyond len(dp)-1 and dp[j] would raise; in practice nums[i] <= 1000 caps this under NeetCode, but on a generalized input with nums[i] > n this code raises IndexError). An O(n) solution exists via ||a backward scan maintaining the leftmost index that can reach the end (goal post), or equivalently a forward scan tracking the farthest reachable index||.",
+            "notes": "Quadratic, and the inner range is deliberately not clamped to the end of the array: when i + nums[i] runs past the last index, range() still yields those indices, but dp[j] never sees them. dp[-1] is set True before the loop and never rewritten, so any() finds it and abandons the generator at the last index at the latest, before an out-of-range one is produced. That short-circuit is load-bearing rather than lucky: it is what keeps this from raising IndexError, and it is also what bounds each inner scan at min(nums[i], n - 1 - i) instead of nums[i], so the run stays O(n^2) however large the values grow. It does leave the reader to reconstruct the argument, where min(i + nums[i] + 1, len(nums)) would state it. An O(n) time, O(1) space single pass exists via ||tracking the farthest index reachable so far||, or equivalently scanning from the end for ||the leftmost position that can reach the end||.",
             "relation_to_previous": "new-approach",
             "space": "O(n)",
             "summary": "Bottom-up DP: dp[i] is True if any index reachable from i (within nums[i] jumps) can itself reach the end; fills the table right to left and returns dp[0].",
@@ -3886,7 +3886,7 @@
             "non_blank_lines": 7,
             "tokens": 89
           },
-          "model": "k3",
+          "model": "claude",
           "relation_to_previous": "new-approach",
           "slug": "jump-game",
           "solved_at": "2026-08-27T22:59:49-07:00",
