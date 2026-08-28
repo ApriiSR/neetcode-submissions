@@ -155,14 +155,16 @@ def load_solution(path):
     # evaluate the `Optional[TreeNode]` and `List[Interval]` in their
     # signatures.
     #
-    # `deque` is the same kind of gap from the other direction: it's a name
-    # NeetCode's environment has already imported, so a solution can use it
-    # without an import line of its own (level-order-traversal-of-binary-tree
-    # submission-2 does).
+    # `deque` and `math` are the same kind of gap from the other direction:
+    # they're names NeetCode's environment has already imported, so a solution
+    # can use them without an import line of its own
+    # (level-order-traversal-of-binary-tree submission-2 uses deque,
+    # count-paths submission-2 uses math.comb).
     namespace = {
         "List": List,
         "Optional": Optional,
         "deque": deque,
+        "math": math,
         "Interval": generators.Interval,
         "ListNode": generators.ListNode,
         "Node": generators.Node,
