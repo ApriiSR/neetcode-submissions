@@ -1,0 +1,26 @@
+{
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-28T01:29:48.887179+00:00",
+  "complexity": {
+    "benchmark_model": "2^n",
+    "correctness": "neetcode-only",
+    "correctness_reason": "Once the 100 cap is lifted, m+n greater than about 1000 exceeds CPython's default recursion limit and raises RecursionError (e.g. m = 600, n = 600).",
+    "hash_dependent": false,
+    "notes": "Correct but exponential. ||Caching the subproblem results (or a bottom-up DP table)|| brings this to O(m*n) time, and ||the combinatorial closed form C(m+n-2, m-1)|| computes it in O(min(m,n)) unit-cost arithmetic. Also note CPython's default recursion limit (~1000) is only safe here because of the m,n <= 100 cap.",
+    "space": "O(m+n)",
+    "summary": "Plain recursion: uniquePaths(m,n) = uniquePaths(m-1,n) + uniquePaths(m,n-1) with base case 1 when either dimension is 1. With no memoization, overlapping subproblems are recomputed exponentially many times; stack depth is O(m+n).",
+    "time_average": "O(2^(m+n))",
+    "time_worst": "O(2^(m+n))"
+  },
+  "file": "Data Structures & Algorithms/count-paths/submission-0.py",
+  "golf": {
+    "bytes": 201,
+    "characters": 201,
+    "non_blank_lines": 6,
+    "tokens": 54
+  },
+  "model": "k3",
+  "slug": "count-paths",
+  "solved_at": "2026-08-27T18:29:19-07:00",
+  "statement": "count-paths"
+}
