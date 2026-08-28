@@ -4,14 +4,15 @@ Each problem in `PROBLEMS` maps to:
 - `entry`: the Solution method to call, or None for a design problem
   whose submission defines no Solution class at all (minimum-stack,
   lru-cache, implement-prefix-tree, kth-largest-integer-in-a-stream,
-  design-word-search-data-structure).
+  design-word-search-data-structure, time-based-key-value-store).
 - `scalable`: False for problems benchmark.py can't time. Three have no
   size to vary -- valid-sudoku is a fixed 9x9 board, and reverse-bits and
   sum-of-two-integers are pinned to 32 bits by the submissions
   themselves, which format to exactly 32 binary digits or loop over
-  exactly 32 bit positions. The other five -- minimum-stack, lru-cache,
-  implement-prefix-tree, kth-largest-integer-in-a-stream and
-  design-word-search-data-structure -- are design problems whose
+  exactly 32 bit positions. The other six -- minimum-stack, lru-cache,
+  implement-prefix-tree, kth-largest-integer-in-a-stream,
+  design-word-search-data-structure and time-based-key-value-store --
+  are design problems whose
   submissions define no Solution class at all. benchmark.py skips scaling
   curves for all of them, so their `generate` documents the input shape
   rather than feeding a timing run.
@@ -23,8 +24,9 @@ Each problem in `PROBLEMS` maps to:
   ladder and its own extra candidate models instead; see
   EXPONENTIAL_SIZES and EXPONENTIAL_MODELS below (subsets),
   FIBONACCI_SIZES and FIBONACCI_MODELS (climbing-stairs),
-  FACTORIAL_SIZES and FACTORIAL_MODELS (permutations), and
-  SUBSETS_II_SIZES and SUBSETS_II_MODELS (subsets-ii). Everything else
+  FACTORIAL_SIZES and FACTORIAL_MODELS (permutations),
+  SUBSETS_II_SIZES and SUBSETS_II_MODELS (subsets-ii), and
+  COUNT_PATHS_SIZES and COUNT_PATHS_MODELS (count-paths). Everything else
   inherits benchmark.py's defaults.
 - `generate(n, rng)`: returns a positional-args tuple (excluding `self`)
   for `entry`, sized around n. Uses only the passed-in random.Random, so
@@ -165,6 +167,28 @@ SUBSETS_II_SIZES = tuple(range(8, 21))
 SUBSETS_II_MODELS = EXPONENTIAL_MODELS + (
     ("4^n", lambda n: 4.0**n),
     ("n 4^n", lambda n: n * 4.0**n),
+)
+
+# count-paths' ladder and models, for the plain recursion in submission-0.
+# Its generator hands out an n-by-n grid, and the recursion tree for one is
+# exactly 2 * C(2n-2, n-1) - 1 calls -- about 39 at n = 4 and 80 million at
+# n = 15, which is where SIZE_CAP_SECONDS truncates it on a fast machine.
+# Stepping by 1 from 4 puts that whole range on the ladder; the default one's
+# first rung is unreachable several times over.
+COUNT_PATHS_SIZES = tuple(range(4, 16))
+
+# Paired with COUNT_PATHS_SIZES via "models". The central binomial above grows
+# like 4**n / sqrt(pi * n), so the sqrt term is not a rounding detail over a
+# twelve-rung ladder: bare 4^n is off by a factor of two across it while
+# 4^n / sqrt n stays flat, and both are carried so the fit can say which.
+# Float bases for the same reason EXPONENTIAL_MODELS uses one -- meeting a
+# ladder they don't belong to raises OverflowError rather than building a
+# multi-megabit integer. The polynomials benchmark.py always carries are what
+# the other two submissions land on: the tabulated one fills n**2 cells, and
+# the math.comb one is closed form.
+COUNT_PATHS_MODELS = EXPONENTIAL_MODELS + (
+    ("4^n", lambda n: 4.0**n),
+    ("4^n / sqrt n", lambda n: 4.0**n / math.sqrt(n)),
 )
 
 class ListNode:
@@ -447,6 +471,15 @@ def _gen_count_number_of_islands(n, rng):
     )
 
 
+def _gen_count_paths(n, rng):
+    # An n-by-n grid, so both dimensions grow together and the answer is the
+    # central binomial C(2n-2, n-1). The entry takes two integers and the
+    # generator samples nothing: the size being varied is a pair of values,
+    # not any length.
+    size = max(2, n)
+    return (size, size)
+
+
 def _gen_counting_bits(n, rng):
     return (n,)
 
@@ -573,6 +606,22 @@ def _gen_find_minimum_in_rotated_sorted_array(n, rng):
     size = max(2, n)
     values = sorted(rng.sample(range(-size * 10, size * 10 + 1), size))
     return (values[1:] + values[:1],)
+
+
+def _gen_find_target_in_rotated_sorted_array(n, rng):
+    # Rotated by a uniformly random pivot rather than the fixed one
+    # _gen_find_minimum_in_rotated_sorted_array uses: this submission locates
+    # the minimum by binary search and then binary-searches the rotated index
+    # space, and both halves take the same log2(n) steps wherever the pivot
+    # sits, so no rotation is the worst case for it. Values are sampled
+    # without replacement, since the descent test that finds the pivot needs
+    # them distinct, and the target is always one of them -- a miss would exit
+    # after the same log2(n) steps anyway, but this way every run ends on a
+    # hit.
+    size = max(2, n)
+    values = sorted(rng.sample(range(-size * 10, size * 10 + 1), size))
+    pivot = rng.randrange(size)
+    return (values[pivot:] + values[:pivot], values[rng.randrange(size)])
 
 
 def _gen_house_robber(n, rng):
@@ -858,6 +907,20 @@ def _gen_missing_number(n, rng):
     return (nums,)
 
 
+def _gen_multiply_strings(n, rng):
+    # Two factors of exactly n digits each, neither with a leading zero, so
+    # the product always has 2n or 2n - 1 digits and neither operand is
+    # degenerate.
+    length = max(1, n)
+
+    def factor():
+        return rng.choice("123456789") + "".join(
+            rng.choice(string.digits) for _ in range(length - 1)
+        )
+
+    return (factor(), factor())
+
+
 def _gen_non_cyclical_number(n, rng):
     # n is the input value itself rather than a length, so the generator
     # samples nothing and what the ladder varies is the digit count, about
@@ -1055,6 +1118,28 @@ def _gen_three_integer_sum(n, rng):
     # dominate the run.
     span = max(1, n * n)
     return (rng.sample(range(-span, span + 1), n),)
+
+
+def _gen_time_based_key_value_store(n, rng):
+    # An n-operation sequence, ~50% set and ~50% get over a key space of
+    # n // 8 keys, so keys repeat and each one accumulates a long timestamp
+    # history. Timestamps are strictly increasing across the whole sequence,
+    # which the problem guarantees and which is what leaves each key's own
+    # list sorted for a binary search. A get's timestamp is drawn from the
+    # range issued so far, so it usually lands between two stored values
+    # rather than on one, and a get on a key never set yet is possible early
+    # in the sequence.
+    ops = []
+    key_space = max(1, n // 8)
+    stamp = 0
+    for _ in range(n):
+        key = f"key{rng.randrange(key_space)}"
+        if rng.random() < 0.5:
+            stamp += 1
+            ops.append(("set", key, f"value{stamp}", stamp))
+        else:
+            ops.append(("get", key, rng.randint(1, max(1, stamp))))
+    return (ops,)
 
 
 def _gen_top_k_elements_in_list(n, rng):
@@ -1263,6 +1348,17 @@ PROBLEMS = {
         "scaling_note": "n = number of cells, arranged as the squarest grid holding that many (rows = isqrt(n), cols = n // rows), so both dimensions grow like sqrt(n) and neither is a constant the scan can be linear in for free. Each cell is land independently with probability 0.3, below the square lattice's site-percolation threshold of about 0.5927, so the grid holds many small islands rather than one spanning cluster and the island count grows linearly with n. That count is a multiplier here rather than a detail: the submission restarts its search for the next unvisited land cell at row 0 every time, rescanning rows it has already cleared, so a linearly growing island count over an O(n) scan makes the measured time quadratic in n whatever the flood fill costs. The density also keeps the flood fill itself cheap -- it tests membership with `q not in queue`, a linear scan of the frontier, which would be quadratic in the size of any single large island",
         "generalized_note": "uncapped: any grid dimensions. The connectivity rule is part of the problem, not a cap -- islands still join horizontally and vertically only, never diagonally, and the grid is still surrounded by water. Note that one island spanning the whole grid is the worst case for a solution whose visited set is a linear scan, and nothing in the statement rules it out.",
     },
+    "count-paths": {
+        "entry": "uniquePaths",
+        "scalable": True,
+        "generate": _gen_count_paths,
+        "sizes": COUNT_PATHS_SIZES,
+        "models": COUNT_PATHS_MODELS,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = the side of a square grid: the entry takes two integers and the generator hands it (n, n), so the size being varied is a pair of values rather than any length and nothing is sampled. The answer is the central binomial C(2n-2, n-1). The ladder is this problem's own: n steps by 1 from 4 to 15 rather than doubling from 256, because the plain recursion makes exactly 2 * C(2n-2, n-1) - 1 calls -- 39 at n = 4 and about 80 million at n = 15, which is roughly where SIZE_CAP_SECONDS lands, so the top rung or two truncate on a slower machine -- and would never return at the default ladder's first rung. Two things follow for reading the numbers. The reported log-log slope is meaningless for that submission, since it fits log(time) against log(n) and an exponential curve is not a line in those coordinates -- read best_fit, which is chosen from 4^n and 4^n / sqrt n alongside 2^n, n * 2^n and the usual polynomials; 4^n / sqrt n is the shape the recursion actually has, because the central binomial grows like 4**n / sqrt(pi * n), and bare 4^n overstates it by a factor of two across this ladder. And the ladder that makes that submission measurable is far too short for the other two: the tabulated one fills n**2 cells and runs about 1 to 12 microseconds across the whole of it, and the math.comb one is closed form at well under a microsecond throughout, so their curves are as much timer resolution and call overhead as they are complexity, and their fits should be read that way",
+        "generalized_note": "uncapped: any grid dimensions, with m and n independent rather than equal as this generator makes them. The movement rule is part of the problem, not a cap -- the robot still moves only right or down from the top-left corner to the bottom-right, so the answer is C(m+n-2, m-1) for any m, n >= 1. Note that m and n are values rather than lengths, so they cost only about log2(m) + log2(n) bits to write down: an O(m*n) tabulation is already exponential in the size of its input, and the answer itself is an O(m+n)-bit number, which is a floor on any solution that prints it.",
+    },
     "counting-bits": {
         "entry": "countBits",
         "scalable": True,
@@ -1353,6 +1449,15 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "n = array length; n distinct values are sampled without replacement from -10n..10n, sorted ascending, then rotated left by exactly one position, which puts the minimum at the last index. That is this problem's no-early-exit case for a left-to-right scan looking for the single descent: it has to walk the whole array before reaching it, so such a submission comes out linear. A binary search is unaffected by where the rotation falls -- it halves the interval a fixed log2(n) times either way -- so expect a flat, near-zero slope from one. Note the whole ladder runs in microseconds for a binary search, close to the clock's resolution, so read the flatness rather than the r^2",
         "generalized_note": "uncapped: any array length, values any ints. Sortedness, distinctness and the rotation are part of the problem, not caps -- the array is still a strictly increasing sequence rotated some number of positions. The rotation may be zero, which leaves the array plainly sorted and its minimum first; the rotation of one used here is the opposite extreme.",
+    },
+    "find-target-in-rotated-sorted-array": {
+        "entry": "search",
+        "scalable": True,
+        "generate": _gen_find_target_in_rotated_sorted_array,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = array length; values are sampled without replacement from a range that scales with n (-10n..10n), sorted ascending and then rotated left by a uniformly random pivot, so the input is a rotated strictly-increasing sequence as the problem states. The target is always one of the n values (never absent), so every run ends on a hit. The rotation amount is not a difficulty knob for this submission: it binary-searches for the minimum and then binary-searches the rotated index space, both log2(n) steps at any pivot, so an unrotated array (pivot 0) costs the same as any other and there is no worst-case rotation to pick",
+        "generalized_note": "uncapped: any array length, values any ints. The input's shape is part of the problem, not a cap -- the array is still a strictly increasing sequence rotated by some amount, so its values stay distinct, and the answer is still the target's index in the rotated array, or -1 when the target is absent. The stated O(log n) expectation is part of the problem too.",
     },
     "house-robber": {
         "entry": "rob",
@@ -1605,6 +1710,15 @@ PROBLEMS = {
         "scaling_note": "n = array length; the array is a shuffled permutation of 0..n-1, so the absent value is always n itself. That is pinned deliberately rather than placed at random: the submission scans with `i not in nums` and stops at the gap, so a randomly placed gap would make each rung of the ladder measure where the gap happened to sit instead of n. As pinned, every i below n is found after about n / 2 comparisons before the final scan for n fails outright, so the work is about n**2 / 2 and the particular shuffle does not change it. The scan is over a list, not a set, so nothing here hashes",
         "generalized_note": "uncapped: any array length. The value range is the problem's structure rather than a size limit -- the array still holds n distinct integers drawn from 0..n, with exactly one of that range absent, which is what makes the sum and xor solutions work at all.",
     },
+    "multiply-strings": {
+        "entry": "multiply",
+        "scalable": True,
+        "generate": _gen_multiply_strings,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = the number of digits in each of the two factors; both are exactly n digits with a nonzero leading digit, drawn uniformly, so the product always has 2n or 2n - 1 digits. This submission parses both factors into Python ints by summing digit * 10**i, multiplies, and formats the result with str(), which makes it inherit CPython's int-to-str guard: converting a number of more than 4300 digits raises ValueError (the limit added in 3.11), so the default ladder's 4096 rung raises rather than returning and the run stops after n = 2048, with that ValueError recorded as the truncation reason. Four sizes survive below it -- 256 to 2048 -- and across them the measured curve is a clean n**2, which the parse alone accounts for: the running sum adds a number of up to i digits n times over, whatever CPython's bignum multiply and int-to-str do beneath it. NeetCode's own stated cap of 200 digits per factor sits far below the ValueError, so a solution shaped like this one never meets it there",
+        "generalized_note": "uncapped: factors of any length, and of different lengths from each other rather than equal as this generator makes them. The stated contract is part of the problem, not a cap -- the factors arrive as digit strings with no leading zeros (except \"0\" itself), the product comes back the same way, and the problem asks for the multiplication to be done digit by digit rather than by converting to a built-in big integer type. Note that the digit count is the input size here, so scaling is judged in digits: schoolbook multiplication is O(n**2) and Karatsuba O(n**1.585).",
+    },
     "non-cyclical-number": {
         "entry": "isHappy",
         "scalable": True,
@@ -1805,6 +1919,15 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "n = array length; values are sampled without replacement from -n**2..n**2, so the value range grows quadratically with n. That has two deliberate effects: the values are distinct, so no triple is ever produced twice and a submission that dedups by scanning its result list effectively never pays for it; and the number of zero-sum triples grows only linearly with n (25 of them at n = 512), so the answer stays small and the measured time is the search itself -- the O(n log n) sort plus the O(n**2) two-pointer sweep -- rather than the cost of assembling and deduplicating output",
         "generalized_note": "uncapped: any array length, values any ints, and values may repeat. The output contract is part of the problem, not a cap — still every distinct triple summing to zero, each reported once, in any order. Note the number of such triples can itself be quadratic in n, so a solution that dedups by scanning the result list is quadratic in the output size on top of its search cost, and no solution can beat the output size itself.",
+    },
+    "time-based-key-value-store": {
+        "entry": None,
+        "scalable": False,
+        "generate": _gen_time_based_key_value_store,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "not benchmarked: this is a design problem -- the submission defines a TimeMap class with set/get rather than a Solution class with one entry method, so benchmark.py's loader has nothing to drive; the generator builds an n-operation sequence (~50% set, ~50% get, keys drawn uniformly from a space of n // 8 so keys repeat and each accumulates a long timestamp history, timestamps strictly increasing across the whole sequence as the problem guarantees, and each get's timestamp drawn from the range issued so far so it usually falls between two stored values rather than on one) purely as documentation of the input shape",
+        "generalized_note": "uncapped: any number of operations, keys and values any strings, timestamps any ints. The contract is part of the problem, not a cap -- set is still called with strictly increasing timestamps, which is what leaves each key's own history sorted, and get still returns the value stored at the largest timestamp <= the one asked for, or the empty string when the key has no such value. The expectation that get be logarithmic in the number of values under that key is part of the problem too.",
     },
     "top-k-elements-in-list": {
         "entry": "topKFrequent",
