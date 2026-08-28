@@ -1,0 +1,28 @@
+{
+  "analysis_version": 9,
+  "analyzed_at": "2026-08-28T01:41:34.942986+00:00",
+  "complexity": {
+    "benchmark_model": "n^2",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": false,
+    "notes": "The ALL-CAPS name for a local table reads like a constant; dp or paths is more idiomatic. Space can drop to O(min(m,n)) by keeping only ||one row of the table at a time||, and there is a closed-form ||binomial-coefficient formula, C(m+n-2, m-1)||, that reaches O(min(m,n)) time with O(1) space. `0 in [i, j]` is a cute way to test the border but allocates a two-element list each cell; `i == 0 or j == 0` is clearer.",
+    "relation_to_previous": "new-approach",
+    "space": "O(m*n)",
+    "summary": "Bottom-up DP over an n-by-m table: first row and column are 1, every other cell is the sum of the cell above and the cell to its left, and the bottom-right cell holds the answer.",
+    "time_average": "O(m*n)",
+    "time_worst": "O(m*n)"
+  },
+  "file": "Data Structures & Algorithms/count-paths/submission-1.py",
+  "golf": {
+    "bytes": 453,
+    "characters": 453,
+    "non_blank_lines": 10,
+    "tokens": 115
+  },
+  "model": "k3",
+  "relation_to_previous": "new-approach",
+  "slug": "count-paths",
+  "solved_at": "2026-08-27T18:41:02-07:00",
+  "statement": "count-paths"
+}
