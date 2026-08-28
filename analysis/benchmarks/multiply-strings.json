@@ -1,0 +1,32 @@
+{
+  "generated_at": "2026-08-28T04:38:41.477949+00:00",
+  "python_hash_seed": "0",
+  "slug": "multiply-strings",
+  "submissions": {
+    "submission-0.py": {
+      "adversarial": null,
+      "benchmark_version": 3,
+      "best_fit": "n^2",
+      "best_fit_r2": 0.9911764586624434,
+      "best_fit_slope": 2.0,
+      "k3_model": "n",
+      "k3_model_r2": 0.7702624529876008,
+      "r2": 0.9938069940280754,
+      "sizes": [
+        256,
+        512,
+        1024,
+        2048
+      ],
+      "slope": 1.9021382180207942,
+      "times_ms": [
+        0.33399999998096064,
+        1.003278000013097,
+        3.673899000006031,
+        17.559548999997787
+      ],
+      "truncated_by": "ValueError: Exceeds the limit (4300 digits) for integer string conversion; use sys.set_int_max_str_digits() to increase the limit",
+      "unmeasured": null
+    }
+  }
+}
