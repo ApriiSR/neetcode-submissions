@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-28T06:20:46.163720+00:00",
+  "generated_at": "2026-08-29T01:48:29.026392+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -8647,6 +8647,36 @@
           "slug": "two-integer-sum-ii",
           "solved_at": "2026-08-12T20:17:47-07:00",
           "statement": "two-integer-sum-ii"
+        }
+      ]
+    },
+    "valid-binary-search-tree": {
+      "submissions": [
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-29T01:48:28.783052+00:00",
+          "complexity": {
+            "benchmark_model": "n",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Clean and idiomatic; the elif after the early return could be a plain if since the first branch returns. One practical caveat: on a skewed tree the recursion depth equals n, and with the stated cap of 10^4 nodes that can exceed CPython's default recursion limit \u2014 an iterative stack version avoids this. There is no asymptotically better approach here; every correct method must inspect all n nodes.",
+            "space": "O(n)",
+            "summary": "Recursive DFS that passes a (min, max) bound down the tree; each node's value must lie strictly inside its inherited interval, and the interval is tightened for each child.",
+            "time_average": "O(n)",
+            "time_worst": "O(n)"
+          },
+          "file": "Data Structures & Algorithms/valid-binary-search-tree/submission-0.py",
+          "golf": {
+            "bytes": 587,
+            "characters": 587,
+            "non_blank_lines": 16,
+            "tokens": 92
+          },
+          "model": "k3",
+          "slug": "valid-binary-search-tree",
+          "solved_at": "2026-08-28T18:47:46-07:00",
+          "statement": "valid-binary-search-tree"
         }
       ]
     },
