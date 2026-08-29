@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-29T02:26:57.498031+00:00",
+  "generated_at": "2026-08-29T02:30:26.078522+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -1693,6 +1693,34 @@
           "model": "k3",
           "slug": "count-connected-components",
           "solved_at": "2026-08-28T19:25:41-07:00",
+          "statement": "count-connected-components"
+        },
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-29T02:30:25.872382+00:00",
+          "complexity": {
+            "benchmark_model": "n^3",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "The only change from the previous submission is pop() -> pop(0), which turns the traversal from DFS into BFS but leaves the overall cost unchanged. Each vertex visit rescans the entire edge list, and each edges.remove / vertices.remove is a linear scan, so this is far from optimal; a solution that ||builds an adjacency list once, then runs BFS/DFS with a visited set|| reaches O(V + E). On the style side, pop(0) on a list is O(len(queue)) \u2014 collections.deque with popleft() is the idiomatic fix \u2014 and iterating edges[::-1] while mutating edges works only because the slice makes a copy; iterating a copy explicitly (e.g. list(edges)) would make that intent clearer.",
+            "relation_to_previous": "revision",
+            "space": "O(V + E)",
+            "summary": "Repeatedly pops an unvisited vertex and BFS/DFS-expands its component by scanning the full edge list, deleting each matching edge and enqueuing its endpoints, counting one component per outer iteration.",
+            "time_average": "O(V*E + E^2)",
+            "time_worst": "O(V*E + E^2)"
+          },
+          "file": "Data Structures & Algorithms/count-connected-components/submission-1.py",
+          "golf": {
+            "bytes": 708,
+            "characters": 708,
+            "non_blank_lines": 19,
+            "tokens": 139
+          },
+          "model": "k3",
+          "relation_to_previous": "new-approach",
+          "slug": "count-connected-components",
+          "solved_at": "2026-08-28T19:29:29-07:00",
           "statement": "count-connected-components"
         }
       ]
