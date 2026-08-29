@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-29T03:07:33.229982+00:00",
+  "generated_at": "2026-08-29T03:23:11.571978+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -1753,9 +1753,19 @@
         },
         {
           "analysis_version": 9,
-          "analyzed_at": "2026-08-29T03:07:33.208614+00:00",
-          "complexity": null,
-          "error": "HTTPError: HTTP Error 403: Forbidden \u2014 {\"error\":{\"message\":\"You've reached your 5-hour usage limit. Your quota will reset when the current 5-hour window ends. To continue now, purchase extra usage or upgrade your plan: https://www.kimi.com/membership/subscription?tab=quota\",\"type\":\"access_terminated_error\"}}",
+          "analyzed_at": "2026-08-29T03:23:11.318612+00:00",
+          "complexity": {
+            "benchmark_model": "n log n",
+            "correctness": "incorrect",
+            "correctness_reason": "Chains can reach depth n with no compression, so an allowed input such as n = 2000 with edges [[1998,1999],[1997,1998],...,[0,1]] followed by [0,1999] makes a single find nest ~2000 lambda calls and raises RecursionError.",
+            "hash_dependent": false,
+            "notes": "The dict is keyed by the consecutive ints 0..n-1, so it is really just an array and could be a list. `component[a]()`/`component[b]()` inside the `if` re-walk chains that were already resolved into `a` and `b` a line earlier \u2014 since `a` and `b` are roots those four calls are just `a` and `b`, so the whole block can be written with plain comparisons of `a` and `b`. Storing parent links as lambdas is clever but very hard to read, and it turns each find into a nested Python call chain, so the tree depth is bounded by the interpreter's recursion limit rather than by memory. Linking the larger root under the smaller keeps trees somewhat shallow on random input but gives no bound in general; adding ||path compression (and union by size/rank)|| would flatten it to near-linear total time and also remove the deep-recursion hazard.",
+            "relation_to_previous": "new-approach",
+            "space": "O(n)",
+            "summary": "Disjoint-set union where each node's parent pointer is stored as a closure: `component[x]()` walks the lambda chain up to the root, and each edge that joins two different roots decrements the component count, attaching the larger-labelled root under the smaller one.",
+            "time_average": "O(n + E log n)",
+            "time_worst": "O(n * E)"
+          },
           "file": "Data Structures & Algorithms/count-connected-components/submission-5.py",
           "golf": {
             "bytes": 558,
@@ -1763,7 +1773,8 @@
             "non_blank_lines": 13,
             "tokens": 149
           },
-          "model": "k3",
+          "model": "claude-opus-5",
+          "relation_to_previous": "new-approach",
           "slug": "count-connected-components",
           "solved_at": "2026-08-28T20:07:18-07:00",
           "statement": "count-connected-components"
