@@ -23,7 +23,7 @@ Each problem in `PROBLEMS` maps to:
   polynomial CANDIDATE_MODELS either. Such a problem carries its own
   ladder and its own extra candidate models instead; see
   EXPONENTIAL_SIZES and EXPONENTIAL_MODELS below (subsets),
-  FIBONACCI_SIZES and FIBONACCI_MODELS (climbing-stairs),
+  FIBONACCI_SIZES and FIBONACCI_MODELS (climbing-stairs and jump-game),
   FACTORIAL_SIZES and FACTORIAL_MODELS (permutations),
   SUBSETS_II_SIZES and SUBSETS_II_MODELS (subsets-ii), and
   COUNT_PATHS_SIZES and COUNT_PATHS_MODELS (count-paths). Everything else
@@ -115,8 +115,9 @@ EXPONENTIAL_MODELS = (
 )
 
 
-# climbing-stairs' ladder, and the same idea as EXPONENTIAL_SIZES with a much
-# smaller constant factor: the plain recursion there builds no output, so it
+# climbing-stairs' ladder, shared with jump-game, whose generator pins every
+# jump to 2 so that its plain recursion walks the same Fibonacci tree. The
+# same idea as EXPONENTIAL_SIZES with a much smaller constant factor: the plain recursion there builds no output, so it
 # only clears a microsecond around n = 15 and stays under SIZE_CAP_SECONDS
 # until about n = 36. Stepping by 1 from 4 to 39 puts that whole measurable
 # range on the ladder and lets the per-size cap truncate it wherever the
@@ -124,7 +125,8 @@ EXPONENTIAL_MODELS = (
 FIBONACCI_SIZES = tuple(range(4, 40))
 
 # Paired with FIBONACCI_SIZES via "models". The naive climbing-stairs
-# recursion recomputes the Fibonacci tree, so its call count is Theta(phi**n),
+# recursion recomputes the Fibonacci tree -- as does jump-game's, on the
+# pinned input its generator builds -- so its call count is Theta(phi**n),
 # not 2**n -- close enough to look exponential on a chart, far enough that
 # fitting it against 2**n leaves a residual growing linearly in n. Carried
 # alongside EXPONENTIAL_MODELS so the winner can be the right exponential.
@@ -450,6 +452,25 @@ def _build_copy_linked_list_with_random_pointer(values, randoms):
     return (nodes[0] if nodes else None,)
 
 
+def _gen_count_connected_components(n, rng):
+    # n = numVertices with n undirected edges, so the edge count grows
+    # linearly and the average vertex sits on about two edges -- past the
+    # random graph's giant-component threshold at n / 2, so there is one large
+    # component alongside many small ones and the component count still grows
+    # linearly with n. Every pair is emitted as [lower label, higher label]
+    # and the pairs are deduplicated, so there are no self-loops and no edge
+    # appears twice: the submissions that delete each edge from the list as
+    # they consume it never meet a duplicate they have already taken out.
+    size = max(1, n)
+    edges = set()
+    target = min(size, size * (size - 1) // 2)
+    while len(edges) < target:
+        a, b = rng.randrange(size), rng.randrange(size)
+        if a != b:
+            edges.add((min(a, b), max(a, b)))
+    return (size, [[a, b] for a, b in sorted(edges)])
+
+
 def _gen_count_number_of_islands(n, rng):
     # n = number of cells, laid out as the squarest grid holding that many,
     # so neither dimension is a constant the scan can be linear in for free.
@@ -680,6 +701,25 @@ def _gen_is_palindrome(n, rng):
     return (half + half[::-1],)
 
 
+def _gen_jump_game(n, rng):
+    # Every jump length is pinned to 2 rather than sampled, and that is the
+    # whole design. submission-0 recurses on nums[i:] for i in 1..nums[0] and
+    # combines the branches with max() over a generator, which short-circuits
+    # nothing, so its call count is the recursion tree of whatever values the
+    # array happens to hold. Sampled values make that count vary by orders of
+    # magnitude between neighbouring rungs -- at n = 26 and n = 28 with jumps
+    # drawn from 1..3, measured times of 27.9ms and 20.8ms, and a swing of 30x
+    # between adjacent sizes elsewhere on the same ladder -- so the ladder
+    # would be measuring the draw rather than n, and an unlucky draw would
+    # blow past the per-size cap before the cap could stop it. With every jump
+    # equal to 2 the recursion is exactly T(n) = T(n-1) + T(n-2), the
+    # Fibonacci tree climbing-stairs' plain recursion walks, which is why this
+    # problem shares that problem's ladder and models. 2 is also the smallest
+    # jump that branches at all: 1 would make the recursion a single chain n
+    # deep, which is linear work and a RecursionError shortly after.
+    return ([2] * max(1, n),)
+
+
 def _gen_k_closest_points_to_origin(n, rng):
     # Coordinates are drawn from a box that grows with n, so squared distances
     # stay spread out and exact ties -- which would drop the sorting
@@ -785,6 +825,10 @@ def _gen_lru_cache(n, rng):
 
 def _gen_max_water_container(n, rng):
     return ([rng.randint(1, 1000) for _ in range(n)],)
+
+
+def _gen_maximum_subarray(n, rng):
+    return ([rng.randint(-1000, 1000) for _ in range(max(1, n))],)
 
 
 def _gen_meeting_schedule(n, rng):
@@ -1182,6 +1226,20 @@ def _adv_two_integer_sum_ii(n):
     return (nums, target)
 
 
+def _gen_valid_binary_search_tree(n, rng):
+    # Ascending and distinct, so the tree the build hook makes of them is a
+    # valid BST: the submission's range check never fails, nothing returns
+    # early, and every node is visited. Returned as a tuple rather than a list
+    # so it can't be mistaken for an argument the entry takes.
+    size = max(1, n)
+    return (tuple(sorted(rng.sample(range(-size * 10, size * 10 + 1), size))),)
+
+
+def _build_one_bst(values):
+    root, _nodes = _balanced_bst_nodes(values)
+    return (root,)
+
+
 def _gen_validate_parentheses(n, rng):
     pairs = [("(", ")"), ("[", "]"), ("{", "}")]
     out = []
@@ -1328,6 +1386,15 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "n = number of nodes; each node's random pointer targets a uniformly chosen node ~75% of the time and is null the other ~25%, so the number of random pointers to follow scales linearly with n and their targets are spread across the whole list rather than clustered. Values are drawn from the fixed range -1000..1000, independent of n",
         "generalized_note": "uncapped: any number of nodes, values any ints. The pointer structure is part of the problem, not a cap — each random pointer still targets some node in the list or null. The dict here is keyed on node objects, so its hashes come from CPython's identity hash and the input cannot choose them.",
+    },
+    "count-connected-components": {
+        "entry": "countComponents",
+        "scalable": True,
+        "generate": _gen_count_connected_components,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = the number of vertices, with n undirected edges, so the edge count grows linearly with n and the average vertex sits on about two edges. That is past the random graph's giant-component threshold at n / 2, so the graph is one large component alongside many small ones and the component count still grows linearly with n -- 44 components at n = 256 and 340 at n = 2048. Edges are deduplicated and carry no self-loops. The measured growth splits the submissions in two. submission-0, submission-1 and submission-2 traverse by scanning the whole remaining edge list for every vertex they pop -- `for e in edges[::-1]` copies that list on each pop before testing membership in each pair -- and remove matched vertices from a list with `vertices.remove`, which is another O(n) per hit, so their cost is O(V * E) and quadratic in n here whatever the traversal order is; the only difference between them is which end of the frontier they take (pop, pop(0), deque.popleft), which is not what dominates. submission-5 and submission-6 union by label instead, resolving each endpoint through a chain of lambdas, and the chains stay shallow on a graph this sparse, so they measure near-linear across the whole ladder. Vertex labels are 0..n-1, which the problem fixes, so the dicts they key on them are not something an input can choose and there is no adversarial case to construct",
+        "generalized_note": "uncapped: any number of vertices and any number of edges. The labelling is part of the problem, not a cap -- vertices are still 0..n-1, which is what lets a solution index by label rather than hash -- and edges are still undirected with no self-loops or repeats. Isolated vertices each count as their own component, so the answer is n when there are no edges at all. Note that more edges than vertices makes the per-vertex edge scan above worse without bound, while a near-tree graph is what keeps a union-by-label chain shallow: an adversarial union order can make those chains linear in n.",
     },
     "count-good-nodes-in-binary-tree": {
         "entry": "goodNodes",
@@ -1523,6 +1590,17 @@ PROBLEMS = {
         "scaling_note": "n = length of the input string",
         "generalized_note": "uncapped: any string length. The character set is part of the problem, not a cap \u2014 still printable ASCII.",
     },
+    "jump-game": {
+        "entry": "canJump",
+        "scalable": True,
+        "generate": _gen_jump_game,
+        "sizes": FIBONACCI_SIZES,
+        "models": FIBONACCI_MODELS,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = array length, and every element is 2 rather than sampled -- see _gen_jump_game for why a sampled array measures the draw rather than n. Two things follow. The answer is always True, since a jump of 2 from every index reaches the end, so nothing is decided early by a stranded zero; and submission-0's recursion is exactly T(n) = T(n-1) + T(n-2), because it recurses on nums[i:] for i in 1 and 2 and combines the two with max() over a generator, which short-circuits nothing even once a branch has returned True. Its call count is therefore Theta(phi**n) -- the same Fibonacci tree climbing-stairs' plain recursion walks, which is why this problem borrows that problem's ladder and its phi^n model, and measured ratios between neighbouring rungs sit at 1.617 across the whole of it. The ladder that makes that submission measurable is far too short for submission-1, and its numbers should be read as timer resolution rather than as complexity: it tabulates backwards and its `any(dp[j] for j in ...)` hits dp[i+1], already True, on its first probe, so it does O(1) work per index and runs in about 5 microseconds at the top of the ladder. The slicing matters too and is not free: each of those Theta(phi**n) calls copies a suffix, so submission-0 moves on the order of n * phi**n elements rather than phi**n",
+        "generalized_note": "uncapped: any array length, jump lengths any non-negative ints. The movement rule is part of the problem, not a cap -- from index i a jump of any length up to nums[i] is allowed, and the question is whether the last index is reachable from the first. Note that a zero is what makes the answer ever False, and that large jump values are what make a memoised or greedy solution's advantage over the plain recursion unbounded: with every value 2 the recursion is merely exponential, while values growing with n make its branching factor grow too.",
+    },
     "k-closest-points-to-origin": {
         "entry": "kClosest",
         "scalable": True,
@@ -1633,6 +1711,15 @@ PROBLEMS = {
         "adversarial_note": None,
         "scaling_note": "n = number of heights; each height is drawn uniformly from the fixed range 1..1000, independent of n, so no height is 0 and the tallest lines are spread through the array rather than sitting at its ends. An all-pairs submission therefore always does the full n(n-1)/2 comparisons, and a two-pointer sweep always does its full n steps -- neither shape gets an early exit from the input",
         "generalized_note": "uncapped: any number of lines, heights any non-negative ints. The geometry is part of the problem, not a cap — the area of a pair is still (j - i) * min(heights[i], heights[j]), and the lines stay at unit spacing in input order.",
+    },
+    "maximum-subarray": {
+        "entry": "maxSubArray",
+        "scalable": True,
+        "generate": _gen_maximum_subarray,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = array length; values are drawn uniformly from the fixed range -1000..1000, independent of n, so they are symmetric about zero and the running sum Kadane carries is reset by a negative prefix often rather than never. That is the ordinary case rather than either extreme: an all-positive array makes the answer the whole array and the running maximum never resets, and an all-negative one resets on every element, but neither changes the work, which is one pass with two comparisons per element whatever the values are. The measured time tracks the array length and nothing else",
+        "generalized_note": "uncapped: any array length, values any ints. The answer is still the largest sum over any non-empty contiguous subarray, so an all-negative array's answer is its largest single element rather than 0. Note that no solution beats linear here -- every element has to be read -- and that the answer's own subarray can be anywhere from one element to all n.",
     },
     "meeting-schedule": {
         "entry": "canAttendMeetings",
@@ -1964,6 +2051,16 @@ PROBLEMS = {
         "adversarial_note": "n distinct multiples of 2**61-1 (already ascending), all hashing to 0, so every dict insert/lookup collides",
         "scaling_note": "n = array length (input is pre-sorted); values are sampled from a range that scales with n (-10n..10n)",
         "generalized_note": "uncapped: any array length, values and target any ints \u2014 including adversarially colliding ones. The input is still sorted ascending and exactly one valid answer exists.",
+    },
+    "valid-binary-search-tree": {
+        "entry": "isValidBST",
+        "scalable": True,
+        "generate": _gen_valid_binary_search_tree,
+        "build": _build_one_bst,
+        "adversarial": None,
+        "adversarial_note": None,
+        "scaling_note": "n = number of nodes. The values are distinct and ascending and the tree is built by taking each subtree's middle element as its root, so it is a genuine BST and balanced, of depth ceil(log2(n)) -- shallow enough that the recursion never approaches CPython's stack limit anywhere on the ladder. Both facts are load-bearing for what is measured: because the tree is valid, the submission's `root.val <= min_val or root.val >= max_val` check never fires and its `and` never short-circuits, so every one of the n nodes is visited and the work is proportional to n rather than to wherever the first violation happened to sit. An invalid tree is the cheap case here, not the expensive one. The bounds are carried down as arguments rather than recomputed, so nothing about the value range affects the cost; values are sampled from -10n..10n, which grows with n only to keep them distinct",
+        "generalized_note": "uncapped: any number of nodes, values any ints, any shape. The definition is part of the problem, not a cap -- every value in a node's left subtree must be strictly less than it and every value in its right subtree strictly greater, which is a constraint on whole subtrees rather than on a node's immediate children. A skewed tree makes the depth, and a recursive solution's stack, linear in n.",
     },
     "validate-parentheses": {
         "entry": "isValid",
