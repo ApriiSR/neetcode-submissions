@@ -48,6 +48,23 @@ MOONSHOT_BASE_URL = os.environ.get("MOONSHOT_BASE_URL") or "https://api.kimi.com
 MOONSHOT_MODEL = os.environ.get("MOONSHOT_MODEL") or "k3"
 MOONSHOT_API_KEY = os.environ.get("MOONSHOT_API_KEY")
 
+# Fallback provider, used only when Moonshot fails — which in practice means
+# the Kimi-for-Coding subscription quota, and note that it reports quota
+# exhaustion as HTTP 403 `access_terminated_error`, not 429 ("You've reached
+# your 5-hour usage limit"), so nothing here keys on a status code: any
+# failure that survives the retries below falls through to this provider.
+# Billed per token at Anthropic's API rates rather than against a
+# subscription, but it only fires when the pipeline would otherwise record an
+# error, and a single analysis is a few thousand tokens. Unset key = no
+# fallback, and the recorded error says so.
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
+ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL") or "claude-opus-5"
+ANTHROPIC_BASE_URL = os.environ.get("ANTHROPIC_BASE_URL") or "https://api.anthropic.com"
+ANTHROPIC_VERSION = "2023-06-01"
+# Thinking is on by default on this model family and its tokens count against
+# max_tokens, so this is not sized for the JSON object alone.
+ANTHROPIC_MAX_TOKENS = 16000
+
 SUBMISSION_RE = re.compile(r"^submission-(\d+)\.py$")
 
 # Analysis records below this version are re-analyzed rather than skipped —
@@ -406,6 +423,64 @@ def call_moonshot(
     return body["choices"][0]["message"]["content"]
 
 
+def call_anthropic(
+    slug: str,
+    source: str,
+    scaling_note: str | None = None,
+    statement: str | None = None,
+    generalized_note: str | None = None,
+    previous_source: str | None = None,
+) -> str:
+    """Same prompt as call_moonshot, against the Anthropic Messages API.
+    SYSTEM_PROMPT is provider-neutral and already demands strict JSON, so the
+    response goes through the same parse_complexity_response.
+    """
+    if not ANTHROPIC_API_KEY:
+        raise RuntimeError("ANTHROPIC_API_KEY is not set")
+
+    user_prompt = build_user_prompt(
+        slug, source, scaling_note, statement, generalized_note, previous_source
+    )
+    payload = {
+        "model": ANTHROPIC_MODEL,
+        "max_tokens": ANTHROPIC_MAX_TOKENS,
+        "system": SYSTEM_PROMPT,
+        "messages": [{"role": "user", "content": user_prompt}],
+    }
+    request = urllib.request.Request(
+        f"{ANTHROPIC_BASE_URL.rstrip('/')}/v1/messages",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "x-api-key": ANTHROPIC_API_KEY,
+            "anthropic-version": ANTHROPIC_VERSION,
+        },
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=REQUEST_TIMEOUT_SECONDS) as resp:
+        body = json.loads(resp.read().decode("utf-8"))
+
+    # A safety decline is an HTTP 200 with stop_reason "refusal" and no text,
+    # which would otherwise surface as an unhelpful JSON parse error.
+    if body.get("stop_reason") == "refusal":
+        detail = (body.get("stop_details") or {}).get("category")
+        raise RuntimeError(f"model declined the request (refusal category: {detail})")
+
+    # `content` is a list of blocks, not a string: thinking blocks ride along
+    # with this model family (with their text omitted by default), so take the
+    # text blocks and ignore the rest.
+    text = "".join(
+        block.get("text", "")
+        for block in body.get("content", [])
+        if isinstance(block, dict) and block.get("type") == "text"
+    )
+    if not text:
+        raise ValueError(
+            f"no text content in response (stop_reason: {body.get('stop_reason')})"
+        )
+    return text
+
+
 def get_complexity(
     slug: str,
     source: str,
@@ -414,7 +489,12 @@ def get_complexity(
     statement: str | None = None,
     generalized_note: str | None = None,
     previous_source: str | None = None,
-) -> tuple[dict | None, str | None]:
+) -> tuple[dict | None, str | None, str | None]:
+    """Returns (complexity, error, model). `model` names whichever provider
+    actually answered, so the record credits the right one — the page labels
+    a submission's notes button by that field. It is None when nothing
+    answered; the caller falls back to naming the primary.
+    """
     if mock:
         return (
             {
@@ -429,36 +509,53 @@ def get_complexity(
                 "correctness_reason": "",
             },
             None,
+            "mock",
         )
 
-    last_error = None
-    for attempt in range(2):
-        try:
-            raw_text = call_moonshot(
-                slug, source, scaling_note, statement, generalized_note, previous_source
-            )
-            return parse_complexity_response(raw_text), None
-        except (
-            urllib.error.URLError,
-            urllib.error.HTTPError,
-            # socket.timeout is an alias of TimeoutError since 3.10 and is NOT a
-            # URLError subclass, so it used to escape and kill the whole run —
-            # every submission after the slow one lost, on one slow response.
-            TimeoutError,
-            OSError,
-            KeyError,
-            IndexError,
-            ValueError,
-            json.JSONDecodeError,
-            RuntimeError,
-        ) as exc:
-            last_error = f"{type(exc).__name__}: {exc}"
-            if isinstance(exc, urllib.error.HTTPError):
-                try:
-                    last_error += f" — {exc.read().decode('utf-8', 'replace')[:500]}"
-                except OSError:
-                    pass
-    return None, last_error
+    # Tried in order, each with its own retries. The fallback is skipped
+    # entirely when no key is configured, so the common single-provider setup
+    # behaves exactly as it did before it existed.
+    providers = [(MOONSHOT_MODEL, call_moonshot)]
+    if ANTHROPIC_API_KEY:
+        providers.append((ANTHROPIC_MODEL, call_anthropic))
+
+    errors = []
+    for model, call in providers:
+        last_error = None
+        for attempt in range(2):
+            try:
+                raw_text = call(
+                    slug, source, scaling_note, statement, generalized_note, previous_source
+                )
+                return parse_complexity_response(raw_text), None, model
+            except (
+                urllib.error.URLError,
+                urllib.error.HTTPError,
+                # socket.timeout is an alias of TimeoutError since 3.10 and is
+                # NOT a URLError subclass, so it used to escape and kill the
+                # whole run — every submission after the slow one lost, on one
+                # slow response.
+                TimeoutError,
+                OSError,
+                KeyError,
+                IndexError,
+                ValueError,
+                json.JSONDecodeError,
+                RuntimeError,
+            ) as exc:
+                last_error = f"{type(exc).__name__}: {exc}"
+                if isinstance(exc, urllib.error.HTTPError):
+                    try:
+                        last_error += f" — {exc.read().decode('utf-8', 'replace')[:500]}"
+                    except OSError:
+                        pass
+        errors.append(f"{model}: {last_error}")
+
+    # Worth distinguishing in the record: a fallback that failed too, versus
+    # one that was never configured. Both look like "the run went red".
+    if not ANTHROPIC_API_KEY:
+        errors.append("no ANTHROPIC_API_KEY set, so no fallback was attempted")
+    return None, "; ".join(errors), None
 
 
 def previous_submission(slug: str, number: int) -> tuple[Path | None, dict | None]:
@@ -568,7 +665,7 @@ def analyze_submission(slug: str, number: int, path: Path, mock: bool) -> tuple[
         previous_path.read_text(encoding="utf-8") if previous_path is not None else None
     )
 
-    complexity, error = get_complexity(
+    complexity, error, model = get_complexity(
         slug, source, mock, scaling_note, statement_text, generalized_note, previous_source
     )
 
@@ -584,7 +681,11 @@ def analyze_submission(slug: str, number: int, path: Path, mock: bool) -> tuple[
         # in one field.
         "statement": statement_slug if statement_text else None,
         "analysis_version": ANALYSIS_VERSION,
-        "model": MOONSHOT_MODEL if not mock else "mock",
+        # Whichever provider answered — the fallback's records must not be
+        # filed under the primary's name. None means nothing answered, and
+        # naming the provider that was asked first is the useful thing to
+        # record there.
+        "model": model or (MOONSHOT_MODEL if not mock else "mock"),
         "analyzed_at": datetime.now(timezone.utc).isoformat(),
     }
     relation = settle_relation(

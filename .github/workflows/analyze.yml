@@ -81,6 +81,13 @@ jobs:
           MOONSHOT_API_KEY: ${{ secrets.MOONSHOT_API_KEY }}
           MOONSHOT_MODEL: ${{ vars.MOONSHOT_MODEL }}
           MOONSHOT_BASE_URL: ${{ vars.MOONSHOT_BASE_URL }}
+          # Fallback provider, used only when the call above fails — in
+          # practice the Kimi-for-Coding subscription hitting its 5-hour
+          # quota, which it reports as a 403, not a 429. Billed per token, so
+          # it costs nothing on a normal run. Unset is fine: the fallback is
+          # skipped and the recorded error says it wasn't configured.
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL }}
         run: python3 scripts/analyze.py
 
       - name: Run benchmarks

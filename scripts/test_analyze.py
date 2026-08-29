@@ -147,6 +147,14 @@ class SettleRelationTests(unittest.TestCase):
 
 
 class JsonParsingTests(unittest.TestCase):
+    def setUp(self):
+        # ANTHROPIC_API_KEY is read from the environment at import time, so a
+        # developer who happens to have one exported would otherwise send the
+        # failure-path tests below to the real fallback provider.
+        patcher = mock.patch.object(analyze, "ANTHROPIC_API_KEY", None)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
     def test_plain_json(self):
         raw = '{"time_average": "O(n)", "time_worst": "O(n)", "space": "O(1)", "hash_dependent": false, "benchmark_model": "n", "summary": "s", "correctness": "general"}'
         data = analyze.parse_complexity_response(raw)
@@ -198,7 +206,7 @@ class JsonParsingTests(unittest.TestCase):
             with mock.patch.object(
                 analyze, "call_moonshot", side_effect=[TimeoutError("read timed out"), good]
             ):
-                data, error = analyze.get_complexity("slug", "src", mock=False)
+                data, error, _model = analyze.get_complexity("slug", "src", mock=False)
         self.assertIsNone(error)
         self.assertEqual(data["time_average"], "O(n)")
 
@@ -207,7 +215,7 @@ class JsonParsingTests(unittest.TestCase):
             with mock.patch.object(
                 analyze, "call_moonshot", side_effect=TimeoutError("read timed out")
             ):
-                data, error = analyze.get_complexity("slug", "src", mock=False)
+                data, error, _model = analyze.get_complexity("slug", "src", mock=False)
         self.assertIsNone(data)
         self.assertIn("TimeoutError", error)
 
@@ -222,7 +230,7 @@ class JsonParsingTests(unittest.TestCase):
             with mock.patch.object(
                 analyze, "call_moonshot", side_effect=["not json", good]
             ) as mock_call:
-                data, error = analyze.get_complexity("slug", "code", mock=False)
+                data, error, _model = analyze.get_complexity("slug", "code", mock=False)
         self.assertIsNone(error)
         self.assertEqual(data["time_average"], "O(n)")
         self.assertEqual(mock_call.call_count, 2)
@@ -232,17 +240,173 @@ class JsonParsingTests(unittest.TestCase):
             with mock.patch.object(
                 analyze, "call_moonshot", side_effect=["nope", "still nope"]
             ):
-                data, error = analyze.get_complexity("slug", "code", mock=False)
+                data, error, _model = analyze.get_complexity("slug", "code", mock=False)
         self.assertIsNone(data)
         self.assertIsNotNone(error)
 
     def test_mock_mode_skips_api(self):
         with mock.patch.object(analyze, "call_moonshot") as mock_call:
-            data, error = analyze.get_complexity("slug", "code", mock=True)
+            data, error, model = analyze.get_complexity("slug", "code", mock=True)
         mock_call.assert_not_called()
         self.assertIsNone(error)
         self.assertEqual(data["summary"], "Mock analysis placeholder (no LLM call was made).")
         self.assertEqual(data["benchmark_model"], "n")
+
+
+def _anthropic_response(body):
+    class _FakeResp:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def read(self):
+            return json.dumps(body).encode("utf-8")
+
+    return _FakeResp()
+
+
+class CallAnthropicTests(unittest.TestCase):
+    def setUp(self):
+        patcher = mock.patch.object(analyze, "ANTHROPIC_API_KEY", "fake-anthropic-key")
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_concatenates_text_blocks_and_ignores_thinking(self):
+        # Thinking is on by default on this model family and its blocks ride
+        # along in `content` with their text omitted, so a reader that took
+        # content[0] would get an empty string rather than the JSON.
+        body = {
+            "content": [
+                {"type": "thinking", "thinking": ""},
+                {"type": "text", "text": '{"time_average": '},
+                {"type": "text", "text": '"O(n)"}'},
+            ],
+            "stop_reason": "end_turn",
+        }
+        with mock.patch("urllib.request.urlopen", return_value=_anthropic_response(body)):
+            text = analyze.call_anthropic("slug", "src")
+        self.assertEqual(text, '{"time_average": "O(n)"}')
+
+    def test_posts_to_the_messages_endpoint_with_auth_headers(self):
+        body = {"content": [{"type": "text", "text": "{}"}], "stop_reason": "end_turn"}
+        captured = {}
+
+        def _fake_urlopen(request, timeout=None):
+            captured["url"] = request.full_url
+            captured["headers"] = request.headers
+            captured["payload"] = json.loads(request.data.decode("utf-8"))
+            return _anthropic_response(body)
+
+        with mock.patch("urllib.request.urlopen", side_effect=_fake_urlopen):
+            analyze.call_anthropic("slug", "src")
+
+        self.assertTrue(captured["url"].endswith("/v1/messages"))
+        # urllib title-cases header names it stores.
+        self.assertEqual(captured["headers"]["X-api-key"], "fake-anthropic-key")
+        self.assertEqual(captured["headers"]["Anthropic-version"], analyze.ANTHROPIC_VERSION)
+        self.assertEqual(captured["payload"]["system"], analyze.SYSTEM_PROMPT)
+        self.assertEqual(captured["payload"]["messages"][0]["role"], "user")
+        self.assertIn("max_tokens", captured["payload"])
+
+    def test_refusal_raises_rather_than_failing_to_parse(self):
+        body = {
+            "content": [],
+            "stop_reason": "refusal",
+            "stop_details": {"type": "refusal", "category": "cyber"},
+        }
+        with mock.patch("urllib.request.urlopen", return_value=_anthropic_response(body)):
+            with self.assertRaises(RuntimeError) as caught:
+                analyze.call_anthropic("slug", "src")
+        self.assertIn("cyber", str(caught.exception))
+
+    def test_no_text_block_raises_with_the_stop_reason(self):
+        body = {"content": [{"type": "thinking", "thinking": ""}], "stop_reason": "max_tokens"}
+        with mock.patch("urllib.request.urlopen", return_value=_anthropic_response(body)):
+            with self.assertRaises(ValueError) as caught:
+                analyze.call_anthropic("slug", "src")
+        self.assertIn("max_tokens", str(caught.exception))
+
+    def test_missing_key_raises_before_any_request(self):
+        with mock.patch.object(analyze, "ANTHROPIC_API_KEY", None):
+            with mock.patch("urllib.request.urlopen") as urlopen:
+                with self.assertRaises(RuntimeError):
+                    analyze.call_anthropic("slug", "src")
+        urlopen.assert_not_called()
+
+
+class AnthropicFallbackTests(unittest.TestCase):
+    """The fallback exists because the Kimi-for-Coding subscription runs out
+    of quota — reported as HTTP 403 access_terminated_error, not 429 — and a
+    run that hits it records an error for every submission left in the queue.
+    """
+
+    GOOD = (
+        '{"time_average": "O(n)", "time_worst": "O(n)", "space": "O(1)", '
+        '"hash_dependent": false, "benchmark_model": "n", "summary": "s", '
+        '"correctness": "general"}'
+    )
+
+    def test_moonshot_failure_falls_through_to_anthropic(self):
+        with mock.patch.object(analyze, "MOONSHOT_API_KEY", "fake-key"), \
+             mock.patch.object(analyze, "ANTHROPIC_API_KEY", "fake-anthropic-key"), \
+             mock.patch.object(analyze, "ANTHROPIC_MODEL", "claude-opus-5"), \
+             mock.patch.object(analyze, "call_moonshot", side_effect=RuntimeError("quota")), \
+             mock.patch.object(analyze, "call_anthropic", return_value=self.GOOD) as fallback:
+            data, error, model = analyze.get_complexity("slug", "src", mock=False)
+        self.assertIsNone(error)
+        self.assertEqual(data["time_average"], "O(n)")
+        # Credited to whoever answered: the page labels the notes button by
+        # this field, so filing a fallback record under "k3" would be a lie.
+        self.assertEqual(model, "claude-opus-5")
+        self.assertEqual(fallback.call_count, 1)
+
+    def test_anthropic_is_not_called_while_moonshot_works(self):
+        with mock.patch.object(analyze, "MOONSHOT_API_KEY", "fake-key"), \
+             mock.patch.object(analyze, "ANTHROPIC_API_KEY", "fake-anthropic-key"), \
+             mock.patch.object(analyze, "call_moonshot", return_value=self.GOOD), \
+             mock.patch.object(analyze, "call_anthropic") as fallback:
+            data, error, model = analyze.get_complexity("slug", "src", mock=False)
+        fallback.assert_not_called()
+        self.assertIsNone(error)
+        self.assertEqual(model, analyze.MOONSHOT_MODEL)
+
+    def test_anthropic_gets_its_own_retry(self):
+        with mock.patch.object(analyze, "MOONSHOT_API_KEY", "fake-key"), \
+             mock.patch.object(analyze, "ANTHROPIC_API_KEY", "fake-anthropic-key"), \
+             mock.patch.object(analyze, "call_moonshot", side_effect=RuntimeError("quota")), \
+             mock.patch.object(
+                 analyze, "call_anthropic", side_effect=[TimeoutError("slow"), self.GOOD]
+             ):
+            data, error, _model = analyze.get_complexity("slug", "src", mock=False)
+        self.assertIsNone(error)
+        self.assertEqual(data["space"], "O(1)")
+
+    def test_both_failing_reports_both_errors(self):
+        with mock.patch.object(analyze, "MOONSHOT_API_KEY", "fake-key"), \
+             mock.patch.object(analyze, "ANTHROPIC_API_KEY", "fake-anthropic-key"), \
+             mock.patch.object(analyze, "ANTHROPIC_MODEL", "claude-opus-5"), \
+             mock.patch.object(analyze, "call_moonshot", side_effect=RuntimeError("quota")), \
+             mock.patch.object(analyze, "call_anthropic", side_effect=TimeoutError("slow")):
+            data, error, model = analyze.get_complexity("slug", "src", mock=False)
+        self.assertIsNone(data)
+        self.assertIsNone(model)
+        self.assertIn("quota", error)
+        self.assertIn("slow", error)
+        self.assertIn("claude-opus-5", error)
+
+    def test_unconfigured_fallback_is_named_in_the_error(self):
+        # A run that went red because no fallback exists reads identically to
+        # one where the fallback failed too, unless the record says which.
+        with mock.patch.object(analyze, "MOONSHOT_API_KEY", "fake-key"), \
+             mock.patch.object(analyze, "ANTHROPIC_API_KEY", None), \
+             mock.patch.object(analyze, "call_moonshot", side_effect=RuntimeError("quota")), \
+             mock.patch.object(analyze, "call_anthropic") as fallback:
+            data, error, _model = analyze.get_complexity("slug", "src", mock=False)
+        fallback.assert_not_called()
+        self.assertIsNone(data)
+        self.assertIn("ANTHROPIC_API_KEY", error)
 
 
 class BuildUserPromptTests(unittest.TestCase):
@@ -527,7 +691,7 @@ class RepoIntegrationTests(unittest.TestCase):
         self.assertEqual(records, [])
 
     def test_new_this_run_excludes_errored_submissions(self):
-        with mock.patch.object(analyze, "get_complexity", return_value=(None, "boom")):
+        with mock.patch.object(analyze, "get_complexity", return_value=(None, "boom", None)):
             sys.argv = ["analyze.py", "--mock"]
             with self.assertRaises(SystemExit):
                 analyze.main()

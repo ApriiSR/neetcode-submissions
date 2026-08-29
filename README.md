@@ -99,7 +99,13 @@ the script computes:
   behavior (worst case accounts for adversarial hash collisions when
   dicts/sets are involved), a `benchmark_model` (K3's own single-variable
   reduction of the running time — see below), a short summary, and
-  optional style notes.
+  optional style notes. If that call fails twice and `ANTHROPIC_API_KEY` is
+  set, the same prompt goes to the Anthropic Messages API instead — see
+  [Fallback provider](#fallback-provider).
+
+Each record's `model` field names whichever provider actually answered, and
+the progress page labels a submission's notes button by it. A record written
+by the fallback therefore reads "claude-opus-5's notes", not "k3's".
 
 The prompt includes a `scaling_note` from `generators.py` when the slug has
 one — a one-line description of how that problem's generated input scales
@@ -249,12 +255,45 @@ redirects to `platform.kimi.ai`) bills per-token and uses
 (`gh variable set ... --repo ApriiSR/neetcode-submissions`), or the same
 environment variables for local runs.
 
+### Fallback provider
+
+Billing against a subscription means running out of it. Kimi-for-Coding
+enforces a rolling 5-hour quota and reports exhaustion as **HTTP 403
+`access_terminated_error`** — not 429 — with a message pointing at the
+membership page. Every submission still queued when that happens gets an
+error record instead of an analysis, and the run goes red.
+
+So `analyze.py` takes a second provider. After the Moonshot call has failed
+both its attempts — for any reason, since the quota error is a 403 and
+keying on a status code would miss it — the same prompt goes to the
+Anthropic Messages API, with its own two attempts. Set it up with:
+
+```
+gh secret set ANTHROPIC_API_KEY --repo ApriiSR/neetcode-submissions
+```
+
+Notes:
+
+- **It costs nothing on a normal run.** The fallback is only reached when
+  the pipeline would otherwise record an error, and one analysis is a few
+  thousand tokens either way.
+- **The default model is `claude-opus-5`.** Override it with an
+  `ANTHROPIC_MODEL` repository variable (`claude-sonnet-5` is cheaper) or
+  the same environment variable locally.
+- **Leaving the secret unset is a supported configuration**, not a broken
+  one: the fallback is skipped entirely and the error record says
+  `no ANTHROPIC_API_KEY set, so no fallback was attempted`, which is what
+  distinguishes it from a fallback that was tried and also failed.
+- **The prompt is unchanged.** `SYSTEM_PROMPT` names no provider and already
+  demands strict JSON, so both responses go through the same parser.
+
 ### Local usage
 
 ```
 python3 scripts/analyze.py --mock          # dry run, no API/statement calls, placeholder complexity
 python3 scripts/analyze.py --only is-palindrome
 MOONSHOT_API_KEY=... python3 scripts/analyze.py
+ANTHROPIC_API_KEY=... python3 scripts/analyze.py   # fallback when the above is rate-limited
 python3 -m unittest scripts.test_analyze -v
 python3 -m unittest scripts.test_statements -v
 ```
