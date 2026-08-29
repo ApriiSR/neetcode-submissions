@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-29T02:30:26.078522+00:00",
+  "generated_at": "2026-08-29T02:39:57.079485+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -1721,6 +1721,34 @@
           "relation_to_previous": "new-approach",
           "slug": "count-connected-components",
           "solved_at": "2026-08-28T19:29:29-07:00",
+          "statement": "count-connected-components"
+        },
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-29T02:39:56.822273+00:00",
+          "complexity": {
+            "benchmark_model": "n^2",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "The deque swap fixes the O(n) pop(0) from the previous version, and iterating list(edges) instead of edges[::-1] is a safe copy either way. The remaining cost drivers are the full edge-list copy and rescan per dequeued vertex, plus linear edges.remove / in vertices / vertices.remove list scans; membership tests on vertices would at least be O(1) with a set, though the rescan dominates. O(n + m) is achievable by ||building an adjacency list once up front (or using union-find) with a visited set||.",
+            "relation_to_previous": "revision",
+            "space": "O(n + m)",
+            "summary": "Counts components via BFS, but instead of an adjacency structure it iterates a fresh copy of the entire edge list on every dequeue, removing incident edges and enqueuing any neighbors still in the unvisited-vertices list.",
+            "time_average": "O(m*(n + m))",
+            "time_worst": "O(m*(n + m))"
+          },
+          "file": "Data Structures & Algorithms/count-connected-components/submission-2.py",
+          "golf": {
+            "bytes": 718,
+            "characters": 718,
+            "non_blank_lines": 19,
+            "tokens": 138
+          },
+          "model": "k3",
+          "relation_to_previous": "new-approach",
+          "slug": "count-connected-components",
+          "solved_at": "2026-08-28T19:38:26-07:00",
           "statement": "count-connected-components"
         }
       ]
