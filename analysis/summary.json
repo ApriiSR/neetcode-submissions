@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-29T01:48:29.026392+00:00",
+  "generated_at": "2026-08-29T02:26:57.498031+00:00",
   "problems": {
     "add-two-numbers": {
       "submissions": [
@@ -1664,6 +1664,36 @@
           "slug": "copy-linked-list-with-random-pointer",
           "solved_at": "2026-08-14T18:19:15-07:00",
           "statement": "copy-linked-list-with-random-pointer"
+        }
+      ]
+    },
+    "count-connected-components": {
+      "submissions": [
+        {
+          "analysis_version": 9,
+          "analyzed_at": "2026-08-29T02:26:57.308050+00:00",
+          "complexity": {
+            "benchmark_model": "n^2",
+            "correctness": "general",
+            "correctness_reason": "",
+            "hash_dependent": false,
+            "notes": "Correct but very slow: the per-vertex full edge scan plus O(E) list.remove calls make this quadratic in the edge count. A far faster O(V + E) approach exists using ||an adjacency list built once, then BFS/DFS \u2014 or a Union-Find over the edges||. Minor: `List` needs `from typing import List`, and `edges[::-1]` copies the whole list on every vertex visit, which is pure overhead since you could iterate `edges` directly while collecting removals.",
+            "space": "O(V + E)",
+            "summary": "DFS from each unvisited vertex, where every pop scans the entire remaining edge list (via a reversed copy) to find neighbors, and used edges/vertices are removed from their lists with linear-time removals.",
+            "time_average": "O(V^2 + E^2)",
+            "time_worst": "O(V^2 + E^2)"
+          },
+          "file": "Data Structures & Algorithms/count-connected-components/submission-0.py",
+          "golf": {
+            "bytes": 707,
+            "characters": 707,
+            "non_blank_lines": 19,
+            "tokens": 138
+          },
+          "model": "k3",
+          "slug": "count-connected-components",
+          "solved_at": "2026-08-28T19:25:41-07:00",
+          "statement": "count-connected-components"
         }
       ]
     },
