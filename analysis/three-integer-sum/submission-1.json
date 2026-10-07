@@ -1,0 +1,28 @@
+{
+  "analysis_version": 9,
+  "analyzed_at": "2026-10-07T11:34:34.405653+00:00",
+  "complexity": {
+    "benchmark_model": "n^2",
+    "correctness": "general",
+    "correctness_reason": "",
+    "hash_dependent": true,
+    "notes": "The header comment is honest about the key point: at these toy parameters (D = 16, L = 4) the Theorem 5 oracle spends more leaf products per wanted entry than a direct inner product, and the subquadratic bound needs N >= D^18 = 2^72, so in pure Python this runs as an enormous-constant O(n^2) \u2014 asymptotically identical to the previous two-pointer submission and orders of magnitude slower in wall clock. The added prime-selection sweep alone costs Theta(d^2 / log d) for d distinct values, and the straightforward oracle path makes the per-convolution-instance work Theta(d^2) anyway, so the machinery buys nothing at any reachable scale. The O(n^4) worst case is hash-adversary-driven: the output itself can be Theta(n^2) triples, and the found/rejected set lookups degrade against adversarially colliding integer keys. Impressively documented and structured for what it is, but the deleted 20-line sort-and-sweep does the same job at every n a judge will ever see.",
+    "relation_to_previous": "new-approach",
+    "space": "O(n^2)",
+    "summary": "Reduces 3SUM to Convolution-3SUM by hashing the distinct values into buckets modulo a collision-minimizing prime, then to Exact Triangle via hashing modulo small primes (2 and 3), with the resulting sparse-triangle queries answered by a toy-parameter port of the Alman\u2013Vassilevska Williams thin-product oracle when there are at most 200 distinct values and by a brute-force common-neighbour test above that. Candidates are filtered by exact integer witness checks, elements in overfull buckets are handled by direct scan, and multiplicities are verified against value counts before output.",
+    "time_average": "O(n^2)",
+    "time_worst": "O(n^4)"
+  },
+  "file": "Data Structures & Algorithms/three-integer-sum/submission-1.py",
+  "golf": {
+    "bytes": 23026,
+    "characters": 23026,
+    "non_blank_lines": 510,
+    "tokens": 4700
+  },
+  "model": "k3",
+  "relation_to_previous": "new-approach",
+  "slug": "three-integer-sum",
+  "solved_at": "2026-10-07T04:34:55-07:00",
+  "statement": "three-integer-sum"
+}
