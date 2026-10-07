@@ -1,0 +1,53 @@
+name: Announce one submission
+
+# Manually (re-)post a single already-analyzed submission to Discord, for when
+# the normal Analyze run didn't announce it — e.g. its analysis was committed
+# alongside the submission, so the run never counted it as new this run.
+on:
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: Problem slug (directory name), e.g. three-integer-sum
+        required: true
+      number:
+        description: Submission number, e.g. 1
+        required: true
+
+jobs:
+  announce:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Set up screenshot rendering
+        timeout-minutes: 10
+        uses: ./.github/actions/setup-render
+
+      - name: Announce
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          SLUG: ${{ inputs.slug }}
+          NUMBER: ${{ inputs.number }}
+          ANALYZE_NEW_THIS_RUN_PATH: ${{ runner.temp }}/new-this-run.json
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          slug, number = os.environ["SLUG"], int(os.environ["NUMBER"])
+          analysis = Path("analysis") / slug / f"submission-{number}.json"
+          record = json.loads(analysis.read_text(encoding="utf-8"))
+          Path(os.environ["ANALYZE_NEW_THIS_RUN_PATH"]).write_text(json.dumps([{
+              "slug": slug,
+              "number": number,
+              "file": record["file"],
+              "analysis_file": str(analysis),
+              "reanalysis": False,
+              "relation_to_previous": record.get("relation_to_previous"),
+          }]))
+          PY
+          python3 scripts/announce.py
