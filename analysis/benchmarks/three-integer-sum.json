@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-29T04:46:20.463750+00:00",
+  "generated_at": "2026-10-07T11:35:40.847109+00:00",
   "python_hash_seed": "0",
   "slug": "three-integer-sum",
   "submissions": {
@@ -28,6 +28,33 @@
         287.27269700004854,
         1144.8045480000246,
         4676.565995000033
+      ],
+      "truncated_by": null,
+      "unmeasured": null
+    },
+    "submission-1.py": {
+      "adversarial": null,
+      "benchmark_version": 3,
+      "best_fit": "n^1.5",
+      "best_fit_r2": 0.9905521464482806,
+      "best_fit_slope": 1.5000000000000004,
+      "k3_model": "n^2",
+      "k3_model_r2": 0.9576718102331246,
+      "r2": 0.9997812566388259,
+      "sizes": [
+        256,
+        512,
+        1024,
+        2048,
+        4096
+      ],
+      "slope": 1.6594366245471148,
+      "times_ms": [
+        50.17819500000087,
+        149.35086300000222,
+        491.8137769999973,
+        1504.5056259999967,
+        4973.051932999993
       ],
       "truncated_by": null,
       "unmeasured": null
